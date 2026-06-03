@@ -1,0 +1,164 @@
+{
+  "recipes": [
+    {
+      "id": 1,
+      "name": "麻婆豆腐",
+      "image": "food/mapo-tofu.png",
+      "description": "川菜代表,麻辣鲜香,豆腐嫩滑。麻、辣、烫、香、酥、嫩、鲜、活八字箴言,让人欲罢不能。",
+      "cooking_time": 20,
+      "difficulty": "中等",
+      "calories": 180,
+      "tags": ["川菜", "麻辣", "下饭菜"],
+      "ingredients": ["嫩豆腐 1盒", "肉末 100g", "郫县豆瓣酱 2勺", "花椒粉 适量", "葱花 适量"],
+      "steps": [
+        "豆腐切块,用盐水浸泡5分钟",
+        "热锅下油,炒香肉末",
+        "加入豆瓣酱炒出红油",
+        "加适量水烧开",
+        "下豆腐块,小火炖5分钟",
+        "用水淀粉勾芡,撒花椒粉和葱花即可"
+      ],
+      "avg_rating": 4.9,
+      "like_count": 1432,
+      "comment_count": 112,
+      "rating_count": 401
+    },
+    {
+      "id": 2,
+      "name": "红烧排骨",
+      "image": "food/braised-spare-ribs.png",
+      "description": "经典家常菜,排骨软烂入味,色泽红亮诱人。肉质酥烂,酱香浓郁,是家庭聚餐的必备硬菜。",
+      "cooking_time": 50,
+      "difficulty": "中等",
+      "calories": 420,
+      "tags": ["家常菜", "经典", "下饭菜"],
+      "ingredients": ["排骨 500g", "冰糖 30g", "生抽 3勺", "老抽 1勺", "料酒 2勺"],
+      "steps": [
+        "排骨冷水下锅焯水去血沫",
+        "锅中放冰糖,小火炒至焦糖色",
+        "下排骨翻炒上色",
+        "加入生抽、老抽、料酒",
+        "加开水没过排骨,大火烧开转小火炖40分钟",
+        "大火收汁即可"
+      ],
+      "avg_rating": 4.8,
+      "like_count": 1356,
+      "comment_count": 98,
+      "rating_count": 378
+    },
+    {
+      "id": 3,
+      "name": "炒娃娃菜",
+      "image": "food/fried-baby-cabbage.png",
+      "description": "清淡爽口的家常素菜,娃娃菜鲜嫩多汁,口感清甜。简单易做,营养丰富,适合日常餐桌。",
+      "cooking_time": 10,
+      "difficulty": "简单",
+      "calories": 80,
+      "tags": ["家常菜", "素菜", "清淡"],
+      "ingredients": ["娃娃菜 2棵", "蒜瓣 4个", "盐 适量", "食用油 适量"],
+      "steps": [
+        "娃娃菜洗净切段,蒜切片",
+        "热锅下油,爆香蒜片",
+        "下娃娃菜大火快炒",
+        "加盐调味",
+        "炒至娃娃菜变软即可出锅"
+      ],
+      "avg_rating": 4.5,
+      "like_count": 876,
+      "comment_count": 56,
+      "rating_count": 234
+    },
+    {
+      "id": 4,
+      "name": "菠菜虾仁",
+      "image": "food/spinach-shrimp.png",
+      "description": "营养丰富的健康菜品,虾仁鲜嫩弹牙,菠菜翠绿爽口。高蛋白低脂肪,适合追求健康饮食的人群。",
+      "cooking_time": 15,
+      "difficulty": "简单",
+      "calories": 150,
+      "tags": ["家常菜", "营养均衡", "清淡"],
+      "ingredients": ["菠菜 300g", "虾仁 200g", "蒜瓣 3个", "盐 适量", "料酒 1勺"],
+      "steps": [
+        "虾仁用料酒和盐腌制10分钟",
+        "菠菜洗净切段,焯水备用",
+        "热锅下油,爆香蒜片",
+        "下虾仁翻炒至变色",
+        "加入焯好的菠菜翻炒均匀",
+        "加盐调味即可出锅"
+      ],
+      "avg_rating": 4.6,
+      "like_count": 934,
+      "comment_count": 67,
+      "rating_count": 256
+    },
+    {
+      "id": 5,
+      "name": "豆角炒肉",
+      "image": "food/string-bean-with-pork.png",
+      "description": "经典家常下饭菜,豆角翠绿脆嫩,肉片鲜香入味。荤素搭配,营养均衡,是老百姓餐桌上的常客。",
+      "cooking_time": 20,
+      "difficulty": "简单",
+      "calories": 220,
+      "tags": ["家常菜", "下饭菜", "荤素搭配"],
+      "ingredients": ["豆角 300g", "猪肉 150g", "蒜瓣 3个", "生抽 2勺", "盐 适量"],
+      "steps": [
+        "豆角洗净切段,猪肉切片",
+        "热锅下油,炒至肉片变色盛出",
+        "锅中加油,爆香蒜片",
+        "下豆角翻炒至变色",
+        "加入少许水焖煮2分钟",
+        "倒入肉片,加生抽和盐调味,翻炒均匀即可"
+      ],
+      "avg_rating": 4.7,
+      "like_count": 1023,
+      "comment_count": 78,
+      "rating_count": 289
+    },
+    {
+      "id": 6,
+      "name": "辣椒炒肉",
+      "image": "food/chili-with-pork.png",
+      "description": "湘菜经典,辣椒香辣过瘾,肉片鲜嫩多汁。辣而不燥,香而不腻,是米饭的绝佳搭档。",
+      "cooking_time": 15,
+      "difficulty": "简单",
+      "calories": 200,
+      "tags": ["湘菜", "下饭菜", "香辣"],
+      "ingredients": ["青辣椒 200g", "猪肉 200g", "蒜瓣 3个", "生抽 2勺", "豆豉 适量"],
+      "steps": [
+        "辣椒切片,猪肉切片",
+        "热锅不放油,先炒辣椒至虎皮状盛出",
+        "锅中下油,炒至肉片变色",
+        "加入蒜片和豆豉爆香",
+        "倒入辣椒翻炒均匀",
+        "加生抽调味,大火快炒即可出锅"
+      ],
+      "avg_rating": 4.8,
+      "like_count": 1187,
+      "comment_count": 92,
+      "rating_count": 334
+    },
+    {
+      "id": 7,
+      "name": "青椒炒肉",
+      "image": "food/green-pepper-with-pork.png",
+      "description": "家常经典快手菜,青椒清脆爽口,肉片滑嫩鲜香。制作简单,口感丰富,是忙碌工作日的理想选择。",
+      "cooking_time": 12,
+      "difficulty": "简单",
+      "calories": 190,
+      "tags": ["家常菜", "快手菜", "下饭菜"],
+      "ingredients": ["青椒 3个", "猪肉 150g", "蒜瓣 2个", "生抽 2勺", "盐 适量"],
+      "steps": [
+        "青椒切块,猪肉切片",
+        "热锅下油,炒至肉片变色盛出",
+        "锅中加油,爆香蒜片",
+        "下青椒翻炒至断生",
+        "倒入肉片,加生抽和盐调味",
+        "翻炒均匀即可出锅"
+      ],
+      "avg_rating": 4.6,
+      "like_count": 1045,
+      "comment_count": 73,
+      "rating_count": 301
+    }
+  ]
+}
