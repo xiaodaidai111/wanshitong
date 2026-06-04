@@ -1,4 +1,30 @@
-import request, { getBaseURL } from './request.js'
+const API_HOST = 'http://8.138.206.136'
+
+const DEFAULT_BACKEND_URLS = {
+  tuantuan: `${API_HOST}:5000`,
+  takeout: `${API_HOST}:5000/takeout`
+}
+
+const normalizeBaseURL = (url) => {
+  if (!url) return ''
+  return url.endsWith('/') ? url.slice(0, -1) : url
+}
+
+const getBaseURL = (service = 'tuantuan') => {
+  let urls = { ...DEFAULT_BACKEND_URLS }
+  try {
+    const stored = uni.getStorageSync('backend_urls')
+    if (stored) {
+      const parsed = typeof stored === 'string' ? JSON.parse(stored) : stored
+      if (parsed && typeof parsed === 'object') {
+        urls = { ...urls, ...parsed }
+      }
+    }
+  } catch (e) {
+    // ignore invalid local overrides
+  }
+  return normalizeBaseURL(urls[service] || urls.tuantuan)
+}
 
 class GuestManager {
   constructor() {
@@ -55,12 +81,22 @@ class GuestManager {
 
   async createGuestSession() {
     try {
-      const res = await request.post('/api/auth/guest/create', {
-        device_info: {
-          platform: uni.getSystemInfoSync().platform,
-          system: uni.getSystemInfoSync().system,
-          model: uni.getSystemInfoSync().model
-        }
+      const baseURL = getBaseURL('tuantuan')
+      const res = await new Promise((resolve, reject) => {
+        uni.request({
+          url: baseURL + '/api/auth/guest/create',
+          method: 'POST',
+          data: {
+            device_info: {
+              platform: uni.getSystemInfoSync().platform,
+              system: uni.getSystemInfoSync().system,
+              model: uni.getSystemInfoSync().model
+            }
+          },
+          header: { 'Content-Type': 'application/json' },
+          success: (r) => resolve(r.data),
+          fail: reject
+        })
       })
 
       if (res.code === 200) {
@@ -83,7 +119,16 @@ class GuestManager {
     }
 
     try {
-      const res = await request.get(`/api/auth/guest/verify?session_id=${this.sessionId}`)
+      const baseURL = getBaseURL('tuantuan')
+      const res = await new Promise((resolve, reject) => {
+        uni.request({
+          url: baseURL + `/api/auth/guest/verify?session_id=${this.sessionId}`,
+          method: 'GET',
+          header: { 'Content-Type': 'application/json' },
+          success: (r) => resolve(r.data),
+          fail: reject
+        })
+      })
 
       if (res.code === 200) {
         return { valid: true, ...(res.data || {}) }
@@ -118,7 +163,6 @@ class GuestManager {
   }
 
   getAuthHeader() {
-    // 优先使用登录 token，避免在“游客状态未及时清理”的情况下误走游客接口逻辑
     const token = uni.getStorageSync('token')
     if (token) {
       return { 'Authorization': `Bearer ${token}` }

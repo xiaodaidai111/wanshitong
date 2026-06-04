@@ -2,8 +2,8 @@
   <view class="cooking-expert-view">
     <view class="view-header">
       <view class="header-decoration"></view>
-      <view class="view-title">AIGC实操案例助手</view>
-      <view class="view-subtitle">把抽象知识变成可运行项目</view>
+      <view class="view-title">智能辅导助手</view>
+      <view class="view-subtitle">多模态答疑解惑 · 文字 · 图解 · 代码</view>
     </view>
     
     <view class="content-container">
@@ -12,7 +12,7 @@
         <view class="chef-dialogue-box">
           <view class="exp-container" style="margin-top: 0; padding-top: 0; border-top: none;">
             <view class="exp-header">
-              <text class="exp-label">🌟 实操经验点(EXP)</text>
+              <text class="exp-label">🌟 辅导经验点(EXP)</text>
               <text class="exp-value">{{ cookingExp }} / {{ expToNextLevel }}</text>
             </view>
             <view class="exp-bar-bg">
@@ -26,7 +26,7 @@
       <!-- 聊天界面 -->
       <view class="chat-container">
         <view class="chat-header">
-          <view class="chat-header-title">💬 智能对话</view>
+          <view class="chat-header-title">💬 辅导对话</view>
           <view class="chat-header-actions">
             <view class="action-btn" @click="clearChat">🗑️</view>
           </view>
@@ -37,7 +37,7 @@
               <image src="../../static/cookexpret.png" mode="aspectFill" class="avatar-img"></image>
             </view>
             <view class="message-content">
-              <view class="message-text">欢迎使用实操案例助手！请输入课程知识点或项目目标，我会为你生成代码案例、步骤说明和练习建议。</view>
+              <view class="message-text">你好！我是智能辅导助手 📖\n\n我可以帮你：\n💡 解答学科问题，提供详细文字讲解\n📊 生成图解说明，帮你直观理解\n💻 提供代码示例和实操案例\n📝 解析练习题，分析解题思路\n\n有什么问题尽管问我！</view>
             </view>
           </view>
           <view v-for="(msg, index) in chatHistory" :key="index" :class="['chat-message', msg.type === 'user' ? 'user' : 'chef']" :id="'msg-' + index">
@@ -57,7 +57,7 @@
         </scroll-view>
         <view class="chat-input-container">
           <view class="input-wrapper">
-            <input type="text" v-model="userMessage" placeholder="输入知识点或实操问题..." class="chat-input" @confirm="sendMessage">
+            <input type="text" v-model="userMessage" placeholder="输入你的学习问题..." class="chat-input" @confirm="sendMessage">
             <view class="input-actions">
               <view class="quick-action camera-icon" @click="chooseImage">
                 <text class="camera-fallback">📷</text>
@@ -65,8 +65,8 @@
               <view class="quick-action voice-action" :class="{ active: isVoiceRecording || isVoiceTranscribing }" @click="toggleVoiceInput">
                 <text class="voice-action-text">{{ isVoiceRecording ? '停' : (isVoiceTranscribing ? '识' : '语') }}</text>
               </view>
-              <view class="quick-action" @click="insertQuickText('怎么实现?')">💻</view>
-              <view class="quick-action" @click="insertQuickText('推荐')">💡</view>
+              <view class="quick-action" @click="insertQuickText('帮我解释一下')">💻</view>
+              <view class="quick-action" @click="insertQuickText('举个例子')">💡</view>
             </view>
           </view>
           <button class="send-btn" @click="sendMessage">
@@ -75,39 +75,39 @@
         </view>
       </view>
       
-      <!-- 实操案例综合区域 -->
+      <!-- 学习资料生成区域 -->
       <view class="recipe-comprehensive-section">
         <view class="section-header">
           <view class="section-icon">📝</view>
-          <view class="section-title">生成你的专属实操案例</view>
+          <view class="section-title">生成专属学习资料</view>
         </view>
         <view class="recipe-generator-section">
           <view class="form-container">
             <view class="form-group">
-              <view class="form-label">核心知识点</view>
+              <view class="form-label">学习主题</view>
               <view class="input-with-icon">
                 <view class="input-icon">📘</view>
                 <input 
                   type="text" 
                   v-model="ingredient" 
-                  placeholder="输入知识点，如：A*搜索算法" 
+                  placeholder="输入学习主题，如：Transformer架构"
                   class="ingredient-input"
                 >
               </view>
             </view>
             <view class="form-group">
-              <view class="form-label">选择案例类型</view>
+              <view class="form-label">资料类型</view>
               <picker @change="onCuisineChange" :value="cuisineIndex" :range="cuisineOptions" class="cuisine-select">
                 <view class="picker-wrapper">
                   <view class="picker-icon">💻</view>
-                  <view class="picker-text">{{ cuisineOptions[cuisineIndex] || '选择菜系' }}</view>
+                  <view class="picker-text">{{ cuisineOptions[cuisineIndex] || '选择类型' }}</view>
                   <view class="picker-arrow">›</view>
                 </view>
               </picker>
             </view>
             <button @click="generateRecipe" class="generate-btn" :class="{ 'is-loading': recipeGenerating }" :disabled="recipeGenerating">
               <view class="btn-icon">✨</view>
-              <view class="btn-text">{{ recipeGenerating ? '正在生成实操案例' : '生成案例' }}</view>
+              <view class="btn-text">{{ recipeGenerating ? '正在生成学习资料' : '生成资料' }}</view>
             </button>
           </view>
         </view>
@@ -160,11 +160,11 @@
           <view class="recipe-footer">
             <button class="share-btn" @click="shareRecipe">
               <view class="btn-icon">📤</view>
-              <view class="btn-text">分享案例</view>
+              <view class="btn-text">分享资料</view>
             </button>
             <button class="save-btn" @click="saveRecipe">
               <view class="btn-icon">💾</view>
-              <view class="btn-text">保存案例</view>
+              <view class="btn-text">保存资料</view>
             </button>
           </view>
         </view>
@@ -175,7 +175,7 @@
       <!-- 底部功能：课程资源推荐 (排行榜模式) -->
       <view class="seasonal-recipes-section">
         <view class="section-header">
-          <view class="section-title">实操案例推荐排行榜</view>
+          <view class="section-title">学习资料推荐</view>
           <view class="section-badge-light">TOP PICKS</view>
         </view>
         <view class="recipes-list">
@@ -384,8 +384,8 @@ export default {
         return false;
       }
 
-      const cuisine = this.cuisineOptions[this.cuisineIndex] || '算法案例';
-      const fallbackName = `${this.ingredient || cuisine}智能实操案例`;
+      const cuisine = this.cuisineOptions[this.cuisineIndex] || '概念讲解';
+      const fallbackName = `${this.ingredient || cuisine}学习资料`;
 
       this.recipeName = this.sanitizePlainText(recipeContent.name || fallbackName);
       this.recipeIngredients = this.normalizeRecipeList(recipeContent.ingredients);
@@ -533,7 +533,7 @@ export default {
       const userMsgIndex = this.chatHistory.length;
       this.chatHistory.push({ type: 'user', message: '📸 [图片]', imageUrl: filePath });
       const pendingIndex = this.chatHistory.length;
-      this.chatHistory.push({ type: 'chef', message: '实操智能体正在分析你的资料，请稍候...' });
+      this.chatHistory.push({ type: 'chef', message: '智能辅导助手正在分析，请稍候...' });
       this.scrollToBottom();
       this.loading = true;
 
@@ -635,15 +635,15 @@ export default {
       
       this.loading = true;
       const pendingIndex = this.chatHistory.length;
-      this.chatHistory.push({ type: 'chef', message: '实操案例智能体正在生成回复，请稍候...' });
+      this.chatHistory.push({ type: 'chef', message: '智能辅导助手正在思考，请稍候...' });
 
       try {
-        console.log('发送消息到实操案例智能体', userMsg);
+        console.log('发送消息到智能辅导助手', userMsg);
         const response = await request.post('/cook-agent/chat', {
           message: userMsg
         }, { service: 'tuantuan' });
 
-        console.log('实操案例智能体响应', response);
+        console.log('智能辅导助手响应', response);
 
         if (response && response.content) {
           // 如果响应包含图像生成，显示图片
@@ -694,7 +694,7 @@ export default {
       }
 
       if (!this.ingredient) {
-        uni.showToast({ title: '请输入知识点', icon: 'none' });
+        uni.showToast({ title: '请输入学习主题', icon: 'none' });
         return;
       }
       
@@ -708,30 +708,30 @@ export default {
       this.recipeTips = '';
 
       try {
-        const cuisine = this.cuisineOptions[this.cuisineIndex] || '算法案例';
-        console.log('生成实操案例请求:', { ingredient: this.ingredient, cuisine });
-        
+        const cuisine = this.cuisineOptions[this.cuisineIndex] || '概念讲解';
+        console.log('生成学习资料请求:', { ingredient: this.ingredient, cuisine });
+
         const response = await request.post('/cook-agent/chat', {
           action: 'generate_recipe',
           ingredient: this.ingredient,
           cuisine: cuisine,
-          message: `请围绕${this.ingredient}生成一个${cuisine}，包含前置知识、实现步骤、代码或伪代码、练习题和防幻觉校验建议`
+          message: `请围绕"${this.ingredient}"生成一份${cuisine}学习资料，包含前置知识、核心概念讲解、示例代码或图解、练习题和学习建议`
         }, { service: 'tuantuan' });
 
-        console.log('案例生成响应:', response);
+        console.log('资料生成响应:', response);
 
         if (response && response.type === 'recipe' && response.content) {
           const applied = this.applyRecipeResult(response.content);
           if (!applied) {
-            uni.showToast({ title: '案例数据不完整，请重试', icon: 'none' });
+            uni.showToast({ title: '资料数据不完整，请重试', icon: 'none' });
             return;
           }
-          uni.showToast({ title: '案例生成成功！', icon: 'success' });
+          uni.showToast({ title: '资料生成成功！', icon: 'success' });
         } else {
-          uni.showToast({ title: '案例生成失败', icon: 'none' });
+          uni.showToast({ title: '资料生成失败', icon: 'none' });
         }
       } catch (error) {
-        console.error('案例生成失败:', error);
+        console.error('资料生成失败:', error);
         console.error('错误详情:', JSON.stringify(error));
         
         let errorMsg = '网络连接失败';
@@ -808,7 +808,7 @@ export default {
     },
     shareRecipe() {
       if (!this.recipeName || !this.recipeSteps.length) {
-        uni.showToast({ title: '没有可分享的案例', icon: 'none' });
+        uni.showToast({ title: '没有可分享的资料', icon: 'none' });
         return;
       }
       
@@ -830,7 +830,7 @@ export default {
     },
     saveRecipe() {
       if (!this.recipeName || !this.recipeSteps.length) {
-        uni.showToast({ title: '没有可保存的案例', icon: 'none' });
+        uni.showToast({ title: '没有可保存的资料', icon: 'none' });
         return;
       }
       
@@ -848,7 +848,7 @@ export default {
         const savedRecipes = uni.getStorageSync('savedRecipes') || [];
         savedRecipes.push(recipe);
         uni.setStorageSync('savedRecipes', savedRecipes);
-        uni.showToast({ title: '案例保存成功', icon: 'success' });
+        uni.showToast({ title: '资料保存成功', icon: 'success' });
       } catch (error) {
         console.error('保存失败:', error);
         uni.showToast({ title: '保存失败，请稍后重试', icon: 'none' });

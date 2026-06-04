@@ -11,7 +11,7 @@
     <view class="home-content">
       <!-- 杞挱鍥惧尯鍩?-->
       <view class="banner-section">
-        <swiper class="banner-swiper" circular autoplay interval="4000" duration="600" indicator-dots indicator-active-color="#667eea" indicator-color="rgba(255,255,255,0.4)">
+        <swiper class="banner-swiper" circular autoplay interval="4000" duration="600" indicator-dots indicator-active-color="#0D9488" indicator-color="rgba(255,255,255,0.4)">
           <swiper-item v-for="(banner, index) in banners" :key="index">
             <view class="banner-item" @tap="onBannerClick(banner)">
               <image :src="banner.image" mode="aspectFill" class="banner-img"></image>
@@ -279,58 +279,50 @@ export default {
       carbonScore: 68,
       carbonProgress: 68,
       banners: [
-        { image: '../../static/tweet-1.png', title: '人工智能导论课程知识库', sub: '课程资源输入', badge: '课程', url: '' },
-        { image: '../../static/tweet-2.png', title: '对话式学生画像构建', sub: '随学随新', badge: '画像', url: '' },
-        { image: '../../static/tweet-3.png', title: '多智能体协同生成学习资料', sub: '文档 · 题库 · 案例', badge: 'A3赛题', url: '' }
+        { image: '../../static/tweet-1.png', title: '对话式学习画像构建', sub: 'AI自动识别6+维度画像', badge: '画像', url: '' },
+        { image: '../../static/tweet-2.png', title: '多智能体协同资源生成', sub: '5种类型个性化学习资料', badge: '资源', url: '' },
+        { image: '../../static/tweet-3.png', title: '个性化学习路径规划', sub: '科学步骤 · 精准推送', badge: '路径', url: '' }
       ],
       functions: [
         {
-          name: '实操案例',
-          desc: '代码项目指导',
-          icon: '🍳',
+          name: '对话学习',
+          desc: '构建学习画像',
+          icon: '💬',
           image: '../../static/cooking-expert.png',
           bgClass: 'bg-cook',
-          path: '/pages/cooking-expert/cooking-expert'
+          path: '/pages/takeaway-expert/takeaway-expert'
         },
         {
-          name: '资源榜单',
-          desc: '精选课程材料',
-          icon: '🥗',
+          name: '知识库',
+          desc: '知识网络与思维导图',
+          icon: '🌐',
           image: '../../static/home-cuisine-ranking.png',
           bgClass: 'bg-recipe',
-          path: '/pages/recipe-recommendation/recipe-recommendation'
-        },
-        {
-          name: '学习路径',
-          desc: '动态规划步骤',
-          icon: '🍽️',
-          image: '../../static/restaurant.png',
-          bgClass: 'bg-rest',
           path: '/pages/restaurant-recommendation/restaurant-recommendation'
         },
         {
-          name: '学生画像',
-          desc: '掌握情况评估',
-          icon: '💪',
+          name: '智能辅导',
+          desc: '多模态答疑解惑',
+          icon: '📖',
+          image: '../../static/openclaw.png',
+          bgClass: 'bg-rest',
+          path: '/pages/cooking-expert/cooking-expert'
+        },
+        {
+          name: '学习路径',
+          desc: '个性化路径规划',
+          icon: '🗺️',
           image: '../../static/health-management.png',
           bgClass: 'bg-health',
           path: '/pages/health-manager/health-manager'
         },
         {
-          name: '资源生成',
-          desc: '多模态资料生成',
-          icon: '🥡',
+          name: '学习评估',
+          desc: '多维度效果评估',
+          icon: '📊',
           image: '../../static/takeaway-evaluation.png',
           bgClass: 'bg-takeaway',
-          path: '/pages/takeaway-expert/takeaway-expert'
-        },
-        {
-          name: 'MiniClaw',
-          desc: '原系统助手',
-          icon: '🤖',
-          image: '../../static/openclaw.png',
-          bgClass: 'bg-openclaw',
-          path: '/pages/openclaw/openclaw'
+          path: '/pages/personal-center/personal-center'
         }
       ],
       tabs: [
@@ -887,7 +879,7 @@ export default {
 .home-brand-name {
   font-size: 38rpx;
   font-weight: 800;
-  color: #0f172a;
+  color: #134E4A;
   letter-spacing: 0;
   line-height: 1.15;
   white-space: nowrap;
@@ -898,7 +890,7 @@ export default {
 /* ===== 鍏ㄥ眬瀹瑰櫒 ===== */
 .home-container {
   min-height: 100vh;
-  background: #f0fdf4 !important;
+  background: #F0FDFA !important;
   display: block;
   padding: 0 32rpx 200rpx 32rpx;
   padding-bottom: calc(200rpx + constant(safe-area-inset-bottom));
@@ -1152,7 +1144,7 @@ export default {
 .section-title {
   font-size: 32rpx;
   font-weight: 700;
-  color: #0f172a;
+  color: #134E4A;
   display: block;
   margin-bottom: 24rpx;
   letter-spacing: -0.5rpx;
@@ -1213,32 +1205,32 @@ export default {
   box-shadow: 0 4rpx 16rpx rgba(148, 163, 184, 0.08);
 }
 
-.bg-cook     { background: white; border-color: rgba(251, 146, 60, 0.2); }
-.bg-cook:hover { border-color: rgba(251, 146, 60, 0.4); }
-.bg-cook .feature-icon-wrap { background: rgba(251, 146, 60, 0.08); }
-.bg-cook:hover .feature-icon-wrap { background: rgba(251, 146, 60, 0.15); }
+.bg-cook     { background: white; border-color: rgba(13, 148, 136, 0.15); }
+.bg-cook:hover { border-color: rgba(13, 148, 136, 0.35); }
+.bg-cook .feature-icon-wrap { background: rgba(13, 148, 136, 0.08); }
+.bg-cook:hover .feature-icon-wrap { background: rgba(13, 148, 136, 0.15); }
 
-.bg-recipe   { background: white; border-color: rgba(234, 179, 8, 0.2); }
-.bg-recipe:hover { border-color: rgba(234, 179, 8, 0.4); }
-.bg-recipe .feature-icon-wrap { background: rgba(234, 179, 8, 0.08); }
-.bg-recipe:hover .feature-icon-wrap { background: rgba(234, 179, 8, 0.15); }
+.bg-recipe   { background: white; border-color: rgba(45, 212, 191, 0.2); }
+.bg-recipe:hover { border-color: rgba(45, 212, 191, 0.4); }
+.bg-recipe .feature-icon-wrap { background: rgba(45, 212, 191, 0.08); }
+.bg-recipe:hover .feature-icon-wrap { background: rgba(45, 212, 191, 0.15); }
 
-.bg-rest     { background: white; border-color: rgba(34, 197, 94, 0.2); }
-.bg-rest:hover { border-color: rgba(34, 197, 94, 0.4); }
-.bg-rest .feature-icon-wrap { background: rgba(34, 197, 94, 0.08); }
-.bg-rest:hover .feature-icon-wrap { background: rgba(34, 197, 94, 0.15); }
+.bg-rest     { background: white; border-color: rgba(234, 88, 12, 0.15); }
+.bg-rest:hover { border-color: rgba(234, 88, 12, 0.35); }
+.bg-rest .feature-icon-wrap { background: rgba(234, 88, 12, 0.08); }
+.bg-rest:hover .feature-icon-wrap { background: rgba(234, 88, 12, 0.15); }
 
-.bg-health   { background: white; border-color: rgba(59, 130, 246, 0.2); }
-.bg-health:hover { border-color: rgba(59, 130, 246, 0.4); }
-.bg-health .feature-icon-wrap { background: rgba(59, 130, 246, 0.08); }
-.bg-health:hover .feature-icon-wrap { background: rgba(59, 130, 246, 0.15); }
+.bg-health   { background: white; border-color: rgba(13, 148, 136, 0.15); }
+.bg-health:hover { border-color: rgba(13, 148, 136, 0.35); }
+.bg-health .feature-icon-wrap { background: rgba(13, 148, 136, 0.08); }
+.bg-health:hover .feature-icon-wrap { background: rgba(13, 148, 136, 0.15); }
 
-.bg-takeaway { background: white; border-color: rgba(239, 68, 68, 0.2); }
-.bg-takeaway:hover { border-color: rgba(239, 68, 68, 0.4); }
-.bg-takeaway .feature-icon-wrap { background: rgba(239, 68, 68, 0.08); }
-.bg-takeaway:hover .feature-icon-wrap { background: rgba(239, 68, 68, 0.15); }
+.bg-takeaway { background: white; border-color: rgba(45, 212, 191, 0.2); }
+.bg-takeaway:hover { border-color: rgba(45, 212, 191, 0.4); }
+.bg-takeaway .feature-icon-wrap { background: rgba(45, 212, 191, 0.08); }
+.bg-takeaway:hover .feature-icon-wrap { background: rgba(45, 212, 191, 0.15); }
 
-.bg-openclaw { background: white; border-color: rgba(14, 165, 233, 0.2); }
+.bg-openclaw { background: white; border-color: rgba(13, 148, 136, 0.15); }
 .bg-openclaw:hover { border-color: rgba(14, 165, 233, 0.4); }
 .bg-openclaw .feature-icon-wrap { background: rgba(14, 165, 233, 0.08); }
 .bg-openclaw:hover .feature-icon-wrap { background: rgba(14, 165, 233, 0.15); }
@@ -1310,7 +1302,7 @@ export default {
 .community-title {
   font-size: 32rpx;
   font-weight: 700;
-  color: #0f172a;
+  color: #134E4A;
 }
 
 .nearby-btn {
@@ -1470,7 +1462,7 @@ export default {
 .author-name {
   font-size: 28rpx;
   font-weight: 700;
-  color: #0f172a;
+  color: #134E4A;
 }
 
 .post-time {

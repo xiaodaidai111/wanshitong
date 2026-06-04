@@ -32,7 +32,7 @@ export default {
 @import './static/global-zindex.css';
 
 page {
-  background-color: #f8f9fa;
+  background-color: #F0FDFA;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
   font-size: 28rpx;
   color: #1a1a1a;
@@ -42,7 +42,7 @@ page {
 }
 
 uni-page-wrapper {
-  background: #f8f9fa;
+  background: #F0FDFA;
   min-height: 100vh;
 }
 

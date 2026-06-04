@@ -7,7 +7,7 @@
       }
     },
     {
-      "path": "pages/cooking-expert/cooking-expert",
+      "path": "pages/takeaway-expert/takeaway-expert",
       "style": {
         "navigationStyle": "custom"
       }
@@ -20,7 +20,7 @@
       }
     },
     {
-      "path": "pages/takeaway-expert/takeaway-expert",
+      "path": "pages/cooking-expert/cooking-expert",
       "style": {
         "navigationStyle": "custom"
       }
@@ -122,7 +122,7 @@
   },
   "tabBar": {
     "color": "#999999",
-    "selectedColor": "#4CAF82",
+    "selectedColor": "#0D9488",
     "backgroundColor": "#FFFFFF",
     "borderStyle": "white",
     "fontSize": "11px",
@@ -138,31 +138,31 @@
       },
       {
         "pagePath": "pages/takeaway-expert/takeaway-expert",
-        "text": "资源",
+        "text": "对话学习",
         "iconPath": "static/tabbar-icons/safe.png",
         "selectedIconPath": "static/tabbar-icons/safe.png"
       },
       {
         "pagePath": "pages/restaurant-recommendation/restaurant-recommendation",
-        "text": "路径",
+        "text": "知识库",
         "iconPath": "static/tabbar-icons/star.png",
         "selectedIconPath": "static/tabbar-icons/star.png"
       },
       {
         "pagePath": "pages/cooking-expert/cooking-expert",
-        "text": "实操",
+        "text": "智能辅导",
         "iconPath": "static/tabbar-icons/chef.png",
         "selectedIconPath": "static/tabbar-icons/chef.png"
       },
       {
         "pagePath": "pages/health-manager/health-manager",
-        "text": "画像",
+        "text": "学习路径",
         "iconPath": "static/tabbar-icons/helath.png",
         "selectedIconPath": "static/tabbar-icons/helath.png"
       },
       {
         "pagePath": "pages/personal-center/personal-center",
-        "text": "个人",
+        "text": "学习评估",
         "iconPath": "static/tabbar-icons/user.png",
         "selectedIconPath": "static/tabbar-icons/user.png"
       }
