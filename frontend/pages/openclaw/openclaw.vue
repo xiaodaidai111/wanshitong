@@ -11,7 +11,7 @@
             <view class="mc-status-dot" :class="{ 'mc-online': !isProcessing }"></view>
           </view>
           <view class="mc-header-info">
-            <text class="mc-title">MiniClaw</text>
+            <text class="mc-title">问道</text>
             <text class="mc-subtitle" v-if="!isProcessing">在线</text>
             <text class="mc-subtitle mc-thinking" v-else>思考中...</text>
           </view>
@@ -31,8 +31,8 @@
       <view class="mc-messages">
         <view class="mc-welcome" v-if="showWelcome">
           <image class="mc-welcome-avatar" src="../../static/openclaw.png" mode="aspectFill" />
-          <text class="mc-welcome-title">你好，我是 MiniClaw</text>
-          <text class="mc-welcome-desc">本系统的智能助手，可以为你提供健康饮食相关帮助</text>
+          <text class="mc-welcome-title">你好，我是问道</text>
+          <text class="mc-welcome-desc">智能问修助手，负责故障问答、分步排查、图文解析、风险提醒和多模态检修辅导</text>
 
           <view class="mc-shortcuts">
             <view class="mc-shortcut" v-for="(s, si) in shortcuts" :key="si" @click="insertQuickAction(s.prompt)">
@@ -172,7 +172,7 @@ export default {
       modelIds: ['deepseek-chat', 'deepseek-reasoner'],
       temperature: 70,
       maxTokens: 2048,
-      systemPrompt: '你是 MiniClaw，本系统的智能助手。你主要负责围绕健康饮食系统为用户提供帮助，包括健康管理、烹饪专家、外卖评估、餐厅推荐和用户中心等功能说明与建议。请优先从本系统的能力和场景出发回答问题。',
+      systemPrompt: '你是问道，本系统的智能问修助手。你负责故障问答、分步排查、图文解析、风险提醒和多模态检修辅导。请优先从设备检修知识作业场景出发回答问题。',
       config: null,
       statusBarHeight: 0,
       systemBarHeight: 0,
@@ -180,12 +180,12 @@ export default {
       isProcessing: false,
       isUnderDevelopment: true,
       shortcuts: [
-        { icon: '💬', name: '智能对话', prompt: '我们来聊聊天吧，介绍一下你自己' },
-        { icon: '🧠', name: '知识问答', prompt: '帮我解答一些健康饮食方面的问题' },
-        { icon: '📊', name: '数据分析', prompt: '帮我分析一下' },
-        { icon: '📝', name: '内容总结', prompt: '请总结一下以下内容' },
-        { icon: '💡', name: '智能建议', prompt: '给我一些建议' },
-        { icon: '🍳', name: '健康食谱', prompt: '推荐一道健康食谱' }
+        { icon: '💬', name: '智能问修', prompt: '介绍一下你能如何辅助设备检修' },
+        { icon: '🧠', name: '故障问答', prompt: '帮我分析配电柜过热的可能原因' },
+        { icon: '📊', name: '风险分析', prompt: '帮我梳理本次检修的风险点' },
+        { icon: '📝', name: '记录总结', prompt: '请总结以下检修记录并提炼经验' },
+        { icon: '💡', name: '作业建议', prompt: '给我一份标准化排查建议' },
+        { icon: '📘', name: '手册检索', prompt: '帮我检索相关检修手册要点' }
       ]
     }
   },
@@ -276,7 +276,7 @@ export default {
     addWelcomeMessage() {
       this.messages.push({
         role: 'assistant',
-        content: '你好！我是 MiniClaw，本系统的智能助手，可以结合健康管理、烹饪专家、外卖评估和餐厅推荐等功能为你提供帮助。',
+        content: '你好！我是问道，智能问修助手，可以为你提供故障问答、分步排查、图文解析、风险提醒和多模态检修辅导。',
         timestamp: new Date().toISOString()
       });
       this.saveMessages();

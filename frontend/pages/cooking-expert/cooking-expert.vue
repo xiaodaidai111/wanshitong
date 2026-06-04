@@ -2,8 +2,8 @@
   <view class="cooking-expert-view">
     <view class="view-header">
       <view class="header-decoration"></view>
-      <view class="view-title">智能辅导助手</view>
-      <view class="view-subtitle">多模态答疑解惑 · 文字 · 图解 · 代码</view>
+      <view class="view-title">问道</view>
+      <view class="view-subtitle">智能问修助手 · 故障问答 · 分步排查 · 图文解析</view>
     </view>
     
     <view class="content-container">
@@ -12,7 +12,7 @@
         <view class="chef-dialogue-box">
           <view class="exp-container" style="margin-top: 0; padding-top: 0; border-top: none;">
             <view class="exp-header">
-              <text class="exp-label">🌟 辅导经验点(EXP)</text>
+              <text class="exp-label">🌟 问修经验点(EXP)</text>
               <text class="exp-value">{{ cookingExp }} / {{ expToNextLevel }}</text>
             </view>
             <view class="exp-bar-bg">
@@ -26,7 +26,7 @@
       <!-- 聊天界面 -->
       <view class="chat-container">
         <view class="chat-header">
-          <view class="chat-header-title">💬 辅导对话</view>
+          <view class="chat-header-title">💬 检修对话</view>
           <view class="chat-header-actions">
             <view class="action-btn" @click="clearChat">🗑️</view>
           </view>
@@ -37,7 +37,7 @@
               <image src="../../static/cookexpret.png" mode="aspectFill" class="avatar-img"></image>
             </view>
             <view class="message-content">
-              <view class="message-text">你好！我是智能辅导助手 📖\n\n我可以帮你：\n💡 解答学科问题，提供详细文字讲解\n📊 生成图解说明，帮你直观理解\n💻 提供代码示例和实操案例\n📝 解析练习题，分析解题思路\n\n有什么问题尽管问我！</view>
+              <view class="message-text">你好！我是问道，智能问修助手。\n\n我负责故障问答、分步排查、图文解析、风险提醒和多模态检修辅导。\n\n遇到设备问题尽管问我！</view>
             </view>
           </view>
           <view v-for="(msg, index) in chatHistory" :key="index" :class="['chat-message', msg.type === 'user' ? 'user' : 'chef']" :id="'msg-' + index">
@@ -57,7 +57,7 @@
         </scroll-view>
         <view class="chat-input-container">
           <view class="input-wrapper">
-            <input type="text" v-model="userMessage" placeholder="输入你的学习问题..." class="chat-input" @confirm="sendMessage">
+            <input type="text" v-model="userMessage" placeholder="输入你的检修问题..." class="chat-input" @confirm="sendMessage">
             <view class="input-actions">
               <view class="quick-action camera-icon" @click="chooseImage">
                 <text class="camera-fallback">📷</text>
@@ -65,8 +65,8 @@
               <view class="quick-action voice-action" :class="{ active: isVoiceRecording || isVoiceTranscribing }" @click="toggleVoiceInput">
                 <text class="voice-action-text">{{ isVoiceRecording ? '停' : (isVoiceTranscribing ? '识' : '语') }}</text>
               </view>
-              <view class="quick-action" @click="insertQuickText('帮我解释一下')">💻</view>
-              <view class="quick-action" @click="insertQuickText('举个例子')">💡</view>
+              <view class="quick-action" @click="insertQuickText('帮我分析故障原因')">💻</view>
+              <view class="quick-action" @click="insertQuickText('给出排查步骤')">💡</view>
             </view>
           </view>
           <button class="send-btn" @click="sendMessage">
@@ -75,22 +75,22 @@
         </view>
       </view>
       
-      <!-- 学习资料生成区域 -->
+      <!-- 检修资料生成区域 -->
       <view class="recipe-comprehensive-section">
         <view class="section-header">
           <view class="section-icon">📝</view>
-          <view class="section-title">生成专属学习资料</view>
+          <view class="section-title">生成专属检修资料</view>
         </view>
         <view class="recipe-generator-section">
           <view class="form-container">
             <view class="form-group">
-              <view class="form-label">学习主题</view>
+              <view class="form-label">检修主题</view>
               <view class="input-with-icon">
                 <view class="input-icon">📘</view>
                 <input 
                   type="text" 
                   v-model="ingredient" 
-                  placeholder="输入学习主题，如：Transformer架构"
+                  placeholder="输入检修主题，如：配电柜过热"
                   class="ingredient-input"
                 >
               </view>
@@ -107,7 +107,7 @@
             </view>
             <button @click="generateRecipe" class="generate-btn" :class="{ 'is-loading': recipeGenerating }" :disabled="recipeGenerating">
               <view class="btn-icon">✨</view>
-              <view class="btn-text">{{ recipeGenerating ? '正在生成学习资料' : '生成资料' }}</view>
+              <view class="btn-text">{{ recipeGenerating ? '正在生成检修资料' : '生成资料' }}</view>
             </button>
           </view>
         </view>
@@ -121,7 +121,7 @@
             <view class="recipe-ingredients" v-if="recipeIngredients.length">
               <view class="steps-header">
                 <view class="steps-icon">📚</view>
-                <view class="steps-heading">前置知识</view>
+                <view class="steps-heading">前置检查</view>
               </view>
               <view class="ingredients-list">
                 <view v-for="(item, index) in recipeIngredients" :key="'ingredient-' + index" class="ingredient-item">
@@ -133,7 +133,7 @@
             <view class="cooking-steps">
               <view class="steps-header">
                 <view class="steps-icon">💻</view>
-                <view class="steps-heading">实现步骤</view>
+                <view class="steps-heading">排查步骤</view>
               </view>
               <view class="steps-list">
                 <view v-for="(step, index) in recipeSteps" :key="index" class="step-item">
@@ -145,14 +145,14 @@
             <view class="recipe-health" v-if="recipeNutrition || recipeTips">
               <view class="steps-header">
                 <view class="steps-icon">💡</view>
-                <view class="steps-heading">学习建议</view>
+                <view class="steps-heading">检修建议</view>
               </view>
               <view v-if="recipeNutrition" class="health-card">
-                <view class="health-label">能力目标</view>
+                <view class="health-label">检修目标</view>
                 <view class="health-text">{{ recipeNutrition }}</view>
               </view>
               <view v-if="recipeTips" class="health-card">
-                <view class="health-label">防幻觉提示</view>
+                <view class="health-label">安全复核提示</view>
                 <view class="health-text">{{ recipeTips }}</view>
               </view>
             </view>
@@ -172,10 +172,10 @@
       
 
 
-      <!-- 底部功能：课程资源推荐 (排行榜模式) -->
+      <!-- 底部功能：检修资料推荐 (排行榜模式) -->
       <view class="seasonal-recipes-section">
         <view class="section-header">
-          <view class="section-title">学习资料推荐</view>
+          <view class="section-title">检修资料推荐</view>
           <view class="section-badge-light">TOP PICKS</view>
         </view>
         <view class="recipes-list">
@@ -385,7 +385,7 @@ export default {
       }
 
       const cuisine = this.cuisineOptions[this.cuisineIndex] || '概念讲解';
-      const fallbackName = `${this.ingredient || cuisine}学习资料`;
+      const fallbackName = `${this.ingredient || cuisine}检修资料`;
 
       this.recipeName = this.sanitizePlainText(recipeContent.name || fallbackName);
       this.recipeIngredients = this.normalizeRecipeList(recipeContent.ingredients);
@@ -533,7 +533,7 @@ export default {
       const userMsgIndex = this.chatHistory.length;
       this.chatHistory.push({ type: 'user', message: '📸 [图片]', imageUrl: filePath });
       const pendingIndex = this.chatHistory.length;
-      this.chatHistory.push({ type: 'chef', message: '智能辅导助手正在分析，请稍候...' });
+      this.chatHistory.push({ type: 'chef', message: '问道正在分析，请稍候...' });
       this.scrollToBottom();
       this.loading = true;
 
@@ -635,15 +635,15 @@ export default {
       
       this.loading = true;
       const pendingIndex = this.chatHistory.length;
-      this.chatHistory.push({ type: 'chef', message: '智能辅导助手正在思考，请稍候...' });
+      this.chatHistory.push({ type: 'chef', message: '问道正在思考，请稍候...' });
 
       try {
-        console.log('发送消息到智能辅导助手', userMsg);
+        console.log('发送消息到问道', userMsg);
         const response = await request.post('/cook-agent/chat', {
           message: userMsg
         }, { service: 'tuantuan' });
 
-        console.log('智能辅导助手响应', response);
+        console.log('问道响应', response);
 
         if (response && response.content) {
           // 如果响应包含图像生成，显示图片
@@ -694,7 +694,7 @@ export default {
       }
 
       if (!this.ingredient) {
-        uni.showToast({ title: '请输入学习主题', icon: 'none' });
+        uni.showToast({ title: '请输入检修主题', icon: 'none' });
         return;
       }
       
@@ -709,13 +709,13 @@ export default {
 
       try {
         const cuisine = this.cuisineOptions[this.cuisineIndex] || '概念讲解';
-        console.log('生成学习资料请求:', { ingredient: this.ingredient, cuisine });
+        console.log('生成检修资料请求:', { ingredient: this.ingredient, cuisine });
 
         const response = await request.post('/cook-agent/chat', {
           action: 'generate_recipe',
           ingredient: this.ingredient,
           cuisine: cuisine,
-          message: `请围绕"${this.ingredient}"生成一份${cuisine}学习资料，包含前置知识、核心概念讲解、示例代码或图解、练习题和学习建议`
+          message: `请围绕"${this.ingredient}"生成一份${cuisine}检修资料，包含故障现象、前置检查、排查步骤、风险提醒和检修建议`
         }, { service: 'tuantuan' });
 
         console.log('资料生成响应:', response);

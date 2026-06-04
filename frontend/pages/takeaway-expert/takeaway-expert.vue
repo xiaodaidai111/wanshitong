@@ -2,7 +2,7 @@
   <view class="page-container">
     <!-- 模式：拍照主界面 / 分析中 / 结果 -->
     <template v-if="currentMode === 'camera' || currentMode === 'analyzing' || currentMode === 'result'">
-      <!-- ===== 模式：资料上传主界面 ===== -->
+      <!-- ===== 模式：多模态知识检索主界面 ===== -->
       <view class="section-mode" v-if="currentMode === 'camera'">
 
       <!-- 顶部头衔 -->
@@ -11,25 +11,47 @@
           <image src="/static/safeguard.png" mode="aspectFill" class="hero-avatar"></image>
         </view>
         <view class="hero-right">
-          <view class="hero-badge">多智能体协同</view>
-          <text class="hero-name">资源生成智能体·知知</text>
-          <text class="hero-tagline">上传课程资料，生成个性化学习资源</text>
+          <view class="hero-badge">2、多模态知识检索</view>
+          <text class="hero-name">检修知识检索助手</text>
+          <text class="hero-tagline">支持文本、故障图片、设备型号输入，精准匹配检修手册、案例和作业资源</text>
         </view>
       </view>
 
-      <!-- 拍照核心区域 -->
-      <view class="shoot-section">
-        <view class="shoot-card" @click="startAnalyzeFlow">
-          <!-- SVG 相机图标 -->
-          <view class="camera-icon-wrap">
-            <text class="camera-fallback">📷</text>
+      <!-- NotebookLM 风格资料入口 -->
+      <view class="source-card">
+        <view class="card-header">
+          <view class="card-title-box">
+            <view class="card-dot blue-dot"></view>
+            <text class="card-title">检修信息输入</text>
           </view>
-          <text class="shoot-label">上传课程截图 / 知识点图片</text>
-          <text class="shoot-sub">点击选择资料，生成讲解、题库与导图</text>
-          <view class="shoot-action-row">
-            <view class="shoot-action-btn">
-              <text class="shoot-action-text">立即开始</text>
-            </view>
+          <text class="card-link">文本 / 故障图片 / 设备型号</text>
+        </view>
+        <view class="source-dropzone" @click="startAnalyzeFlow">
+          <view class="source-icon">＋</view>
+          <view class="source-copy">
+            <text class="source-title">添加故障图片或设备资料</text>
+            <text class="source-desc">上传故障照片、铭牌型号、检修记录截图，或拍照导入现场信息</text>
+          </view>
+        </view>
+        <view class="source-prompt-box">
+          <textarea
+            class="source-prompt"
+            v-model="resourceRequest.need"
+            placeholder="也可以直接输入：设备型号 ZK-320，柜体过热并伴随异响，需要检索检修手册、相似案例和标准作业流程。"
+          />
+        </view>
+        <view class="source-actions">
+          <view class="source-action primary" @click="startAnalyzeFlow">
+            <text>添加信息</text>
+          </view>
+          <view class="source-action" @click="generateFromProfileInput">
+            <text>开始检索</text>
+          </view>
+        </view>
+        <view class="resource-chip-row">
+          <view class="resource-type-item" v-for="type in resourceTypes" :key="type.name">
+            <text class="resource-type-icon">{{ type.icon }}</text>
+            <text class="resource-type-name">{{ type.name }}</text>
           </view>
         </view>
       </view>
@@ -47,12 +69,12 @@
           </view>
           <view class="history-list">
             <view class="history-empty" v-if="historyList.length === 0">
-              <text class="empty-hint">暂无记录，快去生成第一份学习资源吧</text>
+              <text class="empty-hint">暂无记录，快去完成第一次检修知识检索吧</text>
             </view>
             <view class="history-item" v-for="(item, i) in historyList.slice(0, 2)" :key="i" @click="loadRecord(item)">
               <view class="history-icon-box" @click.stop="previewImage(item.image, item.name)">
                 <image v-if="item.image" class="history-thumb" :src="item.image" mode="aspectFill"></image>
-                <text v-else class="history-icon">😋</text>
+                <text v-else class="history-icon">📘</text>
               </view>
               <view class="history-info">
                 <text class="history-name">{{ item.name }}</text>
@@ -70,7 +92,7 @@
           <view class="card-header">
             <view class="card-title-box">
               <view class="card-dot blue-dot"></view>
-              <text class="card-title">更多功能</text>
+              <text class="card-title">快捷检索</text>
             </view>
           </view>
           <view class="grid-row">
@@ -96,8 +118,8 @@
           <view class="ring r3"></view>
           <text class="analyzing-emoji">🍊</text>
         </view>
-        <text class="analyzing-title">智能体正在协作...</text>
-        <text class="analyzing-sub">解析知识点 · 生成资源 · 校验内容安全</text>
+        <text class="analyzing-title">正在进行多模态知识检索...</text>
+        <text class="analyzing-sub">语义解析 · 图片匹配 · 型号识别 · 手册调取</text>
         <view class="analyzing-dots">
           <view class="dot dot1"></view>
           <view class="dot dot2"></view>
@@ -120,9 +142,9 @@
               <text class="result-score-num" :style="{ color: scoreColor }">{{ resultData.score }}</text>
               <text class="result-score-unit" :style="{ color: scoreColor }">分</text>
             </view>
-            <view class="result-level-pill" :style="{ background: scoreLevelBg }">
-              <text class="result-level-text">{{ scoreLevel }}</text>
-            </view>
+          <view class="result-level-pill" :style="{ background: scoreLevelBg }">
+            <text class="result-level-text">{{ scoreLevel }}</text>
+          </view>
           </view>
         </view>
         <view class="health-insight-strip">
@@ -156,7 +178,7 @@
       <view class="result-section">
         <view class="section-head">
           <view class="section-accent"></view>
-          <text class="section-title">学习资源清单</text>
+          <text class="section-title">检修资源清单</text>
         </view>
         <view class="nutrition-list">
           <view class="nutrition-item" v-for="(item, index) in resultData.nutrition" :key="index">
@@ -169,11 +191,11 @@
         </view>
       </view>
 
-      <!-- AI 学习辅导 -->
+      <!-- AI 检修问答 -->
       <view class="result-section chat-section">
         <view class="section-head">
           <image src="/static/safeguard.png" class="section-avatar" mode="aspectFill"></image>
-          <text class="section-title">智能辅导</text>
+          <text class="section-title">检修问答</text>
         </view>
         <view class="chat-area">
           <view
@@ -191,7 +213,7 @@
           <input
             class="chat-input"
             v-model="resultChatMsg"
-            placeholder="向学习智能体提问..."
+            placeholder="继续追问检修问题..."
             @confirm="sendResultChat"
           />
           <view class="voice-btn" :class="{ active: isVoiceRecording || isVoiceTranscribing }" @click="toggleVoiceInput">
@@ -203,11 +225,11 @@
         </view>
       </view>
 
-      <!-- 学习建议 -->
+      <!-- 检修建议 -->
       <view class="result-section">
         <view class="section-head">
           <view class="section-accent"></view>
-          <text class="section-title">学习建议</text>
+          <text class="section-title">检修建议</text>
         </view>
         <view class="suggestions-list">
           <view class="sug-item" v-for="(s, k) in resultData.suggestions" :key="k">
@@ -221,7 +243,7 @@
       <view class="bottom-actions">
         <view class="retake-btn" @click="resetToCamera">
           <text class="retake-icon">🔄</text>
-          <text class="retake-text">再测一次</text>
+          <text class="retake-text">重新生成</text>
         </view>
       </view>
 
@@ -234,7 +256,7 @@
         <view class="modal-header-left" @click="calorieQueryMode = false">
           <text class="modal-back-icon">←</text>
         </view>
-        <text class="modal-header-title">知识点查询</text>
+        <text class="modal-header-title">检修资料查询</text>
         <view class="modal-header-right"></view>
       </view>
 
@@ -245,7 +267,7 @@
               <input
                 type="text"
                 v-model="calorieQueryFood"
-                placeholder="请输入知识点名称"
+                placeholder="请输入设备型号、故障现象或资料名称"
                 class="query-input"
                 @confirm="queryCalories"
               />
@@ -258,30 +280,30 @@
           <view class="result-section" v-if="calorieQueryResult">
             <view class="food-info">
               <text class="food-name">{{ calorieQueryResult.name }}</text>
-              <text class="calorie-value">{{ calorieQueryResult.calories }} 学习点</text>
+              <text class="calorie-value">{{ calorieQueryResult.calories }} 条关联</text>
             </view>
             <view class="nutrition-details">
               <view class="nutrition-item">
-                <text class="nutrition-label">基础度</text>
+                <text class="nutrition-label">资料覆盖</text>
                 <text class="nutrition-value">{{ calorieQueryResult.protein }} 星</text>
               </view>
               <view class="nutrition-item">
-                <text class="nutrition-label">实践度</text>
+                <text class="nutrition-label">案例匹配</text>
                 <text class="nutrition-value">{{ calorieQueryResult.fat }} 星</text>
               </view>
               <view class="nutrition-item">
-                <text class="nutrition-label">拓展度</text>
+                <text class="nutrition-label">作业关联</text>
                 <text class="nutrition-value">{{ calorieQueryResult.carbs }} 星</text>
               </view>
             </view>
           </view>
 
           <view class="common-foods">
-            <text class="section-title">常见知识点</text>
+            <text class="section-title">常见检修对象</text>
             <view class="food-grid">
               <view class="food-item" v-for="food in commonFoods" :key="food.name" @click="selectCommonFood(food)">
                 <text class="food-item-name">{{ food.name }}</text>
-                <text class="food-item-calorie">{{ food.calories }} 学习点</text>
+                <text class="food-item-calorie">{{ food.calories }} 条关联</text>
               </view>
             </view>
           </view>
@@ -303,35 +325,35 @@
       <scroll-view scroll-y class="modal-content">
         <view class="settings-content">
           <view class="settings-section">
-            <text class="section-title">🛡️ 学习目标</text>
+            <text class="section-title">🛡️ 检修目标</text>
             <view class="settings-list">
               <view class="setting-item">
                 <text class="setting-label">目标类型</text>
                 <view class="selector-row">
                   <view
                     class="selector-tag"
-                    :class="{ active: preferences.goalType === '减肥' }"
-                    @click="preferences.goalType = '减肥'"
-                  >基础巩固</view>
+                    :class="{ active: preferences.goalType === '基础巩固' }"
+                    @click="preferences.goalType = '基础巩固'"
+                  >快速定位</view>
                   <view
                     class="selector-tag"
-                    :class="{ active: preferences.goalType === '增肌' }"
-                    @click="preferences.goalType = '增肌'"
-                  >项目实操</view>
+                    :class="{ active: preferences.goalType === '项目实操' }"
+                    @click="preferences.goalType = '项目实操'"
+                  >标准作业</view>
                   <view
                     class="selector-tag"
-                    :class="{ active: preferences.goalType === '维持' }"
-                    @click="preferences.goalType = '维持'"
-                  >考试冲刺</view>
+                    :class="{ active: preferences.goalType === '考试冲刺' }"
+                    @click="preferences.goalType = '考试冲刺'"
+                  >风险复核</view>
                   <view
                     class="selector-tag"
-                    :class="{ active: preferences.goalType === '增重' }"
-                    @click="preferences.goalType = '增重'"
-                  >论文拓展</view>
+                    :class="{ active: preferences.goalType === '论文拓展' }"
+                    @click="preferences.goalType = '论文拓展'"
+                  >经验沉淀</view>
                 </view>
               </view>
               <view class="setting-item">
-                <text class="setting-label">每日学习目标 (分钟)</text>
+                <text class="setting-label">每日检修目标 (分钟)</text>
                 <input
                   type="number"
                   v-model="preferences.dailyCalorieGoal"
@@ -343,31 +365,31 @@
           </view>
 
           <view class="settings-section">
-            <text class="section-title">📚 学习偏好</text>
+            <text class="section-title">📚 检索偏好</text>
             <view class="settings-list">
               <view class="setting-item">
-                <text class="setting-label">学习方式</text>
+                <text class="setting-label">检修方式</text>
                 <view class="selector-row">
                   <view
                     class="selector-tag"
-                    :class="{ active: preferences.dietType === '均衡' }"
-                    @click="preferences.dietType = '均衡'"
-                  >讲练结合</view>
+                    :class="{ active: preferences.dietType === '讲练结合' }"
+                    @click="preferences.dietType = '讲练结合'"
+                  >手册优先</view>
                   <view
                     class="selector-tag"
-                    :class="{ active: preferences.dietType === '高蛋白' }"
-                    @click="preferences.dietType = '高蛋白'"
+                    :class="{ active: preferences.dietType === '案例驱动' }"
+                    @click="preferences.dietType = '案例驱动'"
                   >案例驱动</view>
                   <view
                     class="selector-tag"
-                    :class="{ active: preferences.dietType === '低脂' }"
-                    @click="preferences.dietType = '低脂'"
+                    :class="{ active: preferences.dietType === '图解优先' }"
+                    @click="preferences.dietType = '图解优先'"
                   >图解优先</view>
                   <view
                     class="selector-tag"
-                    :class="{ active: preferences.dietType === '低碳水' }"
-                    @click="preferences.dietType = '低碳水'"
-                  >代码实操</view>
+                    :class="{ active: preferences.dietType === '代码实操' }"
+                    @click="preferences.dietType = '代码实操'"
+                  >流程复核</view>
                 </view>
               </view>
               <view class="setting-item">
@@ -375,18 +397,18 @@
                 <view class="selector-row">
                   <view
                     class="selector-tag"
-                    :class="{ active: preferences.flavor === '清淡' }"
-                    @click="preferences.flavor = '清淡'"
+                    :class="{ active: preferences.flavor === '短文档' }"
+                    @click="preferences.flavor = '短文档'"
                   >短文档</view>
                   <view
                     class="selector-tag"
-                    :class="{ active: preferences.flavor === '微辣' }"
-                    @click="preferences.flavor = '微辣'"
+                    :class="{ active: preferences.flavor === '短视频' }"
+                    @click="preferences.flavor = '短视频'"
                   >短视频</view>
                   <view
                     class="selector-tag"
-                    :class="{ active: preferences.flavor === '重口味' }"
-                    @click="preferences.flavor = '重口味'"
+                    :class="{ active: preferences.flavor === '综合项目' }"
+                    @click="preferences.flavor = '综合项目'"
                   >综合项目</view>
                 </view>
               </view>
@@ -394,14 +416,14 @@
           </view>
 
           <view class="settings-section">
-            <text class="section-title">🚫 学习限制</text>
+            <text class="section-title">🚫 检修约束</text>
             <view class="settings-list">
               <view class="setting-item">
-                <text class="setting-label">薄弱知识点</text>
+                <text class="setting-label">重点故障</text>
                 <input
                   type="text"
                   v-model="preferences.allergies"
-                  placeholder="如：搜索算法、梯度下降"
+                  placeholder="如：柜体过热、轴承异响"
                   class="setting-input"
                 />
               </view>
@@ -410,20 +432,28 @@
                 <input
                   type="text"
                   v-model="preferences.avoidIngredients"
-                  placeholder="如：高阶论文、长视频"
+                  placeholder="如：无关型号、过期资料"
                   class="setting-input"
                 />
               </view>
               <view class="setting-item">
-                <text class="setting-label">低难度优先</text>
+                <text class="setting-label">标准流程优先</text>
                 <view class="switch-wrapper">
-                  <switch v-model="preferences.lowOilSalt" class="small-switch"></switch>
+                  <switch
+                    :checked="preferences.lowOilSalt"
+                    class="small-switch"
+                    @change="setSwitchValue(preferences, 'lowOilSalt', $event)"
+                  ></switch>
                 </view>
               </view>
               <view class="setting-item">
                 <text class="setting-label">防幻觉校验</text>
                 <view class="switch-wrapper">
-                  <switch v-model="preferences.noSugar" class="small-switch"></switch>
+                  <switch
+                    :checked="preferences.noSugar"
+                    class="small-switch"
+                    @change="setSwitchValue(preferences, 'noSugar', $event)"
+                  ></switch>
                 </view>
               </view>
             </view>
@@ -433,21 +463,33 @@
             <text class="section-title">⚙️ 通知设置</text>
             <view class="settings-list">
               <view class="setting-item">
-                <text class="setting-label">学习提醒</text>
+                <text class="setting-label">检修提醒</text>
                 <view class="switch-wrapper">
-                  <switch v-model="preferences.notifications.healthReminder" class="small-switch"></switch>
+                  <switch
+                    :checked="preferences.notifications.healthReminder"
+                    class="small-switch"
+                    @change="setSwitchValue(preferences.notifications, 'healthReminder', $event)"
+                  ></switch>
                 </view>
               </view>
               <view class="setting-item">
-                <text class="setting-label">学习周报</text>
+                <text class="setting-label">检修周报</text>
                 <view class="switch-wrapper">
-                  <switch v-model="preferences.notifications.weeklyReport" class="small-switch"></switch>
+                  <switch
+                    :checked="preferences.notifications.weeklyReport"
+                    class="small-switch"
+                    @change="setSwitchValue(preferences.notifications, 'weeklyReport', $event)"
+                  ></switch>
                 </view>
               </view>
               <view class="setting-item">
                 <text class="setting-label">每日总结</text>
                 <view class="switch-wrapper">
-                  <switch v-model="preferences.notifications.dailySummary" class="small-switch"></switch>
+                  <switch
+                    :checked="preferences.notifications.dailySummary"
+                    class="small-switch"
+                    @change="setSwitchValue(preferences.notifications, 'dailySummary', $event)"
+                  ></switch>
                 </view>
               </view>
             </view>
@@ -477,21 +519,21 @@
         <view class="manual-input-content">
           <view class="input-section">
             <view class="input-group">
-              <text class="group-title">📘 知识点基本信息</text>
+              <text class="group-title">📘 检修对象基本信息</text>
               <view class="input-item">
-                <text class="input-label">知识点名称</text>
+                <text class="input-label">设备型号或故障现象</text>
                 <input
                   type="text"
                   v-model="manualInputData.foodName"
-                placeholder="请输入知识点名称"
+                placeholder="请输入设备型号或故障现象"
                   class="manual-input"
                 />
               </view>
               <view class="input-item">
-                <text class="input-label">知识点描述</text>
+                <text class="input-label">现场描述</text>
                 <textarea
                   v-model="manualInputData.description"
-                  placeholder="请输入课程章节或学习目标（可选）"
+                  placeholder="请输入故障现象、检修等级或现场约束（可选）"
                   class="manual-textarea"
                 />
               </view>
@@ -500,55 +542,55 @@
             <view class="input-group">
               <text class="group-title">🧩 资源属性</text>
               <view class="input-item">
-                <text class="input-label">关联知识点</text>
+                <text class="input-label">关联资料</text>
                 <input
                   type="text"
                   v-model="manualInputData.ingredients"
-                  placeholder="如：图搜索、启发式函数"
+                  placeholder="如：检修手册、热成像图、历史案例"
                   class="manual-input"
                 />
               </view>
               <view class="input-item">
-                <text class="input-label">资源形式</text>
+                <text class="input-label">资料形式</text>
                 <view class="selector-row">
                   <view
                     class="selector-tag"
-                    :class="{ active: manualInputData.cookingMethod === '清蒸' }"
-                    @click="manualInputData.cookingMethod = '清蒸'"
-                  >讲解文档</view>
+                    :class="{ active: manualInputData.cookingMethod === '讲解文档' }"
+                    @click="manualInputData.cookingMethod = '讲解文档'"
+                  >检修手册</view>
                   <view
                     class="selector-tag"
-                    :class="{ active: manualInputData.cookingMethod === '水煮' }"
-                    @click="manualInputData.cookingMethod = '水煮'"
-                  >思维导图</view>
+                    :class="{ active: manualInputData.cookingMethod === '思维导图' }"
+                    @click="manualInputData.cookingMethod = '思维导图'"
+                  >故障图谱</view>
                   <view
                     class="selector-tag"
-                    :class="{ active: manualInputData.cookingMethod === '炒制' }"
-                    @click="manualInputData.cookingMethod = '炒制'"
-                  >练习题库</view>
+                    :class="{ active: manualInputData.cookingMethod === '相似案例' }"
+                    @click="manualInputData.cookingMethod = '相似案例'"
+                  >相似案例</view>
                   <view
                     class="selector-tag"
-                    :class="{ active: manualInputData.cookingMethod === '煎炸' }"
-                    @click="manualInputData.cookingMethod = '煎炸'"
-                  >代码案例</view>
+                    :class="{ active: manualInputData.cookingMethod === '代码案例' }"
+                    @click="manualInputData.cookingMethod = '代码案例'"
+                  >作业流程</view>
                   <view
                     class="selector-tag"
-                    :class="{ active: manualInputData.cookingMethod === '红烧' }"
-                    @click="manualInputData.cookingMethod = '红烧'"
-                  >视频脚本</view>
+                    :class="{ active: manualInputData.cookingMethod === '视频脚本' }"
+                    @click="manualInputData.cookingMethod = '视频脚本'"
+                  >风险清单</view>
                   <view
                     class="selector-tag"
-                    :class="{ active: manualInputData.cookingMethod === '烧烤' }"
-                    @click="manualInputData.cookingMethod = '烧烤'"
-                  >拓展阅读</view>
+                    :class="{ active: manualInputData.cookingMethod === '拓展阅读' }"
+                    @click="manualInputData.cookingMethod = '拓展阅读'"
+                  >风险清单</view>
                 </view>
               </view>
               <view class="input-item">
-                <text class="input-label">预计学习时长 (分钟)</text>
+                <text class="input-label">预计检修时长 (分钟)</text>
                 <input
                   type="number"
                   v-model="manualInputData.weight"
-                placeholder="请输入预计学习时长"
+                placeholder="请输入预计检修时长"
                   class="manual-input"
                 />
               </view>
@@ -598,7 +640,11 @@
               <view class="input-item">
                 <text class="input-label">是否为易错知识点</text>
                 <view class="switch-wrapper">
-                  <switch v-model="manualInputData.perishable" class="small-switch"></switch>
+                  <switch
+                    :checked="manualInputData.perishable"
+                    class="small-switch"
+                    @change="setSwitchValue(manualInputData, 'perishable', $event)"
+                  ></switch>
                 </view>
               </view>
             </view>
@@ -616,14 +662,14 @@
       </scroll-view>
     </view>
 
-    <!-- ===== 学习周报弹窗 ===== -->
+    <!-- ===== 检修周报弹窗 ===== -->
     <view class="modal-mask" v-if="weeklyReportMode" @click="weeklyReportMode = false"></view>
     <view class="modal-panel" :class="{ open: weeklyReportMode }">
       <view class="modal-header">
         <view class="modal-header-left" @click="weeklyReportMode = false">
           <text class="modal-back-icon">←</text>
         </view>
-        <text class="modal-header-title">学习周报</text>
+        <text class="modal-header-title">检修周报</text>
         <view class="modal-header-right"></view>
       </view>
 
@@ -631,17 +677,17 @@
         <view class="weekly-report-content">
           <view class="report-summary">
             <view class="summary-card">
-              <text class="summary-title">本周学习时长</text>
+              <text class="summary-title">本周检修时长</text>
               <text class="summary-value">{{ weeklyReportData.totalCalories }} 分钟</text>
             </view>
             <view class="summary-card">
-              <text class="summary-title">日均学习时长</text>
+              <text class="summary-title">日均检修时长</text>
               <text class="summary-value">{{ weeklyReportData.averageCalories }} 分钟</text>
             </view>
           </view>
 
           <view class="report-section">
-            <text class="section-title">每日学习投入</text>
+            <text class="section-title">每日检修投入</text>
             <view class="calorie-chart">
               <view class="chart-container">
                 <view class="chart-bar" v-for="(day, index) in weeklyReportData.days" :key="index">
@@ -673,7 +719,7 @@
                 </view>
               </view>
               <view class="nutrition-item">
-                <text class="nutrition-label">拓展阅读</text>
+                <text class="nutrition-label">风险记录</text>
                 <text class="nutrition-value">{{ weeklyReportData.carbs }} 次</text>
                 <view class="nutrition-bar">
                   <view class="nutrition-fill carbs" :style="{ width: (weeklyReportData.carbs / 2100) * 100 + '%' }"></view>
@@ -683,7 +729,7 @@
           </view>
 
           <view class="report-section">
-            <text class="section-title">学习建议</text>
+            <text class="section-title">检修建议</text>
             <view class="suggestions-list">
               <view class="suggestion-item" v-for="(suggestion, index) in weeklyReportData.suggestions" :key="index">
                 <text class="suggestion-icon">💡</text>
@@ -704,7 +750,7 @@
         <view class="drawer-item" v-for="(item, i) in historyList" :key="i" @click="loadRecord(item)">
           <view class="drawer-icon-wrap" @click.stop="previewImage(item.image, item.name)">
             <image v-if="item.image" class="drawer-thumb" :src="item.image" mode="aspectFill"></image>
-            <text v-else class="drawer-emoji">😋</text>
+            <text v-else class="drawer-emoji">📘</text>
           </view>
           <view class="drawer-info">
             <text class="drawer-name">{{ item.name }}</text>
@@ -729,7 +775,7 @@
         <view class="drawer-item" v-for="(item, i) in historyList" :key="i" @click="loadRecord(item)">
           <view class="drawer-icon-wrap" @click.stop="previewImage(item.image, item.name)">
             <image v-if="item.image" class="drawer-thumb" :src="item.image" mode="aspectFill"></image>
-            <text v-else class="drawer-emoji">😋</text>
+            <text v-else class="drawer-emoji">📘</text>
           </view>
           <view class="drawer-info">
             <text class="drawer-name">{{ item.name }}</text>
@@ -789,6 +835,20 @@ export default {
         packageMaterial: '',
         perishable: false
       },
+      resourceRequest: {
+        major: '',
+        course: '',
+        weakness: '',
+        need: '设备型号 ZK-320，柜体过热并伴随异响，需要检索检修手册、相似案例、风险点和标准化作业流程。'
+      },
+      resourceTypes: [
+        { icon: '📄', name: '检修手册', desc: '调取设备说明书、检修规程和故障处理条款' },
+        { icon: '🖼️', name: '故障图片匹配', desc: '对故障照片、铭牌和现场截图做跨模态匹配' },
+        { icon: '🧾', name: '相似案例', desc: '检索历史检修案例、经验总结和处理结论' },
+        { icon: '🧰', name: '工具备件', desc: '推荐工具清单、备件规格和安全防护要求' },
+        { icon: '⚠️', name: '风险提醒', desc: '提示停电验电、挂牌上锁等合规风险点' },
+        { icon: '📋', name: '作业流程', desc: '关联标准化检修步骤和复核节点' }
+      ],
       weeklyReportMode: false,
       weeklyReportData: {
         totalCalories: 560,
@@ -806,10 +866,10 @@ export default {
           { day: '周日', calories: 90, protein: 5, fat: 5, carbs: 6 }
         ],
         suggestions: [
-          '本周学习资源使用节奏稳定，继续保持',
-          '讲解文档与练习题搭配较好，有助于巩固基础',
-          '实操案例使用偏少，建议补充代码任务',
-          '拓展阅读适中，适合当前学习阶段'
+          '本周检修资料使用节奏稳定，继续保持',
+          '检修手册与风险复核搭配较好，有助于巩固流程',
+          '现场案例使用偏少，建议补充处置记录',
+          '风险记录适中，适合当前作业阶段'
         ]
       },
       uploadedImage: '',
@@ -830,18 +890,20 @@ export default {
       historyList: [],
       loading: false,
       quickFuncs: [
-        { icon: '/static/icons/manual-input.png', label: '输入知识点', bg: 'linear-gradient(135deg,#e6f7ff,#b3d9ff)' },
-        { icon: '/static/icons/diet-report.png', label: '资源报告', bg: 'linear-gradient(135deg,#f0f9e8,#c6e8b3)' },
-        { icon: '/static/icons/calorie-search.png', label: '题库生成', bg: 'linear-gradient(135deg,#fff0e0,#ffd9b3)' },
+        { icon: '/static/icons/manual-input.png', label: '输入型号', bg: 'linear-gradient(135deg,#e6f7ff,#b3d9ff)' },
+        { icon: '/static/icons/diet-report.png', label: '检修报告', bg: 'linear-gradient(135deg,#f0f9e8,#c6e8b3)' },
+        { icon: '/static/icons/calorie-search.png', label: '手册检索', bg: 'linear-gradient(135deg,#fff0e0,#ffd9b3)' },
+        { icon: '🖼️', label: '图片匹配', bg: 'linear-gradient(135deg,#e0f2fe,#bae6fd)' },
+        { icon: '🧾', label: '案例检索', bg: 'linear-gradient(135deg,#fef3c7,#fde68a)' },
         { icon: '/static/icons/settings.png', label: '设置', bg: 'linear-gradient(135deg,#f0e6ff,#e0ccff)' }
       ],
       commonFoods: [
-        { name: '搜索算法', calories: 80, protein: 3, fat: 5, carbs: 4 },
-        { name: 'A*算法', calories: 90, protein: 4, fat: 5, carbs: 5 },
-        { name: '神经网络', calories: 95, protein: 4, fat: 4, carbs: 6 },
-        { name: '梯度下降', calories: 75, protein: 3, fat: 4, carbs: 5 },
-        { name: '大模型智能体', calories: 100, protein: 5, fat: 5, carbs: 6 },
-        { name: 'AI伦理安全', calories: 60, protein: 2, fat: 3, carbs: 4 }
+        { name: 'ZK-320配电柜', calories: 80, protein: 3, fat: 5, carbs: 4 },
+        { name: '泵站电机轴承', calories: 90, protein: 4, fat: 5, carbs: 5 },
+        { name: 'PLC控制模块', calories: 95, protein: 4, fat: 4, carbs: 6 },
+        { name: '液压阀组', calories: 75, protein: 3, fat: 4, carbs: 5 },
+        { name: '变频器过热', calories: 100, protein: 5, fat: 5, carbs: 6 },
+        { name: '传感器误报警', calories: 60, protein: 2, fat: 3, carbs: 4 }
       ]
     }
   },
@@ -861,18 +923,18 @@ export default {
     },
     scoreLevel() {
       const s = this.resultData.score;
-      if (s >= 90) return '高度适配画像';
-      if (s >= 75) return '适配当前学习目标';
+      if (s >= 90) return '高度适配检修画像';
+      if (s >= 75) return '适配当前检修目标';
       if (s >= 60) return '可继续优化';
       if (s >= 40) return '需补充上下文';
       return '不建议直接使用';
     },
     healthInsightMetrics() {
       return [
-        { label: '事实校验', value: '通过', level: 'risk-low' },
-        { label: '画像匹配', value: '较高', level: 'risk-low' },
-        { label: '资源类型', value: '5类', level: 'risk-mid' },
-        { label: '生成状态', value: '完成', level: 'risk-low' }
+        { label: '事实校验', ...this.getOilRiskMetric() },
+        { label: '难度适配', ...this.getSaltRiskMetric() },
+        { label: '资源类型', ...this.getVegetableMetric() },
+        { label: '画像匹配', ...this.getBalanceMetric() }
       ];
     }
   },
@@ -889,6 +951,10 @@ export default {
   },
 
   methods: {
+    setSwitchValue(target, key, event) {
+      target[key] = Boolean(event.detail.value);
+    },
+
     getResultKeywords() {
       const sections = [
         this.resultData.name,
@@ -906,32 +972,32 @@ export default {
 
     getOilRiskMetric() {
       const text = this.getResultKeywords();
-      if (this.hasKeyword(text, ['油炸', '炸', '煎炸', '烧烤', '红油', '肥肉', '油脂含量较高', '脂肪偏高'])) {
-        return { value: '偏高', level: 'risk-high' };
+      if (this.hasKeyword(text, ['缺少引用', '未校验', '幻觉', '事实风险', '来源不足'])) {
+        return { value: '需复核', level: 'risk-high' };
       }
-      if (this.hasKeyword(text, ['清蒸', '水煮', '凉拌', '少油', '低脂'])) {
-        return { value: '较低', level: 'risk-low' };
+      if (this.hasKeyword(text, ['知识库引用', '来源标注', '教师审核', '题目回测', '通过'])) {
+        return { value: '通过', level: 'risk-low' };
       }
-      return { value: '适中', level: 'risk-mid' };
+      return { value: '待校验', level: 'risk-mid' };
     },
 
     getSaltRiskMetric() {
       const text = this.getResultKeywords();
-      if (this.hasKeyword(text, ['咸', '高盐', '重口', '酱油', '腌制', '卤', '钠', '盐分'])) {
-        return { value: '偏咸', level: 'risk-high' };
+      if (this.hasKeyword(text, ['过难', '高阶论文', '基础要求较高', '需补充'])) {
+        return { value: '偏高', level: 'risk-high' };
       }
-      if (this.hasKeyword(text, ['清淡', '少盐', '低盐'])) {
-        return { value: '清淡', level: 'risk-low' };
+      if (this.hasKeyword(text, ['基础巩固', '先易后难', '分层', '适配'])) {
+        return { value: '适配', level: 'risk-low' };
       }
-      return { value: '适中', level: 'risk-mid' };
+      return { value: '中等', level: 'risk-mid' };
     },
 
     getVegetableMetric() {
       const text = this.getResultKeywords();
-      if (this.hasKeyword(text, ['沙拉', '蔬菜', '青菜', '西兰花', '番茄', '黄瓜', '生菜', '菠菜', '菌菇'])) {
-        return { value: '充足', level: 'risk-low' };
+      if (this.hasKeyword(text, ['检修手册', '故障图谱', '相似案例', '作业流程', '风险清单', '视频脚本'])) {
+        return { value: '丰富', level: 'risk-low' };
       }
-      if (this.hasKeyword(text, ['肉', '炸鸡', '汉堡', '盖饭', '炒饭', '面', '粉'])) {
+      if (this.hasKeyword(text, ['单一', '只有', '待生成'])) {
         return { value: '偏少', level: 'risk-high' };
       }
       return { value: '一般', level: 'risk-mid' };
@@ -940,13 +1006,13 @@ export default {
     getBalanceMetric() {
       const score = Number(this.resultData.score) || 0;
       const text = this.getResultKeywords();
-      if (score >= 80 || this.hasKeyword(text, ['适配', '搭配合理', '画像适配'])) {
-        return { value: '较均衡', level: 'risk-low' };
+      if (score >= 80 || this.hasKeyword(text, ['适配', '画像适配', '作业路径'])) {
+        return { value: '较高', level: 'risk-low' };
       }
-      if (score < 60 || this.hasKeyword(text, ['搭配清淡蔬果', '不均衡', '偏高', '过高'])) {
-        return { value: '需搭配', level: 'risk-high' };
+      if (score < 60 || this.hasKeyword(text, ['不适配', '需补充上下文', '偏高', '过难'])) {
+        return { value: '需补充', level: 'risk-high' };
       }
-      return { value: '基本均衡', level: 'risk-mid' };
+      return { value: '中等', level: 'risk-mid' };
     },
 
     initVoiceInput() {
@@ -1034,36 +1100,33 @@ export default {
             const analysisResponse = await this.uploadAndAnalyzeImage(this.uploadedImage);
             if (analysisResponse) {
               const nowTs = Date.now();
-              const nutrition = analysisResponse.nutrition || [];
-              const caloriesItem = nutrition.find(item => item.key === 'calories');
-              const proteinItem = nutrition.find(item => item.key === 'protein');
-              const fatItem = nutrition.find(item => item.key === 'fat');
-              const carbsItem = nutrition.find(item => item.key === 'carbs');
+              const resources = this.normalizeGeneratedResources(analysisResponse.nutrition);
+              const fitScore = Number(analysisResponse.score) || 88;
 
               this.resultData = {
-                name: analysisResponse.name || '人工智能导论：搜索算法资源包',
+                name: analysisResponse.name || 'ZK-320配电柜：过热故障检修资料包',
                 image: this.uploadedImage,
-                score: analysisResponse.score || 75,
-                calories: caloriesItem ? caloriesItem.value : 500,
+                score: fitScore,
+                calories: resources.length,
                 macros: {
-                  protein: proteinItem ? `${proteinItem.value}${proteinItem.unit}` : '25g',
-                  fat: fatItem ? `${fatItem.value}${fatItem.unit}` : '15g',
-                  carbs: carbsItem ? `${carbsItem.value}${carbsItem.unit}` : '40g'
+                  protein: '手册+图谱',
+                  fat: '案例+流程',
+                  carbs: '复核计划'
                 },
-                analysisText: `本次资源包与学生画像的适配度为${analysisResponse.score || 88}分。`,
+                analysisText: `本次资料包依据设备型号、故障现象、检修等级和现场约束生成，检修适配度为${fitScore}分，已附带知识库引用与风险复核建议。`,
                 dimensions: analysisResponse.dimensions || [
-                  { name: '课程讲解文档', score: 92, val: '已生成', color: '#52c41a' },
-                  { name: '知识点思维导图', score: 88, val: '已生成', color: '#52c41a' },
-                  { name: '分层练习题库', score: 85, val: '已生成', color: '#52c41a' },
-                  { name: '实操案例材料', score: 80, val: '待完善', color: '#faad14' }
+                  { name: '设备画像匹配', score: 92, val: '已完成', color: '#52c41a' },
+                  { name: '知识库检索', score: 88, val: '已引用', color: '#52c41a' },
+                  { name: '多资源生成', score: 90, val: '5类资源', color: '#52c41a' },
+                  { name: '质量评测', score: 84, val: '风险复核', color: '#faad14' },
+                  { name: '作业路径规划', score: 86, val: '已接入', color: '#52c41a' }
                 ],
-                suggestions: analysisResponse.suggestions || ['建议先学习图搜索与树搜索区别，再完成 A* 搜索代码实操', '对生成内容进行知识库引用校验，降低大模型幻觉风险'],
-                nutrition: analysisResponse.nutrition || [
-                  { name: '讲解文档', percent: 'Markdown', status: '完成' },
-                  { name: '思维导图', percent: '章节结构', status: '完成' },
-                  { name: '练习题', percent: '选择/简答/编程', status: '完成' },
-                  { name: '视频脚本', percent: '分镜草案', status: '待生成' }
-                ]
+                suggestions: analysisResponse.suggestions || [
+                  '建议先核对设备铭牌与手册版本，再按标准作业票执行排查。',
+                  '对生成内容进行知识库引用校验，降低大模型幻觉风险',
+                  '把风险复核项加入作业路径，下一轮根据处置记录自动补齐薄弱环节。'
+                ],
+                nutrition: resources
               };
               const record = {
                 name: this.resultData.name,
@@ -1074,6 +1137,7 @@ export default {
                 analysisText: this.resultData.analysisText,
                 dimensions: this.resultData.dimensions,
                 suggestions: this.resultData.suggestions,
+                nutrition: this.resultData.nutrition,
                 date: this.formatHistoryDate(nowTs),
                 ts: nowTs
               };
@@ -1084,7 +1148,7 @@ export default {
                 {
                   type: 'agent',
                   text: this.truncatePlainText(
-                    '生成完成：' + this.resultData.name + '的画像适配度为' + this.resultData.score + '分。' + (this.resultData.suggestions[0] || ''),
+                    '生成完成：' + this.resultData.name + '的检修适配度为' + this.resultData.score + '分。' + (this.resultData.suggestions[0] || ''),
                     200
                   )
                 }
@@ -1103,6 +1167,64 @@ export default {
       });
     },
 
+    generateFromProfileInput() {
+      const nowTs = Date.now();
+      const need = this.resourceRequest.need || '需要检索检修手册、相似案例和标准化作业流程';
+      const modelMatch = need.match(/设备型号\s*([A-Za-z0-9-]+)/) || need.match(/型号\s*([A-Za-z0-9-]+)/);
+      const faultMatch = need.match(/(.+?)(故障|过热|异响|报警|漏油|失效|异常)/);
+      const deviceType = this.resourceRequest.major || (modelMatch ? modelMatch[1] : 'ZK-320');
+      const repairLevel = this.resourceRequest.course || '二级检修';
+      const faultDesc = this.resourceRequest.weakness || (faultMatch ? faultMatch[0] : '柜体过热并伴随异响');
+      const topic = faultDesc.split(/[，,、]/).filter(Boolean)[0] || deviceType;
+
+      this.resultData = {
+        name: `${deviceType}：${topic}检修知识检索结果`,
+        image: '/static/safeguard.png',
+        score: 91,
+        calories: 6,
+        macros: {
+          protein: '手册+案例',
+          fat: '流程+风险',
+          carbs: '备件+记录'
+        },
+        analysisText: `已根据设备型号“${deviceType}”、检修等级“${repairLevel}”、故障描述“${faultDesc}”和输入信息“${need}”完成多模态知识检索，并匹配检修手册、相似案例和标准作业流程。`,
+        dimensions: [
+          { name: '语义检索匹配度', score: 94, val: '文本/图片/型号', color: '#52c41a' },
+          { name: '手册覆盖度', score: 96, val: '检修规程+说明书', color: '#52c41a' },
+          { name: '案例相似度', score: 88, val: '历史案例', color: '#52c41a' },
+          { name: '合规风险识别', score: 86, val: '需复核', color: '#faad14' },
+          { name: '作业流程关联', score: 90, val: '已接入', color: '#52c41a' }
+        ],
+        suggestions: [
+          `优先阅读“${topic}”对应检修手册，核对设备铭牌与故障现象。`,
+          '进入现场作业前完成停电验电、挂牌上锁和防护用品合规校验。',
+          '检修完成后上传处置照片与经验总结，审核后沉淀进知识图谱。'
+        ],
+        nutrition: [
+          { name: '检修手册', percent: `${deviceType}规程+安全条款`, status: '完成' },
+          { name: '故障图片匹配', percent: `${topic}视觉特征`, status: '完成' },
+          { name: '相似检修案例', percent: '故障现象+处理结论', status: '完成' },
+          { name: '工具备件清单', percent: '工具/备件/防护用品', status: '完成' },
+          { name: '标准作业流程', percent: `${repairLevel}步骤化指引`, status: '完成' },
+          { name: '风险与合规提醒', percent: '停电验电+复核节点', status: '完成' }
+        ]
+      };
+
+      const record = {
+        ...this.resultData,
+        date: this.formatHistoryDate(nowTs),
+        ts: nowTs
+      };
+      this.historyList = [record, ...(this.historyList || [])].sort((a, b) => (b.ts || 0) - (a.ts || 0));
+      this.resultChatList = [
+        {
+          type: 'agent',
+          text: `已完成${deviceType}检修知识检索：包含检修手册、故障图片匹配、相似案例、工具备件、标准作业流程和风险提醒。`
+        }
+      ];
+      this.currentMode = 'result';
+    },
+
     async uploadAndAnalyzeImage(filePath) {
       const data = await uploadFile('/api/takeaway/health/analyze/image', filePath, 'image_data', {
         service: 'tuantuan',
@@ -1114,6 +1236,31 @@ export default {
       throw new Error(data?.message || '数据格式不正确');
     },
 
+    normalizeGeneratedResources(rawResources) {
+      const defaults = [
+        { name: '检修手册', percent: '规程条款', status: '完成' },
+        { name: '故障图片匹配', percent: '视觉特征', status: '完成' },
+        { name: '相似案例', percent: '处置结论', status: '完成' },
+        { name: '工具备件', percent: '清单规格', status: '完成' },
+        { name: '标准作业流程', percent: '步骤化指引', status: '完成' },
+        { name: '风险提醒', percent: '合规校验', status: '待复核' }
+      ];
+      if (!Array.isArray(rawResources) || rawResources.length === 0) return defaults;
+
+      const legacyKeyMap = {
+        calories: '检修手册',
+        protein: '故障图片匹配',
+        fat: '相似案例',
+        carbs: '标准作业流程'
+      };
+
+      return rawResources.map((item, index) => ({
+        name: item.name || legacyKeyMap[item.key] || defaults[index]?.name || '检修资源',
+        percent: item.percent || item.value || defaults[index]?.percent || '已生成',
+        status: item.status || '完成'
+      }));
+    },
+
     async sendResultChat() {
       if (!this.resultChatMsg.trim()) return;
       const msg = this.resultChatMsg;
@@ -1121,7 +1268,7 @@ export default {
       this.resultChatMsg = '';
       try {
         const pendingIndex = this.resultChatList.length;
-        this.resultChatList.push({ type: 'agent', text: '学习智能体正在回复，请稍候...' });
+        this.resultChatList.push({ type: 'agent', text: '正在生成回复，请稍候...' });
 
         const response = await request.post('/api/chat', { message: msg }, { service: 'takeout' });
         if (response && response.code === 0 && response.data && response.data.reply) {
@@ -1169,7 +1316,7 @@ export default {
         return;
       }
       uni.navigateTo({
-        url: '/pages/image-viewer/image-viewer?src=' + encodeURIComponent(imageSrc) + '&title=' + encodeURIComponent(title || '订单图片')
+        url: '/pages/image-viewer/image-viewer?src=' + encodeURIComponent(imageSrc) + '&title=' + encodeURIComponent(title || '检修资料')
       });
     },
 
@@ -1191,7 +1338,7 @@ export default {
 
     queryCalories() {
       if (!this.calorieQueryFood.trim()) {
-        uni.showToast({ title: '请输入知识点名称', icon: 'none' });
+        uni.showToast({ title: '请输入设备型号或故障现象', icon: 'none' });
         return;
       }
 
@@ -1215,12 +1362,15 @@ export default {
     },
 
     handleQuickFunc(item) {
-      if (item.label === '知识点查询') {
+      if (item.label === '资料查询') {
         this.calorieQueryMode = true;
-      } else if (item.label === '输入知识点') {
+      } else if (item.label === '输入资料') {
         this.manualInputMode = true;
       } else if (item.label === '资源报告') {
         this.weeklyReportMode = true;
+      } else if (item.label === '导图生成' || item.label === '案例生成') {
+        this.manualInputMode = true;
+        this.manualInputData.cookingMethod = item.label === '导图生成' ? '故障图谱' : '相似案例';
       } else if (item.label === '设置') {
         this.settingsMode = true;
       }
@@ -1240,64 +1390,38 @@ export default {
     },
 
     calculateHealthScore(data) {
-      let score = 0;
       const weights = {
-        nutritionBalance: 30,
-        ingredientQuality: 25,
-        cookingMethod: 25,
-        deliveryImpact: 20
+        profile: 30,
+        knowledgeContext: 25,
+        resourceType: 25,
+        qualityControl: 20
       };
 
-      let nutritionScore = 0;
-      if (data.calories && data.protein && data.fat && data.carbs) {
-        const calories = parseFloat(data.calories);
-        const protein = parseFloat(data.protein);
-        const fat = parseFloat(data.fat);
-        const carbs = parseFloat(data.carbs);
+      const profileScore = data.description ? 90 : 70;
+      const knowledgeContextScore = data.ingredients ? 92 : 65;
 
-        if (calories > 0) {
-          const proteinRatio = (protein * 4) / calories;
-          const fatRatio = (fat * 9) / calories;
-          const carbsRatio = (carbs * 4) / calories;
+      let resourceScore = 72;
+      const foundationalResources = ['检修手册', '故障图谱', '讲解文档', '思维导图'];
+      const practiceResources = ['相似案例', '作业流程'];
+      const extendedResources = ['风险清单', '视频脚本'];
 
-          if (proteinRatio >= 0.15 && proteinRatio <= 0.3) nutritionScore += 30;
-          else if (proteinRatio >= 0.1 && proteinRatio <= 0.35) nutritionScore += 20;
-          else nutritionScore += 10;
+      if (foundationalResources.includes(data.cookingMethod)) resourceScore = 92;
+      else if (practiceResources.includes(data.cookingMethod)) resourceScore = 88;
+      else if (extendedResources.includes(data.cookingMethod)) resourceScore = 82;
 
-          if (fatRatio >= 0.2 && fatRatio <= 0.35) nutritionScore += 30;
-          else if (fatRatio >= 0.15 && fatRatio <= 0.4) nutritionScore += 20;
-          else nutritionScore += 10;
-
-          if (carbsRatio >= 0.4 && carbsRatio <= 0.6) nutritionScore += 40;
-          else if (carbsRatio >= 0.3 && carbsRatio <= 0.7) nutritionScore += 30;
-          else nutritionScore += 20;
-        }
-      }
-
-      let cookingScore = 100;
-      const healthyMethods = ['讲解文档', '思维导图'];
-      const mediumMethods = ['练习题库', '视频脚本'];
-      const unhealthyMethods = ['代码案例', '拓展阅读'];
-
-      if (healthyMethods.includes(data.cookingMethod)) cookingScore = 90;
-      else if (mediumMethods.includes(data.cookingMethod)) cookingScore = 65;
-      else if (unhealthyMethods.includes(data.cookingMethod)) cookingScore = 40;
-
-      let deliveryScore = 100;
+      let qualityScore = 76;
       if (data.deliveryTime && parseInt(data.deliveryTime) > 0) {
         const time = parseInt(data.deliveryTime);
-        const isPerishable = data.perishable;
-        const packageSafe = ['知识库引用', '来源标注', '教师审核', '题目回测', '同伴互评'].includes(data.packageMaterial);
-
-        if (isPerishable && time > 30) deliveryScore = Math.max(50, 100 - (time - 30) * 2);
-        else if (!packageSafe && time > 45) deliveryScore = Math.max(70, 100 - (time - 45));
+        qualityScore = time <= 5 ? 88 : time <= 15 ? 82 : 74;
       }
+      if (['知识库引用', '来源标注', '人工审核', '风险复核', '教师审核', '题目回测'].includes(data.packageMaterial)) qualityScore += 10;
+      if (data.perishable) qualityScore += 4;
 
-      score = Math.round(
-        (nutritionScore * weights.nutritionBalance +
-         80 * weights.ingredientQuality +
-         cookingScore * weights.cookingMethod +
-         deliveryScore * weights.deliveryImpact) / 100
+      const score = Math.round(
+        (profileScore * weights.profile +
+         knowledgeContextScore * weights.knowledgeContext +
+         resourceScore * weights.resourceType +
+         Math.min(100, qualityScore) * weights.qualityControl) / 100
       );
 
       return Math.min(100, Math.max(0, score));
@@ -1306,43 +1430,46 @@ export default {
     generateSuggestions(data, score) {
       const suggestions = [];
 
-      if (data.cookingMethod === '代码案例' || data.cookingMethod === '拓展阅读') {
-        suggestions.push('该资源对基础要求较高，建议先补充讲解文档或思维导图');
+      if (data.cookingMethod === '作业流程' || data.cookingMethod === '风险清单') {
+        suggestions.push('该资料对现场信息要求较高，建议先补充设备型号、故障照片和检修等级');
       }
 
       if (data.perishable && data.deliveryTime && parseInt(data.deliveryTime) > 30) {
-        suggestions.push('该知识点属于易错内容，建议缩短生成链路并加强题目回测');
+        suggestions.push('该故障属于高风险场景，建议缩短生成链路并加强风险复核');
       }
 
-      if (data.packageMaterial === '教师审核') {
-        suggestions.push('该资源已标记为教师审核优先，建议在发布前保留来源依据');
+      if (data.packageMaterial === '人工审核' || data.packageMaterial === '风险复核') {
+        suggestions.push('该资料已标记为人工审核优先，建议在发布前保留来源依据');
       }
 
       if (score < 60) {
-        suggestions.push('该资源适配度较低，建议补充课程上下文和学生画像信息后重新生成');
+        suggestions.push('该资料适配度较低，建议补充设备型号、故障现象和现场约束后重新生成');
       } else if (score >= 80) {
-        suggestions.push('该资源画像适配度较高，可以加入学习路径继续使用');
+        suggestions.push('该资料检修适配度较高，可以加入标准作业路径继续使用');
       }
 
-      return suggestions.length > 0 ? suggestions : ['建议结合学生画像继续优化资源推送'];
+      return suggestions.length > 0 ? suggestions : ['建议结合设备画像继续优化检修资料推送'];
     },
 
     saveManualInput() {
       if (!this.manualInputData.foodName.trim()) {
-        uni.showToast({ title: '请输入知识点名称', icon: 'none' });
+        uni.showToast({ title: '请输入设备型号或故障现象', icon: 'none' });
         return;
       }
 
       const nowTs = Date.now();
+      const score = this.calculateHealthScore(this.manualInputData);
       const savedData = {
         ...this.manualInputData,
+        score,
+        suggestions: this.generateSuggestions(this.manualInputData, score),
         savedAt: nowTs,
         date: this.formatHistoryDate(nowTs)
       };
 
-      let savedList = uni.getStorageSync('manualFoodList') || [];
+      let savedList = uni.getStorageSync('manualLearningResourceList') || [];
       savedList.push(savedData);
-      uni.setStorageSync('manualFoodList', savedList);
+      uni.setStorageSync('manualLearningResourceList', savedList);
 
       uni.showToast({ title: '保存成功', icon: 'success' });
       this.resetManualInput();
@@ -1427,77 +1554,127 @@ export default {
   line-height: 1.5;
 }
 
-/* ===== 拍照区域 ===== */
-.shoot-section {
-  padding: 20rpx 24rpx 0;
-}
-
-.shoot-card {
+/* ===== NotebookLM 风格资料入口 ===== */
+.source-card {
   background: #fff;
-  border-radius: 28rpx;
-  padding: 48rpx 0 36rpx;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+  margin: 20rpx 24rpx 0;
+  border-radius: 24rpx;
+  padding: 24rpx;
   box-shadow: 0 4rpx 20rpx rgba(0,0,0,0.05);
-  border: 2rpx dashed #a7f3d0;
-  transition: transform 0.15s;
+  border: 1rpx solid #e8f5ee;
 }
 
-.shoot-card:active { transform: scale(0.98); }
+.source-dropzone {
+  min-height: 150rpx;
+  border: 2rpx dashed #99f6e4;
+  border-radius: 22rpx;
+  background: #f0fdfa;
+  display: flex;
+  align-items: center;
+  gap: 18rpx;
+  padding: 24rpx;
+}
 
-.camera-icon-wrap {
-  width: 160rpx;
-  height: 160rpx;
-  background: #f0fdf4;
-  border-radius: 50%;
+.source-icon {
+  width: 64rpx;
+  height: 64rpx;
+  border-radius: 20rpx;
+  background: #0d9488;
+  color: #fff;
+  font-size: 42rpx;
+  line-height: 60rpx;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.source-copy {
+  flex: 1;
+  min-width: 0;
+}
+
+.source-title {
+  display: block;
+  font-size: 30rpx;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.source-desc {
+  display: block;
+  margin-top: 6rpx;
+  font-size: 23rpx;
+  color: #64748b;
+  line-height: 1.45;
+}
+
+.source-prompt-box {
+  margin-top: 18rpx;
+  background: #f8fafc;
+  border-radius: 20rpx;
+  border: 1rpx solid #e2e8f0;
+  padding: 18rpx;
+}
+
+.source-prompt {
+  width: 100%;
+  min-height: 132rpx;
+  font-size: 26rpx;
+  color: #0f172a;
+  line-height: 1.45;
+}
+
+.source-actions {
+  display: flex;
+  gap: 16rpx;
+  margin-top: 18rpx;
+}
+
+.source-action {
+  flex: 1;
+  height: 76rpx;
+  border-radius: 999rpx;
+  background: #ecfdf5;
+  border: 1rpx solid #a7f3d0;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 28rpx;
-  border: 3rpx solid #d1fae5;
-  box-shadow: 0 8rpx 24rpx rgba(46,169,111,0.12);
-}
-
-.camera-svg {
-  width: 80rpx;
-  height: 80rpx;
-}
-
-.camera-fallback {
-  font-size: 48rpx;
-  color: #2ea96f;
-  font-weight: 700;
-}
-
-.shoot-label {
-  font-size: 30rpx;
+  color: #0f766e;
+  font-size: 27rpx;
   font-weight: 800;
-  color: #1a2c20;
-  margin-bottom: 8rpx;
 }
 
-.shoot-sub {
-  font-size: 22rpx;
-  color: #aaa;
-  margin-bottom: 24rpx;
-}
-
-.shoot-action-row {
-  margin-top: 4rpx;
-}
-
-.shoot-action-btn {
-  background: linear-gradient(135deg, #2ea96f, #4CCF87);
-  border-radius: 40rpx;
-  padding: 18rpx 60rpx;
-  box-shadow: 0 6rpx 20rpx rgba(46,169,111,0.3);
-}
-
-.shoot-action-text {
-  font-size: 28rpx;
+.source-action.primary {
+  background: #0d9488;
   color: #fff;
-  font-weight: bold;
+  border-color: #0d9488;
+  box-shadow: 0 10rpx 24rpx rgba(13,148,136,0.22);
+}
+
+.resource-chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+  margin-top: 18rpx;
+}
+
+.resource-type-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 8rpx;
+  padding: 10rpx 14rpx;
+  border-radius: 999rpx;
+  background: #f8fafc;
+  border: 1rpx solid #e2e8f0;
+}
+
+.resource-type-icon {
+  font-size: 24rpx;
+}
+
+.resource-type-name {
+  font-size: 22rpx;
+  color: #0f172a;
+  font-weight: 700;
 }
 
 /* ===== 功能卡片组 ===== */
@@ -1986,7 +2163,7 @@ export default {
 
 .send-arrow { font-size: 26rpx; color: #fff; }
 
-/* 营养分析 */
+/* 资源清单 */
 .nutrition-list { display: flex; flex-direction: column; gap: 16rpx; }
 
 .nutrition-item {
@@ -2022,7 +2199,7 @@ export default {
 
 .nutrition-status.high { background: #fff1f0; color: #ff4d4f; }
 
-/* 营养建议 */
+/* 检修建议 */
 .suggestions-list { display: flex; flex-direction: column; gap: 16rpx; }
 
 .sug-item {

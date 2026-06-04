@@ -10,8 +10,8 @@
           <view class="online-dot"></view>
         </view>
         <view class="greeting">
-          <text class="greeting-title">早上好，开始今日个性化学习</text>
-          <text class="greeting-subtitle">画像智能体为你持续更新学习状态</text>
+          <text class="greeting-title">早上好，开始今日标准作业</text>
+          <text class="greeting-subtitle">司南为你规划检修路线、推送标准流程并动态提醒风险节点</text>
         </view>
       </view>
       <view class="notification-btn tap-effect" @click="showHealthTip">
@@ -78,13 +78,13 @@
             </view>
           </view>
 
-          <!-- 学习画像 Card (Medium) -->
+          <!-- 检修画像 Card (Medium) -->
           <view class="bento-card sleep-card hover-glow tap-effect stagger-4">
             <view class="card-header">
               <view class="icon-box">
                 <text style="font-size:28rpx">⚖️</text>
               </view>
-              <text class="card-title">学习画像维度</text>
+              <text class="card-title">检修画像维度</text>
             </view>
             <view class="card-body">
               <view class="sleep-circle" style="display:flex; align-items:center; justify-content:center;">
@@ -97,18 +97,18 @@
             </view>
           </view>
 
-          <!-- 今日学习卡片 (Large) -->
+          <!-- 今日检修卡片 (Large) -->
           <view class="bento-card activity-card hover-glow tap-effect stagger-5">
             <view class="card-header">
               <view class="icon-box">
                 <text style="font-size:28rpx">🍎</text>
               </view>
-              <text class="card-title">今日学习</text>
+              <text class="card-title">今日检修</text>
               <view class="add-btn-mini tap-effect" @click="showAddFoodModal = true" style="background:#10b981; color:white; padding:8rpx 20rpx; border-radius:20rpx; font-size:24rpx; font-weight:600;">+ </view>
             </view>
             <view class="card-body">
               <view v-if="foodRecords.length === 0" class="empty-state" style="padding:40rpx 0; text-align:center;">
-                <text class="empty-text">今天还没有学习记录，点击"记录"添加</text>
+                <text class="empty-text">今天还没有检修记录，点击"记录"添加</text>
               </view>
               <view v-else class="food-records-list">
                 <view class="food-record-item tap-effect" v-for="(food, index) in foodRecords" :key="food.id">
@@ -137,14 +137,14 @@
         <!-- Actionable Todo Cards (Medication, Water) -->
         <view class="todo-section stagger-6">
           <view class="todo-header-row" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24rpx;">
-            <text class="section-title" style="margin-bottom:0;">今日学习待办</text>
+            <text class="section-title" style="margin-bottom:0;">今日检修待办</text>
             <view class="add-btn-mini tap-effect" @click="showAddModal = true" style="background:#10b981; color:white; padding:8rpx 20rpx; border-radius:20rpx; font-size:24rpx; font-weight:600;">+ 新增</view>
           </view>
 
           <!-- Add Todo Input Area (Shown when showAddModal is true) -->
           <view v-if="showAddModal" class="add-todo-form hover-glow" style="background:white; border-radius:32rpx; padding:32rpx; margin-bottom:24rpx; box-shadow: 0 8rpx 32rpx rgba(15, 23, 42, 0.05);">
-            <input v-model="newTodoTitle" placeholder="待办名称 (如 完成A*练习)" style="font-size:34rpx; border-bottom:1rpx solid #e2e8f0; padding:24rpx 0; margin-bottom:24rpx; height:80rpx; width:100%;"/>
-            <input v-model="newTodoSub" placeholder="备注 (如 10道题)" style="font-size:30rpx; border-bottom:1rpx solid #e2e8f0; padding:24rpx 0; margin-bottom:32rpx; height:80rpx; width:100%;"/>
+            <input v-model="newTodoTitle" placeholder="待办名称 (如 完成配电柜二级检修)" style="font-size:34rpx; border-bottom:1rpx solid #e2e8f0; padding:24rpx 0; margin-bottom:24rpx; height:80rpx; width:100%;"/>
+            <input v-model="newTodoSub" placeholder="备注 (如 验电、复核、拍照留痕)" style="font-size:30rpx; border-bottom:1rpx solid #e2e8f0; padding:24rpx 0; margin-bottom:32rpx; height:80rpx; width:100%;"/>
             <view style="display:flex; gap:20rpx;">
               <view class="tap-effect" @click="addTodo" style="flex:1; background:#10b981; color:white; text-align:center; padding:24rpx; border-radius:16rpx; font-size:28rpx; font-weight:700;">确认添加</view>
               <view class="tap-effect" @click="showAddModal = false" style="flex:1; background:#f1f5f9; color:#64748b; text-align:center; padding:24rpx; border-radius:16rpx; font-size:28rpx; font-weight:700;">取消</view>
@@ -171,7 +171,7 @@
           </view>
           
           <view v-if="todos.length === 0" class="empty-state" style="padding:60rpx 0;">
-            <text class="empty-text">今天还没有学习待办，点击“新增”添加吧</text>
+            <text class="empty-text">今天还没有检修待办，点击“新增”添加吧</text>
           </view>
         </view>
 
@@ -192,12 +192,12 @@
             <view class="insight-avatar-row">
               <image class="insight-avatar" src="/static/healthymanager.png" mode="aspectFill"></image>
               <view class="insight-bubble">
-                <text class="bubble-text">这周搜索算法掌握度稳步上升！继续保持案例练习节奏</text>
+                <text class="bubble-text">这周标准作业完成度稳步上升！继续保持现场复盘节奏</text>
               </view>
             </view>
             <view class="insight-tags">
-              <text class="tag positive">讲解文档已完成</text>
-              <text class="tag warning">实操练习需加强</text>
+              <text class="tag positive">作业流程已完成</text>
+              <text class="tag warning">风险复核需加强</text>
             </view>
           </view>
 
@@ -207,7 +207,7 @@
               <view class="icon-box">
                 <text class="lucide-icon">📈</text>
               </view>
-              <text class="card-title">近七天学习掌握度变化</text>
+              <text class="card-title">近七天作业质量变化</text>
             </view>
             <view class="trend-chart-box">
               <view class="chart-bars-container">
@@ -222,7 +222,7 @@
           <!-- Actionable Advice -->
           <view class="action-card hover-glow tap-effect stagger-6" @click="acceptChallenge">
             <text class="action-title">💡 明日小建议</text>
-            <text class="action-desc">数据显示你的学习掌握度在上升。明天建议补充 A* 搜索启发式函数练习，并完成一组编程题。</text>
+            <text class="action-desc">数据显示你的作业质量在上升。明天建议补充过热故障复核照片，并完成一次停电验电记录检查。</text>
             <view class="challenge-btn">好的，我试试</view>
           </view>
         </view>
@@ -231,8 +231,8 @@
           <!-- Annual Summary Banner -->
           <view class="annual-banner hover-glow tap-effect stagger-4" @click="showAnnualReport">
             <view class="banner-content">
-              <text class="banner-title">2026 学习总结</text>
-              <text class="banner-subtitle">点击查看你的课程成长里程碑</text>
+              <text class="banner-title">2026 检修总结</text>
+              <text class="banner-subtitle">点击查看你的检修质量里程碑</text>
             </view>
             <text class="lucide-icon banner-arrow" style="opacity:0.8">前往</text>
           </view>
@@ -256,7 +256,7 @@
             <view class="bento-card activity-card hover-glow stagger-6">
               <view class="card-header">
                 <view class="icon-box"><text style="font-size:28rpx">🍎</text></view>
-                <text class="card-title">课程掌握程度</text>
+                <text class="card-title">作业合规程度</text>
               </view>
               <view class="chart-container-monthly">
                  <view class="month-bar-group" v-for="(m, i) in monthlyActivity" :key="'a'+i">
@@ -264,7 +264,7 @@
                    <text class="month-label">{{ m.month }}</text>
                  </view>
               </view>
-              <text class="status-msg good-status">本月人工智能导论掌握度显著提升！</text>
+              <text class="status-msg good-status">本月检修作业合规度显著提升！</text>
             </view>
           </view>
         </view>
@@ -280,8 +280,8 @@
               <text style="font-size:28rpx">🥗</text>
             </view>
             <view>
-               <text class="card-title" style="display:block;">个性化学习路径推荐</text>
-               <text style="font-size:20rpx; color:#94a3b8; font-weight: 500;">学生画像驱动 · 资源精准推送</text>
+               <text class="card-title" style="display:block;">标准作业路径推荐</text>
+               <text style="font-size:20rpx; color:#94a3b8; font-weight: 500;">设备画像驱动 · 流程精准推送</text>
             </view>
           </view>
           
@@ -310,8 +310,8 @@
 
           <view style="padding: 0 32rpx 32rpx;">
             <view class="custom-plan-btn tap-effect" @click="showCustomPlanModal = true">
-              <text style="font-size:28rpx; font-weight:700; color:#0f172a;">✏️ 自定义学习计划</text>
-              <text style="font-size:22rpx; color:#64748b; margin-top:4rpx;">根据个人需求自由设置</text>
+              <text style="font-size:28rpx; font-weight:700; color:#0f172a;">✏️ 自定义作业计划</text>
+              <text style="font-size:22rpx; color:#64748b; margin-top:4rpx;">根据设备与检修等级自由设置</text>
             </view>
           </view>
         </view>
@@ -349,7 +349,7 @@
               </view>
               <text class="plan-desc-title">计划说明</text>
             </view>
-            <text class="plan-desc-text">{{ selectedPlan.name }}方案将结合学生画像、课程知识库和练习反馈，帮助你{{ selectedPlan.desc }}。每日建议学习时长约{{ selectedPlan.totalCalories }}分钟，系统会持续推送讲解、题库、导图和实操资源。</text>
+            <text class="plan-desc-text">{{ selectedPlan.name }}方案将结合设备画像、检修知识库和作业反馈，帮助你{{ selectedPlan.desc }}。每日建议作业时长约{{ selectedPlan.totalCalories }}分钟，系统会持续推送手册、案例、流程和风险复核清单。</text>
           </view>
 
           <view class="plan-nutrition-summary">
@@ -359,15 +359,15 @@
             </view>
             <view class="nutrition-item nutrition-pro">
               <text class="nutrition-val">{{ selectedPlan.protein }}类</text>
-              <text class="nutrition-label">讲解资源</text>
+              <text class="nutrition-label">手册资料</text>
             </view>
             <view class="nutrition-item nutrition-carb">
               <text class="nutrition-val">{{ selectedPlan.carbs }}组</text>
-              <text class="nutrition-label">练习任务</text>
+              <text class="nutrition-label">作业任务</text>
             </view>
             <view class="nutrition-item nutrition-fat">
               <text class="nutrition-val">{{ selectedPlan.fat }}项</text>
-              <text class="nutrition-label">实操案例</text>
+              <text class="nutrition-label">检修案例</text>
             </view>
           </view>
 
@@ -390,7 +390,7 @@
                   <text class="dish-name">{{ dish.name }}</text>
                   <text class="dish-health-desc">{{ getHealthDesc(dish) }}</text>
                   <view class="dish-tags-row">
-                    <text class="dish-tag cal-tag">{{ dish.calories }}学习点</text>
+                    <text class="dish-tag cal-tag">{{ dish.calories }}作业点</text>
                     <text class="dish-tag time-tag">{{ dish.cooking_time }}min</text>
                     <text class="dish-tag diff-tag">{{ dish.difficulty }}</text>
                   </view>
@@ -467,7 +467,7 @@
           <view class="dish-meta-row">
             <view class="dish-meta-chip meta-cal">
               <text class="meta-chip-val">{{ selectedDish.calories }}</text>
-              <text class="meta-chip-label">学习点</text>
+              <text class="meta-chip-label">作业点</text>
             </view>
             <view class="dish-meta-chip meta-time">
               <text class="meta-chip-val">{{ selectedDish.cooking_time }}</text>
@@ -497,7 +497,7 @@
               <view class="section-icon-wrap section-icon-step">
                 <text style="font-size:24rpx;">🧑‍💻</text>
               </view>
-              <text class="dish-section-title">学习步骤</text>
+              <text class="dish-section-title">作业步骤</text>
             </view>
             <view class="dish-steps">
               <view class="dish-step-item" v-for="(step, sIdx) in selectedDish.steps" :key="sIdx">
@@ -515,7 +515,7 @@
       <view class="custom-plan-modal" @click.stop>
         <view class="modal-drag-bar"></view>
         <view class="custom-plan-header">
-          <text class="custom-plan-title">✏️ 自定义学习计划</text>
+          <text class="custom-plan-title">✏️ 自定义作业计划</text>
           <view class="custom-plan-close" @click="showCustomPlanModal = false">
             <text style="font-size:32rpx; color:#64748b;">✕</text>
           </view>
@@ -528,15 +528,15 @@
               </view>
               <text class="plan-desc-title">填写指南</text>
             </view>
-            <text class="plan-desc-text">请根据你的专业、学习目标、知识基础和偏好填写信息。系统将结合学生画像智能生成个性化学习计划，并动态推荐文档、题库、案例和多模态资源。</text>
+            <text class="plan-desc-text">请根据设备型号、故障现象、检修等级和现场约束填写信息。系统将结合设备画像智能生成标准作业计划，并动态推荐手册、案例、流程和多模态资料。</text>
           </view>
 
           <view class="form-group">
             <text class="form-label">计划名称</text>
-            <input v-model="customPlan.name" placeholder="如：我的AI导论冲刺计划" class="form-input" />
+            <input v-model="customPlan.name" placeholder="如：ZK-320过热检修计划" class="form-input" />
           </view>
           <view class="form-group">
-            <text class="form-label">学习目标</text>
+            <text class="form-label">检修目标</text>
             <view class="form-options">
               <view class="form-option" v-for="(goal, gIdx) in planGoals" :key="gIdx"
                 :class="{ active: customPlan.goal === goal.value }"
@@ -547,11 +547,11 @@
             </view>
           </view>
           <view class="form-group">
-            <text class="form-label">每日目标时长 (分钟)</text>
+            <text class="form-label">每日作业时长 (分钟)</text>
             <input v-model="customPlan.calories" type="number" placeholder="如：90" class="form-input" />
           </view>
           <view class="form-group">
-            <text class="form-label">学习环节</text>
+            <text class="form-label">作业环节</text>
             <view class="form-options">
               <view class="form-option meal-option" v-for="(m, mIdx) in mealOptions" :key="mIdx"
                 :class="{ active: customPlan.meals.includes(m.value) }"
@@ -561,7 +561,7 @@
             </view>
           </view>
           <view class="form-group">
-            <text class="form-label">学习偏好</text>
+            <text class="form-label">检修偏好</text>
             <view class="form-options wrap">
               <view class="form-option tag-option" v-for="(pref, pIdx) in dietPreferences" :key="pIdx"
                 :class="{ active: customPlan.preferences.includes(pref) }"
@@ -572,7 +572,7 @@
           </view>
           <view class="form-group">
             <text class="form-label">备注</text>
-            <textarea v-model="customPlan.remark" placeholder="如：搜索算法薄弱、偏好图解和代码案例..." class="form-textarea" :maxlength="200"></textarea>
+            <textarea v-model="customPlan.remark" placeholder="如：柜体过热、偏好图文流程和风险复核清单..." class="form-textarea" :maxlength="200"></textarea>
           </view>
 
           <view class="plan-todo-section">
@@ -616,41 +616,41 @@
             <text style="font-size:28rpx; font-weight:600; color:#64748b;">取消</text>
           </view>
           <view class="custom-plan-confirm tap-effect" @click="saveCustomPlan">
-            <text style="font-size:28rpx; font-weight:600; color:white;">生成计划</text>
+            <text style="font-size:28rpx; font-weight:600; color:white;">生成方案</text>
           </view>
         </view>
       </view>
     </view>
 
-    <!-- 学习记录弹窗 -->
+    <!-- 检修记录弹窗 -->
     <view class="modal-overlay" v-if="showAddFoodModal" @click="showAddFoodModal = false">
       <view class="dish-detail-modal" @click.stop>
         <view class="modal-drag-bar"></view>
         <view class="dish-detail-header">
-          <text class="dish-detail-name">📘 记录学习</text>
+          <text class="dish-detail-name">📘 记录检修</text>
           <view class="dish-detail-close" @click="showAddFoodModal = false">
             <text style="font-size:28rpx; color:#64748b;">✕</text>
           </view>
         </view>
         <scroll-view class="dish-detail-content" scroll-y="true" :show-scrollbar="false" enhanced :bounces="true">
           <view class="form-group">
-            <text class="form-label">学习内容</text>
-            <input v-model="newFood.name" placeholder="请输入学习内容" class="form-input" />
+            <text class="form-label">检修内容</text>
+            <input v-model="newFood.name" placeholder="请输入检修内容" class="form-input" />
           </view>
           <view class="form-group">
-            <text class="form-label">学习时间</text>
+            <text class="form-label">检修时间</text>
             <input v-model="newFood.time" type="datetime-local" class="form-input" />
           </view>
           <view class="form-group">
-            <text class="form-label">学习时长 (分钟)</text>
-            <input v-model="newFood.calories" type="number" placeholder="请输入学习时长" class="form-input" />
+            <text class="form-label">检修时长 (分钟)</text>
+            <input v-model="newFood.calories" type="number" placeholder="请输入检修时长" class="form-input" />
           </view>
           <view class="form-group">
             <text class="form-label">备注</text>
             <textarea v-model="newFood.notes" placeholder="添加掌握度、错因或资源反馈" class="form-textarea" :maxlength="200"></textarea>
           </view>
           <view class="form-group">
-            <text class="form-label">学习截图</text>
+            <text class="form-label">检修照片</text>
             <view class="image-upload-section">
               <view v-if="newFood.image" class="uploaded-image">
                 <image :src="newFood.image" mode="aspectFill"></image>
@@ -681,7 +681,7 @@
       <view class="health-tip-modal" @click.stop>
         <view class="modal-drag-bar"></view>
         <view class="health-tip-header">
-          <text class="health-tip-title">📘 学习小提示</text>
+          <text class="health-tip-title">📘 检修小提示</text>
           <view class="health-tip-close" @click="showHealthTipModal = false">
             <text style="font-size:28rpx; color:#64748b;">✕</text>
           </view>
@@ -716,30 +716,30 @@ export default {
         weight: 68
       },
       healthTips: [
-        '先用自然语言说清楚专业、课程目标和当前困惑，画像智能体会自动抽取学习特征',
-        '生成资料后建议先看讲解文档，再做分层练习题，最后完成实操案例',
-        '遇到抽象概念时，可以要求系统生成图解说明或短视频脚本',
-        '对生成内容要查看知识库依据，避免大模型幻觉影响学习判断',
-        '易错点会随练习结果动态更新，学习路径也会同步调整',
-        '建议每次学习后记录掌握度，方便效果评估智能体优化资源推送',
-        '代码类课程优先结合实操项目学习，比单纯阅读概念更容易形成迁移能力',
-        '当练习正确率低于 70% 时，先回到前置知识点补齐基础'
+        '先用自然语言说清楚设备型号、故障现象、检修等级和现场约束，司南会自动抽取作业特征',
+        '开始作业前建议先看检修手册，再核对相似案例，最后执行标准流程',
+        '遇到复杂故障时，可以要求系统生成图文排查链路或风险复核清单',
+        '对生成内容要查看知识库依据，避免大模型幻觉影响现场判断',
+        '高频故障点会随检修结果动态更新，作业路径也会同步调整',
+        '建议每次检修后记录合规评分，方便司南优化流程推送',
+        '现场检修优先结合历史案例和标准作业票，比单纯阅读手册更容易闭环',
+        '当合规评分低于 70 分时，先回到安全确认、验电和复核节点补齐记录'
       ],
       showHealthTipModal: false,
       currentHealthTip: '',
       agents: [
-        { name: '画像构建智能体', role: '抽取专业、目标、基础、偏好、易错点', status: '更新中', icon: '🧠', color: '#10b981' },
-        { name: '资源生成智能体', role: '生成讲解文档、题库、导图与案例', status: '待命', icon: '📚', color: '#3b82f6' },
-        { name: '效果评估智能体', role: '分析练习结果并调整学习路径', status: '监测中', icon: '📈', color: '#f59e0b' }
+        { name: '司南', role: '分析设备画像、制定检修路线、安排作业顺序、动态调整计划和精准推送流程', status: '规划中', icon: '🧭', color: '#10b981' },
+        { name: '墨灵', role: '生成检修手册摘要、故障图谱、作业票、风险清单、视频脚本和现场讲解', status: '待命', icon: '📚', color: '#3b82f6' },
+        { name: '藏典', role: '整理设备资料库、检修案例库、经验记录、作业记录和知识图谱', status: '同步中', icon: '🗂️', color: '#f59e0b' }
       ],
       todos: [
-        { id: 1, title: '完成搜索算法基础讲解', sub: '阅读 20 分钟', done: false },
-        { id: 2, title: '完成 A* 搜索练习题', sub: '距离目标还差 5 题', done: false }
+        { id: 1, title: '完成配电柜过热检修流程核对', sub: '预计 20 分钟', done: false },
+        { id: 2, title: '上传复核照片与处置结论', sub: '还差 5 张记录', done: false }
       ],
       showAddModal: false,
       newTodoTitle: '',
       newTodoSub: '',
-      // 学习记录相关
+      // 检修记录相关
       showAddFoodModal: false,
       newFood: {
         name: '',
@@ -770,98 +770,98 @@ export default {
       ],
       goalTemplates: [
         {
-          name: 'AI导论基础巩固计划', icon: '📚', desc: '按知识基础逐步补齐核心概念',
+          name: '配电柜标准检修计划', icon: '📚', desc: '按设备状态逐步完成标准检修流程',
           totalCalories: 90, protein: 3, carbs: 2, fat: 1,
           meals: [
             {
-              type: '课前预习', icon: '📘', calories: 20,
+              type: '作业准备', icon: '📘', calories: 20,
               dishes: [
-                { name: 'AI基本概念讲解文档', image: '', calories: 8, cooking_time: 8, difficulty: '入门', ingredients: ['课程知识库', '学生画像', '关键概念'], steps: ['阅读核心定义', '标记陌生术语', '向辅导智能体追问例子'] },
-                { name: '搜索算法可视化导图', image: '', calories: 6, cooking_time: 6, difficulty: '入门', ingredients: ['宽度优先搜索', '深度优先搜索', '启发式搜索'], steps: ['查看算法关系', '对比适用场景', '记录易混点'] },
-                { name: 'AI伦理安全短案例', image: '', calories: 6, cooking_time: 6, difficulty: '入门', ingredients: ['内容安全', '防幻觉校验', '资源可信度'], steps: ['阅读案例', '指出风险点', '查看知识库依据'] }
+                { name: '配电柜检修手册摘要', image: '', calories: 8, cooking_time: 8, difficulty: '入门', ingredients: ['设备资料库', '设备画像', '关键部件'], steps: ['阅读安全条款', '标记关键风险', '向问修智能体追问细节'] },
+                { name: '过热故障排查图谱', image: '', calories: 6, cooking_time: 6, difficulty: '入门', ingredients: ['端子松动', '风道堵塞', '负载异常'], steps: ['查看故障链路', '对比适用场景', '记录易漏项'] },
+                { name: '安全合规短案例', image: '', calories: 6, cooking_time: 6, difficulty: '入门', ingredients: ['挂牌上锁', '防幻觉校验', '资料可信度'], steps: ['阅读案例', '指出风险点', '查看知识库依据'] }
               ]
             },
             {
-              type: '课堂复盘', icon: '🧠', calories: 25,
+              type: '流程复核', icon: '🧠', calories: 25,
               dishes: [
-                { name: '课堂知识点摘要', image: '', calories: 10, cooking_time: 10, difficulty: '基础', ingredients: ['教师课件', '课程大纲', '课堂笔记'], steps: ['按章节生成摘要', '补充关键公式', '生成三条自测问题'] },
-                { name: '概念辨析题库', image: '', calories: 8, cooking_time: 8, difficulty: '基础', ingredients: ['易错概念', '选择题', '判断题'], steps: ['完成10道题', '查看错因解析', '更新薄弱点画像'] },
-                { name: '知识库依据核验', image: '', calories: 7, cooking_time: 7, difficulty: '基础', ingredients: ['课程知识库片段', '生成内容引用', '安全审核规则'], steps: ['查看引用来源', '标记无依据内容', '重新生成存疑段落'] }
+                { name: '作业票要点摘要', image: '', calories: 10, cooking_time: 10, difficulty: '基础', ingredients: ['作业票模板', '检修规程', '现场记录'], steps: ['按步骤生成摘要', '补充关键复核项', '生成三条安全确认问题'] },
+                { name: '故障原因辨析清单', image: '', calories: 8, cooking_time: 8, difficulty: '基础', ingredients: ['易漏原因', '判断项', '复核项'], steps: ['完成10项检查', '查看原因解析', '更新薄弱点画像'] },
+                { name: '知识库依据核验', image: '', calories: 7, cooking_time: 7, difficulty: '基础', ingredients: ['检修知识库片段', '生成内容引用', '安全审核规则'], steps: ['查看引用来源', '标记无依据内容', '重新生成存疑段落'] }
               ]
             },
             {
-              type: '练习训练', icon: '📝', calories: 25,
+              type: '现场执行', icon: '📝', calories: 25,
               dishes: [
-                { name: '分层练习题包', image: '', calories: 12, cooking_time: 12, difficulty: '基础', ingredients: ['基础题', '进阶题', '错题追踪'], steps: ['先做基础题', '错题自动归因', '根据正确率调整难度'] },
-                { name: '搜索算法手算练习', image: '', calories: 8, cooking_time: 8, difficulty: '基础', ingredients: ['图结构样例', '队列/栈过程', '路径结果'], steps: ['手推访问顺序', '对照标准答案', '记录出错步骤'] }
+                { name: '分级检修任务包', image: '', calories: 12, cooking_time: 12, difficulty: '基础', ingredients: ['基础检查', '进阶排查', '问题追踪'], steps: ['先做安全确认', '问题自动归因', '根据结果调整流程'] },
+                { name: '端子温升复核记录', image: '', calories: 8, cooking_time: 8, difficulty: '基础', ingredients: ['热成像图', '测温过程', '复核结果'], steps: ['记录测温顺序', '对照标准阈值', '记录异常步骤'] }
               ]
             },
             {
-              type: '项目实操', icon: '💻', calories: 20,
+              type: '结果闭环', icon: '💻', calories: 20,
               dishes: [
-                { name: '最短路径小实验', image: '', calories: 12, cooking_time: 12, difficulty: '进阶', ingredients: ['Python示例', '图搜索数据', '测试用例'], steps: ['运行示例代码', '修改起终点', '解释输出路径'] },
-                { name: '实操复盘卡片', image: '', calories: 8, cooking_time: 8, difficulty: '基础', ingredients: ['实验截图', '错误日志', '修复建议'], steps: ['记录运行结果', '总结关键收获', '同步到学生画像'] }
+                { name: '复位前安全确认', image: '', calories: 12, cooking_time: 12, difficulty: '进阶', ingredients: ['复位清单', '现场照片', '测试记录'], steps: ['核对复位条件', '补充确认照片', '解释处置结论'] },
+                { name: '检修复盘卡片', image: '', calories: 8, cooking_time: 8, difficulty: '基础', ingredients: ['现场照片', '异常记录', '修复建议'], steps: ['记录处置结果', '总结关键收获', '同步到设备画像'] }
               ]
             }
           ]
         },
         {
-          name: '搜索算法专项突破计划', icon: '🧭', desc: '围绕图搜索、启发式函数和 A* 算法强化训练',
+          name: '过热故障专项排查计划', icon: '🧭', desc: '围绕温升异常、端子松动和风道堵塞强化排查',
           totalCalories: 100, protein: 2, carbs: 3, fat: 2,
           meals: [
             {
-              type: '前置补齐', icon: '🧩', calories: 20,
+              type: '前置核对', icon: '🧩', calories: 20,
               dishes: [
-                { name: '图结构基础速查', image: '', calories: 8, cooking_time: 8, difficulty: '基础', ingredients: ['节点与边', '邻接表', '权重'], steps: ['阅读速查表', '完成概念连线', '确认前置掌握度'] },
-                { name: 'BFS/DFS对比讲解', image: '', calories: 12, cooking_time: 12, difficulty: '基础', ingredients: ['搜索顺序', '数据结构', '适用场景'], steps: ['看对比图', '手推两个例子', '生成错题提醒'] }
+                { name: '设备铭牌速查', image: '', calories: 8, cooking_time: 8, difficulty: '基础', ingredients: ['设备型号', '额定参数', '运行环境'], steps: ['阅读速查表', '完成参数核对', '确认前置条件'] },
+                { name: '过热/异响对比讲解', image: '', calories: 12, cooking_time: 12, difficulty: '基础', ingredients: ['故障现象', '排查顺序', '适用场景'], steps: ['看对比图', '推演两个案例', '生成风险提醒'] }
               ]
             },
             {
-              type: '专项训练', icon: '🎯', calories: 35,
+              type: '专项排查', icon: '🎯', calories: 35,
               dishes: [
-                { name: 'A*算法分步题', image: '', calories: 15, cooking_time: 15, difficulty: '进阶', ingredients: ['启发函数', '开放列表', '关闭列表'], steps: ['逐步计算f值', '选择下一个节点', '解释路径选择原因'] },
-                { name: '启发式函数案例库', image: '', calories: 10, cooking_time: 10, difficulty: '进阶', ingredients: ['曼哈顿距离', '欧氏距离', '一致性'], steps: ['比较函数差异', '判断是否可采纳', '生成反例说明'] },
-                { name: '错题归因训练', image: '', calories: 10, cooking_time: 10, difficulty: '基础', ingredients: ['错题记录', '错因标签', '补救资源'], steps: ['查看错题', '选择错因', '推送对应讲解'] }
+                { name: '温升异常分步排查', image: '', calories: 15, cooking_time: 15, difficulty: '进阶', ingredients: ['测温记录', '负载电流', '端子状态'], steps: ['逐步核对温升', '选择下一个检查点', '解释故障路径原因'] },
+                { name: '相似检修案例库', image: '', calories: 10, cooking_time: 10, difficulty: '进阶', ingredients: ['端子松动', '风道堵塞', '接触电阻'], steps: ['比较案例差异', '判断是否匹配', '生成反例说明'] },
+                { name: '问题归因训练', image: '', calories: 10, cooking_time: 10, difficulty: '基础', ingredients: ['检修记录', '原因标签', '补救资源'], steps: ['查看异常记录', '选择原因', '推送对应手册'] }
               ]
             },
             {
-              type: '项目实操', icon: '💻', calories: 30,
+              type: '现场实操', icon: '💻', calories: 30,
               dishes: [
-                { name: '迷宫寻路代码案例', image: '', calories: 18, cooking_time: 18, difficulty: '进阶', ingredients: ['迷宫地图', 'A*代码模板', '路径可视化'], steps: ['运行模板', '替换启发函数', '截图对比结果'] },
-                { name: '代码讲解生成', image: '', calories: 12, cooking_time: 12, difficulty: '基础', ingredients: ['源码片段', '变量说明', '执行流程'], steps: ['上传代码', '生成逐行解释', '提取面试问答'] }
+                { name: '配电柜过热处置案例', image: '', calories: 18, cooking_time: 18, difficulty: '进阶', ingredients: ['现场照片', '作业票模板', '处理结论'], steps: ['运行检查清单', '替换设备参数', '截图对比结果'] },
+                { name: '作业记录自动总结', image: '', calories: 12, cooking_time: 12, difficulty: '基础', ingredients: ['记录片段', '变量说明', '执行流程'], steps: ['上传记录', '生成逐项解释', '提取复盘问答'] }
               ]
             },
             {
-              type: '效果评估', icon: '📈', calories: 15,
+              type: '质量评估', icon: '📈', calories: 15,
               dishes: [
-                { name: '专项掌握度报告', image: '', calories: 8, cooking_time: 8, difficulty: '基础', ingredients: ['正确率', '完成时长', '知识点覆盖'], steps: ['查看雷达图', '确认达标项', '生成下一阶段计划'] },
-                { name: '个性化复习包', image: '', calories: 7, cooking_time: 7, difficulty: '基础', ingredients: ['薄弱点', '同类题', '微课脚本'], steps: ['选择薄弱点', '生成复习包', '加入今日待办'] }
+                { name: '专项合规度报告', image: '', calories: 8, cooking_time: 8, difficulty: '基础', ingredients: ['合规率', '完成时长', '流程覆盖'], steps: ['查看雷达图', '确认达标项', '生成下一阶段计划'] },
+                { name: '个性化整改包', image: '', calories: 7, cooking_time: 7, difficulty: '基础', ingredients: ['薄弱点', '同类案例', '讲解脚本'], steps: ['选择薄弱点', '生成整改包', '加入今日待办'] }
               ]
             }
           ]
         },
         {
-          name: '大模型智能体拓展计划', icon: '🤖', desc: '面向竞赛作品展示的多智能体协同学习任务',
+          name: '检修知识沉淀演示计划', icon: '🤖', desc: '面向竞赛作品展示的多智能体协同检修任务',
           totalCalories: 120, protein: 4, carbs: 2, fat: 2,
           meals: [
             {
               type: '主题导入', icon: '🚀', calories: 25,
               dishes: [
-                { name: '多智能体架构讲解', image: '', calories: 12, cooking_time: 12, difficulty: '进阶', ingredients: ['画像智能体', '资源生成智能体', '评估智能体'], steps: ['阅读架构说明', '理解协作流程', '提炼展示话术'] },
+                { name: '多智能体架构讲解', image: '', calories: 12, cooking_time: 12, difficulty: '进阶', ingredients: ['司南', '墨灵', '藏典'], steps: ['阅读架构说明', '理解协作流程', '提炼展示话术'] },
                 { name: '防幻觉机制卡片', image: '', calories: 13, cooking_time: 13, difficulty: '进阶', ingredients: ['知识库检索', '引用校验', '安全审核'], steps: ['查看机制图', '识别风险样例', '生成修正建议'] }
               ]
             },
             {
-              type: '资源生成', icon: '📚', calories: 35,
+              type: '资料生成', icon: '📚', calories: 35,
               dishes: [
-                { name: '五类资源生成演示', image: '', calories: 20, cooking_time: 20, difficulty: '进阶', ingredients: ['讲解文档', '题库', '导图', '案例', '学习脚本'], steps: ['输入知识点', '选择资源类型', '查看进度提示与结果'] },
-                { name: '多模态资源样例', image: '', calories: 15, cooking_time: 15, difficulty: '基础', ingredients: ['图片素材', '课程文本', '语音讲解稿'], steps: ['上传课程图片', '生成图文解析', '补充语音脚本'] }
+                { name: '五类检修资料生成演示', image: '', calories: 20, cooking_time: 20, difficulty: '进阶', ingredients: ['检修手册', '风险清单', '图谱', '案例', '作业脚本'], steps: ['输入设备故障', '选择资料类型', '查看进度提示与结果'] },
+                { name: '多模态检修资料样例', image: '', calories: 15, cooking_time: 15, difficulty: '基础', ingredients: ['故障图片', '检修文本', '语音讲解稿'], steps: ['上传现场图片', '生成图文解析', '补充语音脚本'] }
               ]
             },
             {
               type: '作品展示', icon: '🏁', calories: 40,
               dishes: [
-                { name: '竞赛演示路径', image: '', calories: 18, cooking_time: 18, difficulty: '进阶', ingredients: ['学生画像', '资源生成', '路径规划', '效果评估'], steps: ['按演示顺序操作', '记录关键截图', '准备答辩说明'] },
+                { name: '竞赛演示路径', image: '', calories: 18, cooking_time: 18, difficulty: '进阶', ingredients: ['设备画像', '资料生成', '路径规划', '效果评估'], steps: ['按演示顺序操作', '记录关键截图', '准备答辩说明'] },
                 { name: '答辩问答卡片', image: '', calories: 12, cooking_time: 12, difficulty: '基础', ingredients: ['赛题要求', '创新点', '安全策略'], steps: ['生成常见问题', '补充技术亮点', '形成答辩卡片'] },
                 { name: '功能完整性自检', image: '', calories: 10, cooking_time: 10, difficulty: '基础', ingredients: ['5类资源', '6维画像', '知识库依据'], steps: ['逐项检查', '标记缺口', '安排下一轮优化'] }
               ]
@@ -873,10 +873,10 @@ export default {
       selectedPlan: {},
       selectedPlanIndex: -1,
       planTodos: [
-        { id: 1, title: '准备本周课程资源清单', done: false },
+        { id: 1, title: '准备本周检修资料清单', done: false },
         { id: 2, title: '查看系统推荐路径依据', done: false },
-        { id: 3, title: '记录每日学习打卡', done: false },
-        { id: 4, title: '每周查看学习效果变化', done: false }
+        { id: 3, title: '记录每日检修打卡', done: false },
+        { id: 4, title: '每周查看检修质量变化', done: false }
       ],
       showPlanTodoAdd: false,
       newPlanTodoTitle: '',
@@ -884,10 +884,10 @@ export default {
       selectedDish: {},
       showCustomPlanModal: false,
       customPlanTodos: [
-        { id: 1, title: '确认专业课程与学习目标', done: false },
-        { id: 2, title: '设定每日学习时长目标', done: false },
-        { id: 3, title: '选择合适的学习环节', done: false },
-        { id: 4, title: '记录学习偏好与薄弱点', done: false },
+        { id: 1, title: '确认设备型号与检修目标', done: false },
+        { id: 2, title: '设定每日检修时长目标', done: false },
+        { id: 3, title: '选择合适的作业环节', done: false },
+        { id: 4, title: '记录检修偏好与薄弱点', done: false },
         { id: 5, title: '开始执行并连续复盘一周', done: false }
       ],
       showCustomTodoAdd: false,
@@ -901,28 +901,28 @@ export default {
         remark: ''
       },
       planGoals: [
-        { label: '基础巩固', icon: '📘', value: 'foundation' },
-        { label: '项目实操', icon: '💻', value: 'practice' },
-        { label: '考试冲刺', icon: '📝', value: 'exam' },
-        { label: '论文拓展', icon: '🔍', value: 'research' }
+        { label: '快速定位', icon: '📘', value: 'foundation' },
+        { label: '现场处置', icon: '💻', value: 'practice' },
+        { label: '风险复核', icon: '📝', value: 'exam' },
+        { label: '经验沉淀', icon: '🔍', value: 'research' }
       ],
       mealOptions: [
-        { label: '课前预习', value: 'preview' },
-        { label: '课堂复盘', value: 'review' },
-        { label: '练习训练', value: 'practice' },
-        { label: '项目实操', value: 'project' }
+        { label: '作业准备', value: 'preview' },
+        { label: '流程复核', value: 'review' },
+        { label: '现场执行', value: 'practice' },
+        { label: '结果闭环', value: 'project' }
       ],
-      dietPreferences: ['图解优先', '案例驱动', '代码实操', '题库训练', '短视频讲解', '拓展阅读', '低难度入门', '高阶挑战'],
+      dietPreferences: ['图解优先', '案例驱动', '流程复核', '风险清单', '短视频讲解', '手册优先', '标准流程', '高风险提醒'],
       achievements: [
         { name: '画像完成', icon: '🧠', unlocked: true },
-        { name: '七日连学', icon: '🔥', unlocked: true },
-        { name: '题库达人', icon: '📝', unlocked: false },
+        { name: '七日连修', icon: '🔥', unlocked: true },
+        { name: '案例达人', icon: '📝', unlocked: false },
         { name: '实操新星', icon: '💻', unlocked: false }
       ],
-      // 学习掌握风险相关
+      // 检修质量风险相关
       riskLevel: '低风险',
       riskScore: 0,
-      riskStatus: { text: '画像监测：当前基础稳定，建议进入搜索算法专项训练', color: '#10b981' }
+      riskStatus: { text: '画像监测：当前流程稳定，建议进入过热故障专项排查', color: '#10b981' }
     }
   },
   computed: {
@@ -1000,7 +1000,7 @@ export default {
     showAnnualReport() {
       uni.showModal({
         title: '年度总结',
-        content: '这里将展示你的年度学习数据，包括掌握度趋势、资源使用分析、练习正确率变化等。（功能开发中）',
+        content: '这里将展示你的年度检修数据，包括质量趋势、资料使用分析、合规率变化等。（功能开发中）',
         showCancel: false
       });
     },
@@ -1025,7 +1025,7 @@ export default {
     },
     applyPlan(plan) {
       this.showPlanDetail = false;
-      uni.showToast({ title: '已应用「' + plan.name + '」计划', icon: 'success' });
+      uni.showToast({ title: '已应用「' + plan.name + '」方案', icon: 'success' });
       
       // 保存选择的计划到本地存储
       const planData = {
@@ -1040,7 +1040,7 @@ export default {
       };
       uni.setStorageSync('selectedDietPlan', planData);
       
-      // 发送事件更新个人中心的学习计划
+      // 发送事件更新个人中心的作业计划
       uni.$emit('diet-plan-updated', planData);
     },
     selectPlan(plan, index) {
@@ -1083,9 +1083,9 @@ export default {
     },
     getDishEmoji(name) {
       const emojiMap = {
-        '讲解': '📘', '文档': '📘', '导图': '🧭',
-        '题': '📝', '练习': '📝', '错题': '🔁',
-        '代码': '💻', '实操': '💻', '案例': '📚',
+        '手册': '📘', '文档': '📘', '导图': '🧭', '图谱': '🧭',
+        '清单': '📝', '排查': '📝', '风险': '⚠️',
+        '流程': '💻', '实操': '💻', '案例': '📚',
         '报告': '📊', '评估': '📈', '展示': '🏁',
         '智能体': '🤖', '项目': '🚀'
       };
@@ -1099,12 +1099,12 @@ export default {
     getHealthDesc(dish) {
       const cal = dish.calories || 0;
       const time = dish.cooking_time || 0;
-      if (cal <= 100) return '轻量资源，适合快速复盘';
-      if (cal <= 200) return '讲练结合，日常学习之选';
-      if (cal <= 350) return '项目导向，补充实践能力';
-      if (time <= 10) return '快速学习，几分钟完成';
+      if (cal <= 100) return '轻量资料，适合快速复盘';
+      if (cal <= 200) return '手册结合案例，日常检修之选';
+      if (cal <= 350) return '现场导向，补充实践能力';
+      if (time <= 10) return '快速核对，几分钟完成';
       if (time <= 20) return '步骤清晰，新手也能上手';
-      return '深度学习，适合完整时段';
+      return '深度检修，适合完整时段';
     },
     getHealthOverview(dish) {
       const cal = dish.calories || 0;
@@ -1113,22 +1113,22 @@ export default {
       const ingCount = (dish.ingredients || []).length;
       let overview = '';
       if (cal <= 100) {
-        overview += '这份资源很轻量，适合课前预习或课后快速复盘。';
+        overview += '这份资料很轻量，适合作业前核对或作业后快速复盘。';
       } else if (cal <= 200) {
-        overview += '这份资源难度适中，讲解与练习搭配合理，适合日常学习。';
+        overview += '这份资料难度适中，手册与案例搭配合理，适合日常检修。';
       } else if (cal <= 350) {
-        overview += '这份资源更偏项目实操，适合补充实践能力。';
+        overview += '这份资料更偏现场实操，适合补充实践能力。';
       } else {
-        overview += '这份资源信息量较大，建议拆分学习并搭配练习题。';
+        overview += '这份资料信息量较大，建议拆分执行并搭配风险复核。';
       }
       if (time <= 10) {
-        overview += '学习仅需' + time + '分钟，非常适合碎片时间。';
+        overview += '核对仅需' + time + '分钟，非常适合碎片时间。';
       } else if (time <= 20) {
-        overview += '学习需' + time + '分钟，步骤清晰不复杂。';
+        overview += '检修需' + time + '分钟，步骤清晰不复杂。';
       } else {
-        overview += '需要' + time + '分钟深度学习，适合完整时段。';
+        overview += '需要' + time + '分钟深度检修，适合完整时段。';
       }
-      overview += '共包含' + ingCount + '类资源，' + (diff === '简单' ? '难度较低，新手友好。' : '有一定挑战度，适合进阶学习。');
+      overview += '共包含' + ingCount + '类资料，' + (diff === '简单' ? '难度较低，新手友好。' : '有一定挑战度，适合进阶作业。');
       return overview;
     },
     toggleMealOption(value) {
@@ -1153,38 +1153,38 @@ export default {
         return;
       }
       if (!this.customPlan.calories || parseInt(this.customPlan.calories) <= 0) {
-        uni.showToast({ title: '请输入有效的目标学习时长', icon: 'none' });
+        uni.showToast({ title: '请输入有效的目标检修时长', icon: 'none' });
         return;
       }
       if (this.customPlan.meals.length === 0) {
         uni.showToast({ title: '请至少选择一项', icon: 'none' });
         return;
       }
-      const goalMap = { foundation: '基础巩固', practice: '项目实操', exam: '考试冲刺', research: '论文拓展' };
+      const goalMap = { foundation: '快速定位', practice: '现场处置', exam: '风险复核', research: '经验沉淀' };
       const goalIconMap = { foundation: '📘', practice: '💻', exam: '📝', research: '🔍' };
       const goal = this.customPlan.goal;
       const calories = parseInt(this.customPlan.calories);
       const protein = Math.max(1, this.customPlan.preferences.length || 2);
       const carbs = Math.max(1, this.customPlan.meals.length);
       const fat = this.customPlan.meals.includes('project') ? 2 : 1;
-      const mealNameMap = { preview: '课前预习', review: '课堂复盘', practice: '练习训练', project: '项目实操' };
+      const mealNameMap = { preview: '作业准备', review: '流程复核', practice: '现场执行', project: '结果闭环' };
       const mealIconMap = { preview: '📘', review: '🧠', practice: '📝', project: '💻' };
       const resourceMap = {
         preview: [
-          { name: '个性化预习讲解', difficulty: '入门', ingredients: ['课程知识库', '学生画像', '关键概念'], steps: ['生成预习摘要', '标记陌生概念', '加入今日待办'] },
-          { name: '知识点导图', difficulty: '入门', ingredients: ['章节结构', '先修知识', '学习目标'], steps: ['查看导图', '补齐前置知识', '保存复盘问题'] }
+          { name: '个性化作业准备', difficulty: '入门', ingredients: ['检修知识库', '设备画像', '关键部件'], steps: ['生成准备摘要', '标记风险点', '加入今日待办'] },
+          { name: '故障链路图谱', difficulty: '入门', ingredients: ['故障结构', '前置检查', '检修目标'], steps: ['查看图谱', '补齐前置资料', '保存复盘问题'] }
         ],
         review: [
-          { name: '课堂复盘报告', difficulty: '基础', ingredients: ['课堂笔记', '练习反馈', '易错点'], steps: ['整理重点', '生成错因', '更新画像'] },
+          { name: '流程复核报告', difficulty: '基础', ingredients: ['作业记录', '复核反馈', '易漏点'], steps: ['整理重点', '生成原因', '更新画像'] },
           { name: '知识库依据核验', difficulty: '基础', ingredients: ['生成答案', '引用片段', '安全规则'], steps: ['核对依据', '标注存疑内容', '重新生成'] }
         ],
         practice: [
-          { name: '分层练习题包', difficulty: '基础', ingredients: ['基础题', '进阶题', '错题'], steps: ['完成练习', '查看解析', '调整路径'] },
-          { name: '错题重练包', difficulty: '基础', ingredients: ['错题记录', '同类题', '提示卡'], steps: ['重做错题', '比较结果', '确认掌握'] }
+          { name: '分级检修任务包', difficulty: '基础', ingredients: ['基础检查', '进阶排查', '问题记录'], steps: ['完成检查', '查看解析', '调整路径'] },
+          { name: '问题复核包', difficulty: '基础', ingredients: ['异常记录', '同类案例', '提示卡'], steps: ['重做复核', '比较结果', '确认闭环'] }
         ],
         project: [
-          { name: '实操案例任务', difficulty: '进阶', ingredients: ['代码模板', '实验数据', '测试用例'], steps: ['运行案例', '修改参数', '提交复盘'] },
-          { name: '项目讲解脚本', difficulty: '进阶', ingredients: ['项目目标', '代码片段', '答辩要点'], steps: ['生成脚本', '补充截图', '准备展示'] }
+          { name: '现场案例任务', difficulty: '进阶', ingredients: ['作业模板', '现场数据', '测试记录'], steps: ['执行案例', '修改参数', '提交复盘'] },
+          { name: '检修讲解脚本', difficulty: '进阶', ingredients: ['作业目标', '记录片段', '答辩要点'], steps: ['生成脚本', '补充截图', '准备展示'] }
         ]
       };
       const meals = this.customPlan.meals.map((m) => {
@@ -1217,7 +1217,7 @@ export default {
         preferences: [],
         remark: ''
       };
-      uni.showToast({ title: '计划已生成！', icon: 'success' });
+      uni.showToast({ title: '方案已生成！', icon: 'success' });
     },
     togglePlanTodo(index) {
       if (this.planTodos[index]) {
@@ -1272,10 +1272,10 @@ export default {
       this.currentHealthTip = this.healthTips[randomIndex];
       this.showHealthTipModal = true;
     },
-    // 学习记录相关方法
+    // 检修记录相关方法
     addFoodRecord() {
       if (!this.newFood.name) {
-        uni.showToast({ title: '请输入学习内容', icon: 'none' });
+        uni.showToast({ title: '请输入检修内容', icon: 'none' });
         return;
       }
       if (!this.newFood.time) {
@@ -1299,7 +1299,7 @@ export default {
     deleteFoodRecord(id) {
       uni.showModal({
         title: '确认删除？',
-        content: '确定要删除这条学习记录吗？',
+        content: '确定要删除这条检修记录吗？',
         success: (res) => {
           if (res.confirm) {
             this.foodRecords = this.foodRecords.filter(food => food.id !== id);
@@ -1330,9 +1330,9 @@ export default {
     },
     getFoodEmoji(foodName) {
       const foodEmojis = {
-        '讲解': '📘', '阅读': '📖', '导图': '🧭', '练习': '📝',
-        '题': '📝', '代码': '💻', '实操': '💻', '复盘': '🧠',
-        '错题': '🔁', '报告': '📊', '案例': '📚', '项目': '🚀'
+        '手册': '📘', '阅读': '📖', '导图': '🧭', '图谱': '🧭',
+        '排查': '📝', '流程': '💻', '实操': '💻', '复盘': '🧠',
+        '问题': '🔁', '报告': '📊', '案例': '📚', '项目': '🚀'
       };
       for (const [key, emoji] of Object.entries(foodEmojis)) {
         if (foodName.includes(key)) {
@@ -1341,7 +1341,7 @@ export default {
       }
       return '📘';
     },
-    // 计算学习掌握风险等级
+    // 计算检修质量风险等级
     calculateRiskLevel() {
       let riskScore = 0;
 
@@ -1359,11 +1359,11 @@ export default {
         }
 
         const recordName = food.name.toLowerCase();
-        if (recordName.includes('错') || recordName.includes('薄弱') || recordName.includes('不会') || recordName.includes('困难')) {
+        if (recordName.includes('异常') || recordName.includes('薄弱') || recordName.includes('风险') || recordName.includes('困难')) {
           weakPointCount += 1;
-        } else if (recordName.includes('练习') || recordName.includes('题') || recordName.includes('实操') || recordName.includes('代码')) {
+        } else if (recordName.includes('排查') || recordName.includes('流程') || recordName.includes('实操') || recordName.includes('处置')) {
           practiceCount += 1;
-        } else if (recordName.includes('复盘') || recordName.includes('阅读') || recordName.includes('讲解') || recordName.includes('导图')) {
+        } else if (recordName.includes('复盘') || recordName.includes('阅读') || recordName.includes('手册') || recordName.includes('图谱')) {
           reviewCount += 1;
         }
       });
@@ -1392,13 +1392,13 @@ export default {
       let riskLevel, riskStatus;
       if (riskScore < 30) {
         riskLevel = '低风险';
-        riskStatus = { text: '画像监测：当前基础稳定，建议进入专项训练', color: '#10b981' };
+        riskStatus = { text: '画像监测：当前流程稳定，建议进入专项排查', color: '#10b981' };
       } else if (riskScore < 60) {
         riskLevel = '中风险';
-        riskStatus = { text: '画像监测：存在薄弱知识点，建议调整学习路径', color: '#f59e0b' };
+        riskStatus = { text: '画像监测：存在薄弱检修环节，建议调整作业路径', color: '#f59e0b' };
       } else {
         riskLevel = '高风险';
-        riskStatus = { text: '画像监测：掌握度偏低，建议回到前置知识点', color: '#ef4444' };
+        riskStatus = { text: '画像监测：作业质量偏低，建议回到安全确认和前置检查', color: '#ef4444' };
       }
       
       // 更新状态
@@ -1813,7 +1813,7 @@ view, text, image, input, textarea, scroll-view {
 .fill-stand { background-color: #0ea5e9; } /* Sky Blue */
 .act-label { font-size: 20rpx; font-weight: 600; color: #64748b; }
 
-/* 学习记录样式 */
+/* 检修记录样式 */
 .food-records-list { display: flex; flex-direction: column; gap: 16rpx; }
 .food-record-item { display: flex; align-items: center; gap: 16rpx; padding: 20rpx; background: #f8fafc; border-radius: 16rpx; transition: all 0.2s; }
 .food-record-item:active { background: #f1f5f9; }

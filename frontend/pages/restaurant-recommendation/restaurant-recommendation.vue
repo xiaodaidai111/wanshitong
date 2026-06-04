@@ -1,5 +1,14 @@
 <template>
-  <view class="page-root">
+  <view class="page-root" :style="{ '--kb-status-bar-height': statusBarHeight + 'px' }">
+    <view class="kb-top-nav">
+      <view class="kb-nav-center">
+        <text class="kb-nav-title">知识沉淀</text>
+        <text class="kb-nav-subtitle">{{ kbTabs[currentKbTab].label }}</text>
+      </view>
+      <view class="kb-nav-hint">
+        <text class="kb-nav-hint-text">双指缩放</text>
+      </view>
+    </view>
     <!-- 折叠态：图标栏 -->
     <view v-show="sideCollapsed" class="mini-bar">
       <view class="mb-toggle" @click="sideCollapsed = false">
@@ -12,8 +21,8 @@
     <!-- 展开态：侧边栏 -->
     <view v-show="!sideCollapsed" class="sidebar">
       <view class="side-header">
-        <text class="side-logo">📚</text>
-        <text class="side-title">知识库</text>
+        <text class="side-logo">🗂️</text>
+        <text class="side-title">知识沉淀</text>
         <view class="side-close" @click="sideCollapsed = true">
           <text class="side-close-icon">✕</text>
         </view>
@@ -36,11 +45,6 @@
       <view v-show="currentKbTab === 0" class="canvas-area">
         <canvas canvas-id="kbGraph" id="kbGraph" class="full-canvas"
           @touchstart="onGraphTouchStart" @touchmove="onGraphTouchMove" @touchend="onGraphTouchEnd"></canvas>
-        <view class="zoom-controls">
-          <view class="zoom-btn" @click="graphZoomIn"><text class="zoom-text">+</text></view>
-          <text class="zoom-label">{{ Math.round(graphDrag.scale * 100) }}%</text>
-          <view class="zoom-btn" @click="graphZoomOut"><text class="zoom-text">−</text></view>
-        </view>
         <view v-if="selectedNode" class="node-detail-float">
           <view class="ndf-head">
             <text class="ndf-title">{{ selectedNode.label }}</text>
@@ -64,11 +68,6 @@
         <view class="mind-controls">
           <view class="mc-btn" @click="expandAllMind"><text class="mc-text">全部展开</text></view>
           <view class="mc-btn" @click="collapseAllMind"><text class="mc-text">全部折叠</text></view>
-        </view>
-        <view class="zoom-controls">
-          <view class="zoom-btn" @click="mindZoomIn"><text class="zoom-text">+</text></view>
-          <text class="zoom-label">{{ Math.round(mindDrag.scale * 100) }}%</text>
-          <view class="zoom-btn" @click="mindZoomOut"><text class="zoom-text">−</text></view>
         </view>
       </view>
       <!-- 知识卡片（主区大卡片） -->
@@ -109,11 +108,10 @@
       <view class="card-header" @click="togglePanel">
         <view class="header-main">
           <view class="avatar-group">
-            <view class="avatar-glow"></view>
             <image src="../../static/niceexpert.png" mode="aspectFit" class="agent-img"></image>
           </view>
           <view class="header-text">
-            <text class="agent-title">知识库助手</text>
+            <text class="agent-title">藏典</text>
             <view class="agent-badge">
               <text class="badge-dot"></text>
               <text class="badge-text">探索中</text>
@@ -127,13 +125,13 @@
       <view v-show="!isCollapsed" class="card-body">
         <scroll-view class="chat-viewport" scroll-y="true" :scroll-into-view="scrollTop" scroll-with-animation>
           <view class="chat-bubble ai-bubble welcome-msg" id="msg-root">
-            <text class="bubble-text">您好！我是知识库助手 📚\n\n我可以帮你：\n1. 管理和整理知识点体系\n2. 生成思维导图和知识网络\n3. 根据学习情况推荐关联知识\n\n请在下方输入你想查询或整理的知识点：</text>
+            <text class="bubble-text">您好！我是藏典，知识沉淀与更新助手。\n\n我负责整理设备资料库、检修案例库、经验总结、作业记录和检修知识图谱；一线人员上传案例后，可经审核纳入图谱，并支持手动标注与修正模型输出。\n\n请在下方输入你想整理或入库的设备知识：</text>
             <view class="quick-suggestions">
-              <view class="sugg-tag" @click="quickMessage('帮我整理人工智能知识点')">整理AI知识点</view>
-              <view class="sugg-tag" @click="quickMessage('生成机器学习思维导图')">生成思维导图</view>
-              <view class="sugg-tag" @click="quickMessage('推荐深度学习相关知识')">深度学习知识</view>
-              <view class="sugg-tag" @click="quickMessage('NLP和CV有什么关联？')">知识关联分析</view>
-              <view class="sugg-tag" @click="quickMessage('帮我构建Transformer知识网络')">构建知识网络</view>
+              <view class="sugg-tag" @click="quickMessage('整理ZK-320配电柜检修案例')">整理检修案例</view>
+              <view class="sugg-tag" @click="quickMessage('生成变频器过热故障知识图谱')">生成知识图谱</view>
+              <view class="sugg-tag" @click="quickMessage('补充泵站电机轴承异响经验总结')">经验总结入库</view>
+              <view class="sugg-tag" @click="quickMessage('修正模型对故障原因的判断')">标注修正</view>
+              <view class="sugg-tag" @click="quickMessage('构建设备型号与故障现象关联网络')">构建关联网络</view>
             </view>
           </view>
           <block v-for="(msg, index) in chatHistory" :key="index">
@@ -167,7 +165,7 @@
         </scroll-view>
         <view class="composition-area">
           <view class="input-wrapper">
-            <input type="text" v-model="userMessage" placeholder="输入知识点或学习问题" class="neo-input" placeholder-class="input-placeholder" @confirm="sendMessage" @input="handleInput" />
+            <input type="text" v-model="userMessage" placeholder="输入设备型号、故障现象或入库问题" class="neo-input" placeholder-class="input-placeholder" @confirm="sendMessage" @input="handleInput" />
             <view class="voice-btn" :class="{ active: isVoiceRecording || isVoiceTranscribing }" @click="toggleVoiceInput">
               <text class="voice-btn-text">{{ isVoiceRecording ? '停止' : (isVoiceTranscribing ? '识别中' : '语音') }}</text>
             </view>
@@ -219,25 +217,25 @@ export default {
         dietary_habits: '',
         custom_notes: ''
       },
-      commonCuisines: ['课程讲解文档', '知识点思维导图', '分层练习题', '拓展阅读材料', '代码实操案例', '项目任务书', '短视频脚本', '动画分镜', '错题复盘', '考试冲刺清单', '论文阅读清单', '课堂演示材料'],
-      commonHabits: ['图解优先', '案例驱动', '代码实操', '题库训练', '短视频讲解', '先易后难', '高频复盘', '项目导向', '考试导向', '研究拓展', '碎片化学习', '长时段深学'],
+      commonCuisines: ['检修手册', '设备说明书', '故障图片', '铭牌型号', '检修案例', '经验总结', '备件清单', '作业记录', '合规条款', '风险提醒', '复盘报告', '知识图谱'],
+      commonHabits: ['案例驱动', '图文标注', '型号关联', '风险优先', '标准流程', '审核入库', '人工修正', '实时更新', '现场复盘', '经验沉淀', '跨模态检索', '合规校验'],
       customCuisine: '',
-      kbTabs: [{ icon: '🌐', label: '知识网络' }, { icon: '🧠', label: '思维导图' }, { icon: '📋', label: '知识卡片' }],
+      kbTabs: [{ icon: '🌐', label: '检修图谱' }, { icon: '🧠', label: '故障链路' }, { icon: '📋', label: '沉淀卡片' }],
       currentKbTab: 0, kbSearchText: '', showAddNode: false, showSearch: false, selectedNode: null, sideCollapsed: false,
-      statusBarHeight: 0,
+      statusBarHeight: 10,
       graphDrag: { startX: 0, startY: 0, offsetX: 0, offsetY: 0, dragging: false, scale: 1, pinchDist: 0 },
       mindDrag: { startX: 0, startY: 0, offsetX: 0, offsetY: 0, dragging: false, scale: 1, pinchDist: 0 },
       kbNodes: [
-        { id: 1, label: '人工智能', category: 'AI', icon: '🤖', desc: '致力于创建能模拟人类智能的系统。', tags: ['基础'], x: 200, y: 300 },
-        { id: 2, label: '机器学习', category: 'AI', icon: '📊', desc: '让计算机从数据中学习规律。', tags: ['核心'], x: 100, y: 180 },
-        { id: 3, label: '深度学习', category: 'AI', icon: '🧬', desc: '基于神经网络的机器学习方法。', tags: ['神经网络'], x: 80, y: 420 },
-        { id: 4, label: '自然语言处理', category: 'AI', icon: '💬', desc: '让计算机理解和生成人类语言。', tags: ['NLP'], x: 350, y: 180 },
-        { id: 5, label: '计算机视觉', category: 'AI', icon: '👁️', desc: '让计算机理解图像和视频。', tags: ['CV'], x: 380, y: 420 },
-        { id: 6, label: 'Python编程', category: '编程', icon: '🐍', desc: 'AI领域最常用的编程语言。', tags: ['编程'], x: 150, y: 520 },
-        { id: 7, label: '线性代数', category: '数学', icon: '📐', desc: '深度学习的数学基础。', tags: ['数学'], x: 50, y: 520 },
-        { id: 8, label: 'Transformer', category: 'AI', icon: '⚡', desc: '基于自注意力机制的模型架构。', tags: ['架构'], x: 220, y: 80 },
-        { id: 9, label: '强化学习', category: 'AI', icon: '🎮', desc: '通过与环境交互学习最优策略。', tags: ['RL'], x: 400, y: 520 },
-        { id: 10, label: '数据结构', category: '编程', icon: '🗂️', desc: '数组、链表、树、图等组织数据的方式。', tags: ['基础'], x: 280, y: 580 }
+        { id: 1, label: 'ZK-320配电柜', category: '设备', icon: '⚡', desc: '低压配电柜设备资料、铭牌参数与检修规程。', tags: ['设备'], x: 200, y: 300 },
+        { id: 2, label: '柜体过热', category: '故障现象', icon: '🌡️', desc: '柜内温升异常、端子发热、风道堵塞等常见现象。', tags: ['过热'], x: 100, y: 180 },
+        { id: 3, label: '接线端子松动', category: '故障原因', icon: '🔩', desc: '端子松动导致接触电阻升高并引发局部过热。', tags: ['原因'], x: 80, y: 420 },
+        { id: 4, label: '故障图片', category: '多模态证据', icon: '🖼️', desc: '现场照片、热成像图、铭牌截图等跨模态证据。', tags: ['图片'], x: 350, y: 180 },
+        { id: 5, label: '检修手册', category: '资料库', icon: '📘', desc: '设备说明书、检修规程和厂家技术手册。', tags: ['手册'], x: 380, y: 420 },
+        { id: 6, label: '标准作业票', category: '作业流程', icon: '📋', desc: '二级检修步骤、合规校验和复核记录。', tags: ['流程'], x: 150, y: 520 },
+        { id: 7, label: '安全隔离', category: '合规要求', icon: '🛡️', desc: '停电验电、挂牌上锁、防护用品等安全要求。', tags: ['安全'], x: 50, y: 520 },
+        { id: 8, label: '相似案例', category: '案例库', icon: '🧰', desc: '历史故障处置案例、经验总结和处理结论。', tags: ['案例'], x: 220, y: 80 },
+        { id: 9, label: '备件清单', category: '资源', icon: '🔧', desc: '端子排、风扇、温控模块等备件规格。', tags: ['备件'], x: 400, y: 520 },
+        { id: 10, label: '人工修正', category: '更新机制', icon: '✍️', desc: '人工标注与修正模型输出，审核后入库更新。', tags: ['沉淀'], x: 280, y: 580 }
       ],
       kbConnections: [
         { from: 1, to: 2 }, { from: 1, to: 4 }, { from: 1, to: 5 },
@@ -247,18 +245,18 @@ export default {
         { from: 7, to: 3 }, { from: 9, to: 3 }, { from: 9, to: 1 }
       ],
       mindRoot: {
-        id: 0, label: 'AI学习体系', collapsed: false, children: [
-          { id: 1, label: '基础学科', collapsed: false, children: [
-            { id: 6, label: 'Python编程', collapsed: false, children: [] },
-            { id: 7, label: '线性代数', collapsed: false, children: [] }
+        id: 0, label: '设备检修知识体系', collapsed: false, children: [
+          { id: 1, label: '设备资料库', collapsed: false, children: [
+            { id: 6, label: '标准作业票', collapsed: false, children: [] },
+            { id: 7, label: '安全隔离要求', collapsed: false, children: [] }
           ]},
-          { id: 2, label: '机器学习', collapsed: false, children: [
-            { id: 3, label: '深度学习', collapsed: false, children: [
-              { id: 8, label: 'Transformer', collapsed: false, children: [] },
-              { id: 5, label: '计算机视觉', collapsed: false, children: [] }
+          { id: 2, label: '故障案例库', collapsed: false, children: [
+            { id: 3, label: '柜体过热', collapsed: false, children: [
+              { id: 8, label: '相似案例', collapsed: false, children: [] },
+              { id: 5, label: '检修手册', collapsed: false, children: [] }
             ]}
           ]},
-          { id: 4, label: '自然语言处理', collapsed: false, children: [] }
+          { id: 4, label: '多模态证据', collapsed: false, children: [] }
         ]
       },
       newNode: { label: '', category: '', desc: '', tagsStr: '' },
@@ -282,12 +280,13 @@ export default {
     this.initVoiceInput();
     this.loadKbData();
     const sys = uni.getSystemInfoSync();
-    this.statusBarHeight = sys.statusBarHeight || 0;
+    this.statusBarHeight = Math.max(sys.statusBarHeight || 0, 10);
   },
   onReady() {
     setTimeout(() => {
       this.drawGraph()
       this.drawMindMap()
+      this.startGraphAnimation()
     }, 800)
   },
   beforeDestroy() {
@@ -622,10 +621,6 @@ export default {
       return this.kbNodes.filter(n => ids.includes(n.id))
     },
     focusNode(node) { this.selectedNode = node; this.drawGraph() },
-    graphZoomIn() { this.graphDrag.scale = Math.min(3, this.graphDrag.scale * 1.25); this.drawGraph() },
-    graphZoomOut() { this.graphDrag.scale = Math.max(0.3, this.graphDrag.scale / 1.25); this.drawGraph() },
-    mindZoomIn() { this.mindDrag.scale = Math.min(3, this.mindDrag.scale * 1.25); this.drawMindMap() },
-    mindZoomOut() { this.mindDrag.scale = Math.max(0.3, this.mindDrag.scale / 1.25); this.drawMindMap() },
     _getTouchPos(e) {
       const t = e.touches && e.touches[0] ? e.touches[0] : (e.changedTouches && e.changedTouches[0] ? e.changedTouches[0] : null)
       if (!t) return null
@@ -634,7 +629,11 @@ export default {
     _getPinchDist(e) {
       if (!e.touches || e.touches.length < 2) return 0
       const a = e.touches[0], b = e.touches[1]
-      return Math.sqrt((a.x - b.x) ** 2 + (a.y - b.y) ** 2)
+      const ax = a.x || a.clientX || 0
+      const ay = a.y || a.clientY || 0
+      const bx = b.x || b.clientX || 0
+      const by = b.y || b.clientY || 0
+      return Math.sqrt((ax - bx) ** 2 + (ay - by) ** 2)
     },
     onGraphTouchStart(e) {
       if (e.touches && e.touches.length >= 2) {
@@ -679,32 +678,35 @@ export default {
       this.graphDrag.dragging = false
     },
     drawGraph() {
-      console.log('drawGraph called, kbNodes:', this.kbNodes.length, 'kbConnections:', this.kbConnections.length)
       const ctx = uni.createCanvasContext('kbGraph', this)
       uni.createSelectorQuery().in(this).select('#kbGraph').boundingClientRect(rect => {
         if (!rect) {
-          console.log('Canvas rect is null')
           return
         }
         const w = rect.width, h = rect.height
-        console.log('Canvas size:', w, h)
         ctx.clearRect(0, 0, w, h)
 
         const ox = this.graphDrag.offsetX, oy = this.graphDrag.offsetY, sc = this.graphDrag.scale
+        const pulse = 0.5 + Math.sin(this.graphTime / 18) * 0.5
 
-        // 背景网格
-        ctx.setStrokeStyle('rgba(15,118,110,0.05)')
+        ctx.setFillStyle('#F8FFFD')
+        ctx.fillRect(0, 0, w, h)
+
+        // 浅色 Obsidian 风格网格
+        const grid = Math.max(24, 42 * sc)
+        const gridX = ((ox % grid) + grid) % grid
+        const gridY = ((oy % grid) + grid) % grid
+        ctx.setStrokeStyle('rgba(15,118,110,0.08)')
         ctx.setLineWidth(1)
-        for (let gx = 0; gx < w; gx += 40 * sc) {
+        for (let gx = gridX; gx < w; gx += grid) {
           ctx.beginPath(); ctx.moveTo(gx, 0); ctx.lineTo(gx, h); ctx.stroke()
         }
-        for (let gy = 0; gy < h; gy += 40 * sc) {
+        for (let gy = gridY; gy < h; gy += grid) {
           ctx.beginPath(); ctx.moveTo(0, gy); ctx.lineTo(w, gy); ctx.stroke()
         }
 
         // 连线
-        console.log('Drawing connections:', this.kbConnections.length)
-        this.kbConnections.forEach((c, idx) => {
+        this.kbConnections.forEach(c => {
           const f = this.kbNodes.find(n => n.id === c.from)
           const t = this.kbNodes.find(n => n.id === c.to)
           if (f && t) {
@@ -712,23 +714,16 @@ export default {
             const tx = t.x * sc + ox, ty = t.y * sc + oy
             const isActive = this.selectedNode && (this.selectedNode.id === c.from || this.selectedNode.id === c.to)
 
-            // 发光效果
+            // 选中连线保留轻量发光效果
             if (isActive) {
-              ctx.setStrokeStyle('rgba(14,165,233,0.3)')
-              ctx.setLineWidth(8 * sc)
+              ctx.setStrokeStyle(`rgba(14,165,233,${0.18 + pulse * 0.12})`)
+              ctx.setLineWidth(9 * sc)
               ctx.beginPath(); ctx.moveTo(fx, fy); ctx.lineTo(tx, ty); ctx.stroke()
             }
 
-            // 主连线
-            ctx.setStrokeStyle(isActive ? '#0EA5E9' : 'rgba(15,118,110,0.25)')
-            ctx.setLineWidth(isActive ? 3 * sc : 2 * sc)
+            ctx.setStrokeStyle(isActive ? '#0EA5E9' : 'rgba(20,184,166,0.26)')
+            ctx.setLineWidth(isActive ? 2.4 * sc : 1.4 * sc)
             ctx.beginPath(); ctx.moveTo(fx, fy); ctx.lineTo(tx, ty); ctx.stroke()
-
-            if (idx < 3) {
-              console.log(`Connection ${c.from}->${c.to}: (${fx},${fy})->(${tx},${ty})`)
-            }
-          } else {
-            console.log(`Connection ${c.from}->${c.to}: missing nodes`, {f, t})
           }
         })
 
@@ -736,52 +731,50 @@ export default {
         this.kbNodes.forEach(nd => {
           const x = nd.x * sc + ox, y = nd.y * sc + oy
           const sel = this.selectedNode && this.selectedNode.id === nd.id
-          const r = (sel ? 36 : 28) * sc
+          const r = (sel ? 34 : 24) * sc
           const color = this.nodeColors[nd.id % this.nodeColors.length]
 
           // 选中节点光晕
           if (sel) {
-            for (let i = 2; i >= 0; i--) {
-              ctx.beginPath()
-              ctx.arc(x, y, r + (i + 1) * 10 * sc, 0, Math.PI * 2)
-              ctx.setFillStyle(`rgba(14,165,233,${0.08 - i * 0.02})`)
-              ctx.fill()
-            }
+            ctx.beginPath()
+            ctx.arc(x, y, r + (16 + pulse * 8) * sc, 0, Math.PI * 2)
+            ctx.setFillStyle('rgba(14,165,233,0.14)')
+            ctx.fill()
           }
 
-          // 阴影
+          // 节点阴影
           ctx.beginPath()
-          ctx.arc(x, y + 3 * sc, r, 0, Math.PI * 2)
-          ctx.setFillStyle('rgba(0,0,0,0.08)')
+          ctx.arc(x, y + 4 * sc, r, 0, Math.PI * 2)
+          ctx.setFillStyle('rgba(15,23,42,0.12)')
           ctx.fill()
 
-          // 节点背景
+          // 节点本体
           ctx.beginPath()
           ctx.arc(x, y, r, 0, Math.PI * 2)
           ctx.setFillStyle(sel ? '#0EA5E9' : '#FFFFFF')
           ctx.fill()
-          ctx.setStrokeStyle(sel ? '#0EA5E9' : color)
-          ctx.setLineWidth(sel ? 4 * sc : 3 * sc)
+          ctx.setStrokeStyle(sel ? '#0284C7' : color)
+          ctx.setLineWidth(sel ? 3 * sc : 2 * sc)
           ctx.stroke()
 
-          // 节点高光
+          // 内层高光
           ctx.beginPath()
-          ctx.arc(x - r * 0.3, y - r * 0.3, r * 0.3, 0, Math.PI * 2)
-          ctx.setFillStyle('rgba(255,255,255,0.3)')
+          ctx.arc(x, y, Math.max(2, r * 0.3), 0, Math.PI * 2)
+          ctx.setFillStyle(sel ? 'rgba(255,255,255,0.28)' : 'rgba(14,165,233,0.08)')
           ctx.fill()
 
           // 节点文字
-          ctx.setFillStyle(sel ? '#FFFFFF' : '#134E4A')
-          ctx.setFontSize(Math.max(10, (sel ? 16 : 14) * sc))
+          ctx.setFillStyle(sel ? '#0369A1' : '#134E4A')
+          ctx.setFontSize(Math.max(10, (sel ? 15 : 13) * sc))
           ctx.setTextAlign('center')
           ctx.setTextBaseline('middle')
-          ctx.fillText(nd.label, x, y)
+          ctx.fillText(nd.label, x, y + r + 18 * sc)
 
           // 图标
           if (nd.icon) {
             ctx.setFillStyle(sel ? '#FFFFFF' : color)
-            ctx.setFontSize(Math.max(12, 22 * sc))
-            ctx.fillText(nd.icon, x, y - r - 12 * sc)
+            ctx.setFontSize(Math.max(12, 20 * sc))
+            ctx.fillText(nd.icon, x, y)
           }
         })
 
@@ -790,12 +783,20 @@ export default {
     },
 
     startGraphAnimation() {
-      // 暂时不使用动画，确保基础渲染正常
-      // 后续可以优化动画效果
+      if (this.graphAnimFrame) return
+      const tick = () => {
+        this.graphTime += 1
+        if (this.currentKbTab === 0) this.drawGraph()
+        this.graphAnimFrame = setTimeout(tick, 900)
+      }
+      this.graphAnimFrame = setTimeout(tick, 900)
     },
 
     stopGraphAnimation() {
-      // 清理动画资源
+      if (this.graphAnimFrame) {
+        clearTimeout(this.graphAnimFrame)
+        this.graphAnimFrame = null
+      }
     },
     onMindTouchStart(e) {
       if (e.touches && e.touches.length >= 2) {
@@ -1104,21 +1105,21 @@ page {
   justify-content: center;
 }
 
-/* 智能体卡片 - Trust Teal 配色方案 */
+/* 智能体卡片 - 静态知识助手 */
 .agent-card {
   position: fixed;
   bottom: calc(80rpx + env(safe-area-inset-bottom));
   left: 30rpx;
   right: 30rpx;
   background: #ffffff;
-  border-radius: 40rpx;
-  box-shadow: 0 16rpx 48rpx rgba(0,0,0,0.12), 0 0 0 1rpx rgba(15, 118, 110, 0.08);
+  border-radius: 24rpx;
+  box-shadow: 0 14rpx 40rpx rgba(15,23,42,0.12);
   pointer-events: auto;
   transition: transform 0.4s cubic-bezier(0.23, 1, 0.32, 1);
   overflow: hidden;
   z-index: 350;
   display: block !important;
-  border: 1rpx solid #E2E8F0;
+  border: 1rpx solid #D8DEE9;
 }
 
 .card-collapsed {
@@ -1131,21 +1132,13 @@ page {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: linear-gradient(135deg, #F0FDFA 0%, #E6F7F5 50%, #FFFFFF 100%);
+  background: #F8FAFC;
   border-bottom: 1rpx solid #E2E8F0;
   position: relative;
 }
 
 .card-header::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 4rpx;
-  background: linear-gradient(90deg, #0F766E, #14B8A6, #0EA5E9, #0369A1);
-  background-size: 200% 100%;
-  animation: gradientShift 3s ease infinite;
+  display: none;
 }
 
 @keyframes gradientShift {
@@ -1165,26 +1158,12 @@ page {
   margin-right: 24rpx;
 }
 
-.avatar-glow {
-  position: absolute;
-  top: -4rpx; left: -4rpx; right: -4rpx; bottom: -4rpx;
-  background: linear-gradient(135deg, #0F766E, #14B8A6, #0EA5E9, #0369A1);
-  background-size: 300% 300%;
-  border-radius: 50%;
-  opacity: 0.4;
-  animation: avatarGlow 4s ease infinite;
-}
-
-@keyframes avatarGlow {
-  0%, 100% { background-position: 0% 50%; opacity: 0.4; }
-  50% { background-position: 100% 50%; opacity: 0.6; }
-}
-
 .agent-img {
   width: 100%;
   height: 100%;
   border-radius: 50%;
   background: #fff;
+  border: 1rpx solid #CBD5E1;
 }
 
 .header-text {
@@ -1195,8 +1174,8 @@ page {
 .agent-title {
   font-size: 32rpx;
   font-weight: 700;
-  color: #134E4A;
-  letter-spacing: 1rpx;
+  color: #1E293B;
+  letter-spacing: 0;
 }
 
 .agent-badge {
@@ -1208,16 +1187,10 @@ page {
 .badge-dot {
   width: 10rpx;
   height: 10rpx;
-  background: linear-gradient(135deg, #10B981, #0EA5E9);
+  background: #10B981;
   border-radius: 50%;
   margin-right: 8rpx;
-  box-shadow: 0 0 8rpx rgba(14, 165, 233, 0.6);
-  animation: dotPulse 2s ease infinite;
-}
-
-@keyframes dotPulse {
-  0%, 100% { transform: scale(1); box-shadow: 0 0 8rpx rgba(14, 165, 233, 0.6); }
-  50% { transform: scale(1.2); box-shadow: 0 0 12rpx rgba(14, 165, 233, 0.8); }
+  box-shadow: none;
 }
 
 .badge-text {
@@ -1252,7 +1225,7 @@ page {
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
   scroll-behavior: smooth;
-  background: linear-gradient(180deg, #FFFFFF 0%, #F0FDFA 100%);
+  background: #FFFFFF;
   position: relative;
   z-index: 1;
   box-sizing: border-box;
@@ -1852,13 +1825,7 @@ page {
   background: #0F766E;
   border-radius: 50%;
   opacity: 0.6;
-  animation: dotPulse 1.4s infinite;
 }
-
-.pulse-loading .dot:nth-child(2) { animation-delay: 0.2s; }
-.pulse-loading .dot:nth-child(3) { animation-delay: 0.4s; }
-
-@keyframes dotPulse { 0%, 100% { transform: scale(0.8); opacity: 0.5; } 50% { transform: scale(1.2); opacity: 1; } }
 
 /* ===== 响应式设置===== */
 /* 小屏幕设置*/
@@ -2012,29 +1979,87 @@ page {
 }
 
 /* ========== 左侧边栏 + 主内容布局 ========== */
-.page-root { width: 100%; height: 100vh; position: relative; background: #F0FDFA; overflow: hidden; }
+.page-root { width: 100%; height: 100vh; position: relative; background: #F8FFFD; overflow: hidden; }
+
+.kb-top-nav {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: calc(44px + var(--kb-status-bar-height));
+  padding: var(--kb-status-bar-height) 28rpx 0;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255,255,255,0.96);
+  border-bottom: 1rpx solid #D7F4EF;
+  box-shadow: 0 6rpx 24rpx rgba(15,118,110,0.08);
+  z-index: 80;
+}
+
+.kb-nav-center {
+  min-width: 0;
+  height: 44px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2rpx;
+  text-align: center;
+}
+
+.kb-nav-title {
+  font-size: 36rpx;
+  font-weight: 800;
+  color: #134E4A;
+  line-height: 1.1;
+}
+
+.kb-nav-subtitle {
+  font-size: 22rpx;
+  color: #0EA5E9;
+  line-height: 1.1;
+}
+
+.kb-nav-hint {
+  position: absolute;
+  right: 28rpx;
+  bottom: 10rpx;
+  flex-shrink: 0;
+  padding: 10rpx 18rpx;
+  border-radius: 999rpx;
+  background: #F0FDFA;
+  border: 1rpx solid #99F6E4;
+}
+
+.kb-nav-hint-text {
+  font-size: 22rpx;
+  color: #0F766E;
+  font-weight: 600;
+}
 
 /* 折叠态图标栏 */
-.mini-bar { position: absolute; top: 0; left: 0; width: 80rpx; background: #fff; border-right: 1rpx solid #99F6E4; border-bottom: 1rpx solid #99F6E4; display: flex; flex-direction: column; align-items: center; padding-top: 16rpx; gap: 8rpx; z-index: 50; box-shadow: 2rpx 0 12rpx rgba(15,118,110,0.05); border-radius: 0 0 16rpx 0; }
+.mini-bar { position: absolute; top: calc(44px + var(--kb-status-bar-height)); left: 0; width: 80rpx; background: rgba(255,255,255,0.96); border-right: 1rpx solid #D7F4EF; border-bottom: 1rpx solid #D7F4EF; display: flex; flex-direction: column; align-items: center; padding-top: 16rpx; gap: 8rpx; z-index: 50; box-shadow: 4rpx 0 18rpx rgba(15,118,110,0.08); border-radius: 0 0 16rpx 0; }
 .mb-toggle { width: 56rpx; height: 56rpx; border-radius: 12rpx; display: flex; align-items: center; justify-content: center; background: #F0FDFA; margin-bottom: 8rpx; }
 .mb-toggle-icon { font-size: 28rpx; color: #0F766E; }
 .mb-item { width: 56rpx; height: 56rpx; border-radius: 12rpx; display: flex; align-items: center; justify-content: center; }
-.mb-item.active { background: rgba(15,118,110,0.1); }
+.mb-item.active { background: rgba(14,165,233,0.12); }
 .mb-icon { font-size: 28rpx; }
 
 /* 展开态侧边栏 */
-.sidebar { position: absolute; top: 0; left: 0; width: 480rpx; background: #FFFFFF; border-right: 1rpx solid #99F6E4; border-bottom: 1rpx solid #99F6E4; display: flex; flex-direction: column; z-index: 50; box-shadow: 2rpx 0 12rpx rgba(15,118,110,0.05); border-radius: 0 0 16rpx 0; }
+.sidebar { position: absolute; top: calc(44px + var(--kb-status-bar-height)); left: 0; width: 480rpx; background: rgba(255,255,255,0.97); border-right: 1rpx solid #D7F4EF; border-bottom: 1rpx solid #D7F4EF; display: flex; flex-direction: column; z-index: 50; box-shadow: 4rpx 0 20rpx rgba(15,118,110,0.08); border-radius: 0 0 16rpx 0; }
 
 .side-header { padding: 24rpx 20rpx 16rpx; display: flex; align-items: center; gap: 10rpx; }
 .side-logo { font-size: 32rpx; }
-.side-title { font-size: 28rpx; font-weight: 700; color: #134E4A; letter-spacing: 2rpx; flex: 1; }
+.side-title { font-size: 28rpx; font-weight: 700; color: #134E4A; letter-spacing: 0; flex: 1; }
 .side-close { width: 44rpx; height: 44rpx; border-radius: 10rpx; display: flex; align-items: center; justify-content: center; background: #F0FDFA; }
 .side-close-icon { font-size: 22rpx; color: #94A3B8; }
 
 .side-tabs { padding: 0 16rpx; display: flex; flex-direction: column; gap: 6rpx; }
 .side-tab { display: flex; align-items: center; gap: 12rpx; padding: 14rpx 16rpx; border-radius: 12rpx; transition: all 0.2s; }
 .side-tab.active {
-  background: linear-gradient(135deg, rgba(15,118,110,0.08) 0%, rgba(14,165,233,0.04) 100%);
+  background: rgba(14,165,233,0.08);
   border-left: 4rpx solid #0EA5E9;
   padding-left: 12rpx;
 }
@@ -2065,14 +2090,14 @@ page {
   align-items: center;
   justify-content: center;
   gap: 8rpx;
-  background: linear-gradient(135deg, #F0FDFA, #E6F7F5);
+  background: #F8FFFD;
   border-radius: 12rpx;
-  border: 1rpx dashed #0EA5E9;
+  border: 1rpx dashed #7DD3FC;
   transition: all 0.2s ease;
 }
 
 .side-add:active {
-  background: linear-gradient(135deg, #0F766E, #0EA5E9);
+  background: #E0F2FE;
   border-style: solid;
   transform: scale(0.98);
 }
@@ -2097,8 +2122,8 @@ page {
 }
 
 /* 主内容区 */
-.main-area { width: 100%; height: 100%; position: relative; overflow: hidden; }
-.canvas-area { width: 100%; height: 100%; position: relative; }
+.main-area { width: 100%; height: calc(100% - 44px - var(--kb-status-bar-height)); position: absolute; left: 0; right: 0; bottom: 0; overflow: hidden; }
+.canvas-area { width: 100%; height: 100%; position: relative; background: #F8FFFD; }
 .full-canvas { width: 100%; height: 100%; }
 
 /* 节点详情浮窗 */
@@ -2107,12 +2132,12 @@ page {
   bottom: 20rpx;
   left: 20rpx;
   right: 20rpx;
-  background: #fff;
+  background: rgba(255,255,255,0.96);
   border-radius: 16rpx;
   padding: 20rpx;
-  box-shadow: 0 8rpx 32rpx rgba(0,0,0,0.12);
+  box-shadow: 0 10rpx 30rpx rgba(15,118,110,0.12);
   z-index: 10;
-  border: 1rpx solid #E2E8F0;
+  border: 1rpx solid #D7F4EF;
   animation: slideUpFloat 0.3s cubic-bezier(0.23, 1, 0.32, 1);
 }
 
@@ -2122,14 +2147,14 @@ page {
 }
 
 .ndf-head { display: flex; align-items: center; gap: 12rpx; margin-bottom: 8rpx; }
-.ndf-title { font-size: 30rpx; font-weight: 700; color: #0F766E; }
+.ndf-title { font-size: 30rpx; font-weight: 700; color: #134E4A; }
 .ndf-cat {
   font-size: 20rpx;
   color: #0EA5E9;
-  background: linear-gradient(135deg, rgba(14,165,233,0.1), rgba(3,105,161,0.05));
+  background: rgba(14,165,233,0.08);
   padding: 4rpx 12rpx;
   border-radius: 8rpx;
-  border: 1rpx solid rgba(14,165,233,0.2);
+  border: 1rpx solid rgba(14,165,233,0.18);
 }
 .ndf-close { font-size: 32rpx; color: #94A3B8; margin-left: auto; padding: 4rpx 8rpx; }
 .ndf-desc { font-size: 24rpx; color: #64748B; line-height: 1.5; margin-bottom: 8rpx; }
@@ -2137,60 +2162,9 @@ page {
 .ndf-tag { font-size: 20rpx; color: #0F766E; background: rgba(15,118,110,0.08); padding: 4rpx 12rpx; border-radius: 8rpx; }
 .ndf-conns { display: flex; flex-wrap: wrap; align-items: center; gap: 8rpx; }
 .ndf-conn-label { font-size: 22rpx; color: #94A3B8; }
-.ndf-conn-item { font-size: 22rpx; color: #0F766E; background: rgba(15,118,110,0.08); padding: 4rpx 12rpx; border-radius: 8rpx; }
+.ndf-conn-item { font-size: 22rpx; color: #0F766E; background: rgba(14,165,233,0.08); padding: 4rpx 12rpx; border-radius: 8rpx; }
 
 /* 缩放控制 */
-.zoom-controls {
-  position: absolute;
-  bottom: 80rpx;
-  right: 16rpx;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4rpx;
-  background: #fff;
-  border-radius: 16rpx;
-  padding: 8rpx;
-  box-shadow: 0 4rpx 16rpx rgba(0,0,0,0.1);
-  z-index: 10;
-  border: 1rpx solid #E2E8F0;
-}
-
-.zoom-btn {
-  width: 56rpx;
-  height: 56rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(135deg, #F0FDFA, #E6F7F5);
-  border-radius: 10rpx;
-  transition: all 0.2s ease;
-}
-
-.zoom-btn:active {
-  background: linear-gradient(135deg, #0F766E, #14B8A6);
-  transform: scale(0.95);
-}
-
-.zoom-btn:active .zoom-text {
-  color: #fff;
-}
-
-.zoom-text {
-  font-size: 32rpx;
-  color: #0F766E;
-  font-weight: 700;
-  line-height: 1;
-  transition: color 0.2s ease;
-}
-
-.zoom-label {
-  font-size: 18rpx;
-  color: #64748B;
-  padding: 2rpx 0;
-  font-weight: 500;
-}
-
 /* 思维导图控制 */
 .mind-controls {
   position: absolute;
@@ -2252,11 +2226,9 @@ page {
   left: 0;
   right: 0;
   height: 4rpx;
-  background: linear-gradient(90deg, #0F766E, #14B8A6, #0EA5E9, #0369A1);
-  background-size: 200% 100%;
+  background: #BFEFE7;
   opacity: 0;
   transition: opacity 0.3s ease;
-  animation: gradientShift 3s ease infinite;
 }
 
 .kb-card-main:hover::before,

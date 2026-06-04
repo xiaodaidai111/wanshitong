@@ -17,7 +17,7 @@
               <image :src="banner.image" mode="aspectFill" class="banner-img"></image>
               <view class="banner-overlay">
                 <text class="banner-title">{{ banner.title }}</text>
-                <text class="banner-sub">智学多智能体 · {{ banner.sub }}</text>
+                <text class="banner-sub">设备检修知识作业系统 · {{ banner.sub }}</text>
               </view>
             </view>
           </swiper-item>
@@ -49,10 +49,10 @@
 
     <view class="bottom-section">
       <view class="community-header">
-        <text class="community-title">学习共创</text>
+        <text class="community-title">检修共创</text>
         <view class="nearby-btn" @click="goToNearbyCommunities">
           <text class="nearby-icon">🧭</text>
-          <text class="nearby-text">课程空间</text>
+          <text class="nearby-text">现场空间</text>
         </view>
       </view>
 
@@ -110,7 +110,7 @@
             <!-- 纰冲噺鎺掓暟鎹紙浠呯⒊瓒宠抗甯栧瓙鏄剧ず锛?-->
             <view class="carbon-stats" v-if="post.carbonSaved">
               <text class="carbon-stat-item">📈 掌握度 {{ post.carbonSaved }} 分</text>
-              <text class="carbon-stat-item">+{{ post.carbonPoints }} 学习积分</text>
+              <text class="carbon-stat-item">+{{ post.carbonPoints }} 检修积分</text>
             </view>
 
             <!-- 浜掑姩鏁版嵁 -->
@@ -146,7 +146,7 @@
           <!-- 绌虹姸鎬?-->
           <view class="empty-state" v-if="filteredPosts.length === 0 && !loading">
             <text class="empty-icon">{{ currentTab === 3 ? '📈' : '📝' }}</text>
-            <text class="empty-text">{{ currentTab === 3 ? '快来记录一次学习评估吧！' : '暂无内容，快来发布第一条学习笔记吧！' }}</text>
+            <text class="empty-text">{{ currentTab === 3 ? '快来记录一次检修评估吧！' : '暂无内容，快来发布第一条检修记录吧！' }}</text>
             <button class="empty-action" @click="showPostModal = true">
               {{ currentTab === 3 ? '记录评估' : '发布笔记' }}
             </button>
@@ -171,8 +171,8 @@
             <image :src="normalizeUserAvatar(currentPostAuthor.avatar)" mode="aspectFill" class="modal-user-avatar"></image>
             <view class="modal-header-text">
               <text class="modal-user-name dynamic-modal-user-name">{{ currentPostAuthor.name }}</text>
-              <text class="modal-user-name">AI导学员</text>
-              <text class="modal-header-hint">分享你的学习资源与收获</text>
+              <text class="modal-user-name">检修知识助手</text>
+              <text class="modal-header-hint">分享你的检修资料、案例与复盘</text>
             </view>
           </view>
           <view class="modal-close-btn" @click="showPostModal = false">
@@ -209,7 +209,7 @@
           </view>
 
           <!-- 纰宠冻杩逛笓灞炴暟鎹?-->
-          <view class="carbon-input-row" v-if="newPost.category === '学习评估'">
+          <view class="carbon-input-row" v-if="newPost.category === '评估'">
             <view class="carbon-input-icon">📈</view>
             <input
               class="carbon-input"
@@ -263,9 +263,9 @@ export default {
   data() {
     return {
       statusBarHeight: 0,
-      brandTitle: '智学多智能体',
-      brandSubtitle: '学生画像 · 资源生成 · 路径规划',
-      todayBadgeText: '今日学习',
+      brandTitle: '设备检修知识作业系统',
+      brandSubtitle: '多模态检索 · 标准作业 · 知识沉淀',
+      todayBadgeText: '今日检修',
       userAvatar: '',
       currentPostAuthor: {
         name: DEFAULT_POST_AUTHOR.name,
@@ -279,46 +279,46 @@ export default {
       carbonScore: 68,
       carbonProgress: 68,
       banners: [
-        { image: '../../static/tweet-1.png', title: '对话式学习画像构建', sub: 'AI自动识别6+维度画像', badge: '画像', url: '' },
-        { image: '../../static/tweet-2.png', title: '多智能体协同资源生成', sub: '5种类型个性化学习资料', badge: '资源', url: '' },
-        { image: '../../static/tweet-3.png', title: '个性化学习路径规划', sub: '科学步骤 · 精准推送', badge: '路径', url: '' }
+        { image: '../../static/tweet-1.png', title: '多模态设备检修知识检索', sub: '文本 / 故障图片 / 设备型号精准匹配', badge: '检索', url: '' },
+        { image: '../../static/tweet-2.png', title: '标准化检修作业指引', sub: '流程推送 · 合规提醒 · 风险校验', badge: '作业', url: '' },
+        { image: '../../static/tweet-3.png', title: '一线案例知识沉淀', sub: '案例上传 · 审核入库 · 图谱更新', badge: '沉淀', url: '' }
       ],
       functions: [
         {
-          name: '对话学习',
-          desc: '构建学习画像',
+          name: '多模态检索',
+          desc: '文本/图片/型号匹配',
           icon: '💬',
           image: '../../static/cooking-expert.png',
           bgClass: 'bg-cook',
           path: '/pages/takeaway-expert/takeaway-expert'
         },
         {
-          name: '知识库',
-          desc: '知识网络与思维导图',
+          name: '知识沉淀',
+          desc: '案例入库与图谱更新',
           icon: '🌐',
           image: '../../static/home-cuisine-ranking.png',
           bgClass: 'bg-recipe',
           path: '/pages/restaurant-recommendation/restaurant-recommendation'
         },
         {
-          name: '智能辅导',
-          desc: '多模态答疑解惑',
+          name: '智能问修',
+          desc: '故障问答与图文解析',
           icon: '📖',
           image: '../../static/openclaw.png',
           bgClass: 'bg-rest',
           path: '/pages/cooking-expert/cooking-expert'
         },
         {
-          name: '学习路径',
-          desc: '个性化路径规划',
+          name: '标准作业',
+          desc: '检修流程与合规指引',
           icon: '🗺️',
           image: '../../static/health-management.png',
           bgClass: 'bg-health',
           path: '/pages/health-manager/health-manager'
         },
         {
-          name: '学习评估',
-          desc: '多维度效果评估',
+          name: '检修评估',
+          desc: '风险闭环与质量评估',
           icon: '📊',
           image: '../../static/takeaway-evaluation.png',
           bgClass: 'bg-takeaway',
@@ -326,10 +326,10 @@ export default {
         }
       ],
       tabs: [
-        { label: '资源', value: '资源', emoji: '📚' },
-        { label: '实操', value: '实操', emoji: '💻' },
-        { label: '画像', value: '画像', emoji: '🧠' },
-        { label: '学习评估', value: '学习评估', emoji: '📈' }
+        { label: '手册', value: '手册', emoji: '📚' },
+        { label: '案例', value: '案例', emoji: '🧰' },
+        { label: '作业', value: '作业', emoji: '🧑‍🔧' },
+        { label: '评估', value: '评估', emoji: '📈' }
       ],
       currentTab: 0,
       posts: [],
@@ -340,7 +340,7 @@ export default {
       newPost: {
         content: '',
         image: '',
-        category: '资源',
+        category: '手册',
         carbonSaved: ''
       }
     }
@@ -361,10 +361,10 @@ export default {
     },
     currentTabPlaceholder() {
       const placeholders = {
-        '资源': '分享你生成的课程讲解、思维导图或阅读材料...',
-        '实操': '分享你的代码案例、实践项目或调试过程...',
-        '画像': '分享你的学习目标、知识短板或学习偏好...',
-        '学习评估': '分享一次练习测试结果或学习反思...'
+        '手册': '分享你检索到的检修手册、规程条款或设备资料...',
+        '案例': '分享一线检修案例、故障图片、经验总结或处理结论...',
+        '作业': '分享标准作业流程、合规提醒或风险控制步骤...',
+        '评估': '分享一次检修质量评分、复盘结果或整改建议...'
       }
       return placeholders[this.newPost.category] || '说点什么...'
     }
@@ -478,7 +478,7 @@ export default {
         '资源': 'chip-recommend',
         '实操': 'chip-cook',
         '画像': 'chip-health',
-        '学习评估': 'chip-carbon'
+        '评估': 'chip-carbon'
       }
       return map[category] || ''
     },
@@ -488,7 +488,7 @@ export default {
         '资源': 'theme-recommend',
         '实操': 'theme-cook',
         '画像': 'theme-health',
-        '学习评估': 'theme-carbon'
+        '评估': 'theme-carbon'
       }
       return map[category] || ''
     },
@@ -601,9 +601,9 @@ export default {
       const allMock = [
         {
           id: now + 1,
-          author: { name: 'AI导学员', avatar: '../../static/avatar-1.png' },
-          category: '资源',
-          content: '已生成《人工智能导论》搜索算法章节讲解文档，包含概念拆解、伪代码和典型例题。',
+          author: { name: '检修知识助手', avatar: '../../static/avatar-1.png' },
+          category: '手册',
+          content: '已检索到 ZK-320 配电柜过热故障检修手册，包含故障现象、排查顺序、工具清单和安全注意事项。',
           images: ['../../static/food.png'],
           likes: 102,
           comments: 24,
@@ -613,9 +613,9 @@ export default {
         },
         {
           id: now + 2,
-          author: { name: '实践项目助手', avatar: '../../static/avatar-1.png' },
-          category: '实操',
-          content: '今天完成了 A* 搜索路径规划实操案例，已整理输入数据、核心代码和测试步骤。',
+          author: { name: '一线检修员', avatar: '../../static/avatar-1.png' },
+          category: '案例',
+          content: '上传了一例电机轴承异响案例，已补充故障图片、设备型号、检修步骤和处理结论。',
           images: ['../../static/cookexpret.png'],
           likes: 178,
           comments: 56,
@@ -625,9 +625,9 @@ export default {
         },
         {
           id: now + 3,
-          author: { name: '画像构建智能体', avatar: '../../static/avatar-2.png' },
-          category: '画像',
-          content: '学生画像更新：基础较好、偏好案例式学习、易错点集中在启发式函数设计。',
+          author: { name: '标准作业助手', avatar: '../../static/avatar-2.png' },
+          category: '作业',
+          content: '已根据设备类型和二级检修等级推送标准化作业流程，并标记停电验电、挂牌上锁等合规提醒。',
           images: [],
           likes: 256,
           comments: 78,
@@ -637,9 +637,9 @@ export default {
         },
         {
           id: now + 4,
-          author: { name: '效果评估智能体', avatar: '../../static/avatar-3.png' },
-          category: '学习评估',
-          content: '本次搜索算法练习掌握度 86 分，建议补充图搜索与树搜索差异的针对性练习。',
+          author: { name: '质检评估助手', avatar: '../../static/avatar-3.png' },
+          category: '评估',
+          content: '本次检修作业合规评分 86 分，建议补充扭矩复核记录和复位前安全确认照片。',
           images: [],
           likes: 134,
           comments: 42,
@@ -801,7 +801,7 @@ export default {
           throw new Error('publish failed')
         }
 
-        if (this.newPost.category === '学习评估' && this.newPost.carbonSaved) {
+        if (this.newPost.category === '评估' && this.newPost.carbonSaved) {
           const carbonPoints = Math.ceil(parseInt(this.newPost.carbonSaved) / 10)
           this.carbonScore = Math.min(100, this.carbonScore + carbonPoints)
           this.carbonProgress = this.carbonScore
