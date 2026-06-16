@@ -1,0 +1,177 @@
+{
+  "pages": [
+    {
+      "path": "pages/home/home",
+      "style": {
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/takeaway-expert/takeaway-expert",
+      "style": {
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/health-manager/health-manager",
+      "style": {
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/restaurant-recommendation/restaurant-recommendation",
+      "style": {
+        "navigationStyle": "custom",
+        "disableScroll": true
+      }
+    },
+    {
+      "path": "pages/personal-center/personal-center",
+      "style": {
+        "navigationStyle": "custom",
+        "enablePullDownRefresh": true
+      }
+    },
+    {
+      "path": "pages/personal-center/profile-edit",
+      "style": {
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/personal-center/achievements",
+      "style": {
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/personal-center/initial-setup",
+      "style": {
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/personal-center/my-uploads",
+      "style": {
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/user/login",
+      "style": {
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/openclaw/openclaw",
+      "style": {
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/nearby-communities/nearby-communities",
+      "style": {
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/community-detail/community-detail",
+      "style": {
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/recipe-recommendation/recipe-recommendation",
+      "style": {
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/cooking-expert/cooking-expert",
+      "style": {
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/task-detail/task-detail",
+      "style": {
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/knowledge-detail/knowledge-detail",
+      "style": {
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/webview/webview",
+      "style": {
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/image-viewer/image-viewer",
+      "style": {
+        "navigationStyle": "custom",
+        "navigationBarTitleText": "查看图片",
+        "backgroundColor": "#000000",
+        "app-plus": {
+          "animationType": "fade-in"
+        }
+      }
+    }
+  ],
+  "globalStyle": {
+    "navigationBarTextStyle": "white",
+    "navigationBarTitleText": "设备检修知识作业系统",
+    "navigationBarBackgroundColor": "#FFFFFF",
+    "backgroundColor": "#F8F8F8",
+    "animation": {
+      "type": "slide-in-right",
+      "duration": 300
+    }
+  },
+  "tabBar": {
+    "color": "#999999",
+    "selectedColor": "#2563EB",
+    "backgroundColor": "#FFFFFF",
+    "borderStyle": "white",
+    "fontSize": "11px",
+    "height": "68px",
+    "iconWidth": "50px",
+    "spacing": "4px",
+    "list": [
+      {
+        "pagePath": "pages/home/home",
+        "text": "首页",
+        "iconPath": "static/tabbar-icons/home.png",
+        "selectedIconPath": "static/tabbar-icons/home-selected.png"
+      },
+      {
+        "pagePath": "pages/takeaway-expert/takeaway-expert",
+        "text": "智能检索",
+        "iconPath": "static/tabbar-icons/expert.png",
+        "selectedIconPath": "static/tabbar-icons/expert-selected.png"
+      },
+      {
+        "pagePath": "pages/health-manager/health-manager",
+        "text": "检修任务",
+        "iconPath": "static/tabbar-icons/helath.png",
+        "selectedIconPath": "static/tabbar-icons/helath-selected.png"
+      },
+      {
+        "pagePath": "pages/restaurant-recommendation/restaurant-recommendation",
+        "text": "知识库",
+        "iconPath": "static/tabbar-icons/star.png",
+        "selectedIconPath": "static/tabbar-icons/star-selected.png"
+      },
+      {
+        "pagePath": "pages/personal-center/personal-center",
+        "text": "我的",
+        "iconPath": "static/tabbar-icons/user.png",
+        "selectedIconPath": "static/tabbar-icons/user-selected.png"
+      }
+    ]
+  }
+}
