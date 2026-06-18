@@ -193,8 +193,9 @@
             <input class="kw-input" v-model="newCaseForm.tagsStr" placeholder="标签，逗号分隔" />
             <view class="kw-upload-line">
               <view class="kw-upload-box" @click="mockAttachEvidence">
-                <text class="kw-upload-icon">+</text>
-                <text class="kw-upload-text">{{ newCaseForm.evidenceName || '添加现场照片/检测数据' }}</text>
+                <text class="kw-upload-icon">{{ newCaseForm.evidenceName ? '📎' : '+' }}</text>
+                <text class="kw-upload-text">{{ newCaseForm.evidenceName || '拍照/选择图片/选择文件' }}</text>
+                <text v-if="newCaseForm.evidenceName" class="kw-upload-clear" @click.stop="clearEvidence">×</text>
               </view>
               <view class="kw-submit" @click="submitCaseForReview"><text>提交审核</text></view>
             </view>
@@ -1704,8 +1705,49 @@ export default {
       this.newCaseForm.severity = this.caseSeverityOptions[index]?.value || 'medium'
     },
     mockAttachEvidence() {
-      this.newCaseForm.evidenceName = this.newCaseForm.evidenceName || '现场照片_检测数据.zip'
-      uni.showToast({ title: '已添加模拟附件', icon: 'success' })
+      uni.showActionSheet({
+        itemList: ['📷 拍照/选择图片', '📄 选择文件'],
+        success: (res) => {
+          if (res.tapIndex === 0) {
+            uni.chooseImage({
+              count: 3,
+              sizeType: ['compressed'],
+              sourceType: ['album', 'camera'],
+              success: (imgRes) => {
+                const names = imgRes.tempFiles.map(f => f.name || f.path.split('/').pop())
+                this.newCaseForm.evidenceName = names.join('、')
+                this.newCaseForm._evidenceFiles = imgRes.tempFiles
+                uni.showToast({ title: `已选 ${imgRes.tempFiles.length} 张图片`, icon: 'success' })
+              }
+            })
+          } else {
+            uni.chooseFile({
+              count: 5,
+              type: 'file',
+              success: (fileRes) => {
+                const names = fileRes.tempFiles.map(f => f.name)
+                this.newCaseForm.evidenceName = names.join('、')
+                this.newCaseForm._evidenceFiles = fileRes.tempFiles
+                uni.showToast({ title: `已选 ${fileRes.tempFiles.length} 个文件`, icon: 'success' })
+              },
+              fail: () => {
+                // H5 端不支持 chooseFile，降级为图片选择
+                uni.chooseImage({
+                  count: 5,
+                  sizeType: ['compressed'],
+                  sourceType: ['album'],
+                  success: (imgRes) => {
+                    const names = imgRes.tempFiles.map(f => f.name || f.path.split('/').pop())
+                    this.newCaseForm.evidenceName = names.join('、')
+                    this.newCaseForm._evidenceFiles = imgRes.tempFiles
+                    uni.showToast({ title: `已选 ${imgRes.tempFiles.length} 个文件`, icon: 'success' })
+                  }
+                })
+              }
+            })
+          }
+        }
+      })
     },
     submitCaseForReview() {
       const title = this.newCaseForm.title.trim()
@@ -1724,6 +1766,7 @@ export default {
         severity: this.newCaseForm.severity,
         summary,
         content: `故障/经验描述：${summary}\n\n附件：${this.newCaseForm.evidenceName || '暂无附件'}\n\n审核建议：补充来源、现象、排查过程和处理结论后纳入知识图谱。`,
+        _evidenceFiles: this.newCaseForm._evidenceFiles || [],
         status: 'pending',
         author: this.getCurrentUserName(),
         submittedAt: this.formatNow()
@@ -1743,6 +1786,10 @@ export default {
         tagsStr: '',
         evidenceName: ''
       }
+    },
+    clearEvidence() {
+      this.newCaseForm.evidenceName = ''
+      this.newCaseForm._evidenceFiles = []
     },
     approveReviewItem(item) {
       item.status = 'approved'
@@ -3188,7 +3235,7 @@ page {
 }
 
 /* 主内容区 */
-.main-area { flex: 1; width: 100%; display: flex; flex-direction: column; overflow: hidden; min-height: 0; }
+.main-area { flex: 1; width: 100%; display: flex; flex-direction: column; overflow: hidden; min-height: 0; height: 0; }
 .file-explorer-area { flex: 1; width: 100%; display: flex; flex-direction: column; overflow: hidden; }
 
 /* 节点详情浮窗 */
@@ -3323,7 +3370,9 @@ page {
 .card-main-area { flex: 1; padding: 16rpx; }
 .knowledge-workbench {
   flex: 1;
-  padding: 20rpx 18rpx 180rpx;
+  height: 0;
+  min-height: 0;
+  padding: 20rpx 18rpx 300rpx;
   box-sizing: border-box;
   background: #F8FAFC;
 }
@@ -3360,7 +3409,9 @@ page {
 .kw-upload-line { display: flex; gap: 12rpx; align-items: center; }
 .kw-upload-box { flex: 1; min-width: 0; height: 76rpx; border-radius: 12rpx; border: 1rpx dashed #94A3B8; background: #F8FAFC; display: flex; align-items: center; justify-content: center; gap: 10rpx; padding: 0 14rpx; }
 .kw-upload-icon { font-size: 30rpx; color: #0F766E; font-weight: 800; }
-.kw-upload-text { font-size: 23rpx; color: #475569; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.kw-upload-text { font-size: 23rpx; color: #475569; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
+.kw-upload-clear { font-size: 28rpx; color: #94A3B8; padding: 0 8rpx; flex-shrink: 0; }
+.kw-upload-clear:active { color: #EF4444; }
 .kw-submit { width: 160rpx; height: 76rpx; border-radius: 12rpx; background: linear-gradient(135deg, #0F766E, #0284C7); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
 .kw-submit.slim { width: 140rpx; height: 66rpx; }
 .kw-submit text { font-size: 25rpx; color: #FFFFFF; font-weight: 800; }
@@ -3742,7 +3793,7 @@ page {
 .reader-action.primary { background: #60A5FA; color: #FFFFFF; }
 
 /* 技术资料库 */
-.tech-lib-area { padding: 0 24rpx; }
+.tech-lib-area { padding: 0 24rpx; height: 0; min-height: 0; }
 .tech-filter-bar {
   display: flex;
   gap: 0;
