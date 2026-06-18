@@ -2,7 +2,7 @@
   <view class="personal-center-container">
     <view class="page-header">
       <view class="page-title">个人中心</view>
-      <text class="page-subtitle">欢迎使用设备检修知识作业系统！</text>
+      <text class="page-subtitle">欢迎使用一修！</text>
     </view>
 
     <view class="main-content">

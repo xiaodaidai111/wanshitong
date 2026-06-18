@@ -7,7 +7,7 @@
         <view class="welcome-icon-wrap">
           <text class="welcome-icon">🔧</text>
         </view>
-        <text class="welcome-title">欢迎来到设备检修知识作业系统</text>
+        <text class="welcome-title">欢迎来到一修</text>
         <text class="welcome-subtitle">完善个人信息，加入检修协作团队</text>
       </view>
 

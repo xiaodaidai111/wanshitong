@@ -92,7 +92,7 @@
     </view>
     
     <view class="footer-note">
-      <text>© 2026 设备检修知识作业系统</text>
+      <text>© 2026 一修</text>
     </view>
   </view>
 </template>
@@ -105,7 +105,7 @@ export default {
   data() {
     return {
       statusBarHeight: 0,
-      brandTitle: '设备检修知识作业系统',
+      brandTitle: '一修',
       isRegister: false,
       loading: false,
       loginForm: {

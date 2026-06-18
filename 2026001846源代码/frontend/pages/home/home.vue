@@ -154,7 +154,7 @@ export default {
     return {
       statusBarHeight: 0,
       pageLoading: true,
-      brandTitle: '设备检修知识作业系统',
+      brandTitle: '一修',
       banners: [
         { image: '../../static/industrial-banner-1.png', title: '多模态设备检修知识检索', sub: '摩托车发动机 / 故障图片 / 设备型号精准匹配', url: '' },
         { image: '../../static/industrial-banner-2.png', title: '标准化检修作业指引', sub: '点火系统 · 燃油供给 · 机油润滑 · 异响排查', url: '' },
