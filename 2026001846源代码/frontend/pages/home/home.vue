@@ -49,12 +49,6 @@
           </view>
           <text class="quick-name">知识库</text>
         </view>
-        <view class="quick-item" @click="navigateTo('/pages/cooking-expert/cooking-expert')">
-          <view class="quick-icon-wrap bg-orange">
-            <image src="../../static/openclaw.png" class="quick-icon-img" mode="aspectFit" />
-          </view>
-          <text class="quick-name">智能问修</text>
-        </view>
       </view>
     </view>
 
@@ -199,10 +193,6 @@ export default {
   },
 
   methods: {
-    goToSearch() {
-      uni.navigateTo({ url: '/pages/takeaway-expert/takeaway-expert' })
-    },
-
     goToDashboard() {
       uni.showToast({ title: '功能开发中', icon: 'none' })
     },
@@ -313,53 +303,6 @@ export default {
   white-space: nowrap;
 }
 
-/* ===== 搜索栏 ===== */
-.search-section {
-  margin-top: 180rpx;
-  margin-bottom: 24rpx;
-  animation: slideInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.1s both;
-}
-
-.search-bar {
-  display: flex;
-  align-items: center;
-  background: #FFFFFF;
-  border-radius: 16rpx;
-  padding: 20rpx 24rpx;
-  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.08);
-  border: 1rpx solid #E5E7EB;
-  transition: all 0.3s ease;
-}
-
-.search-bar:active {
-  transform: scale(0.98);
-  box-shadow: 0 8rpx 32rpx rgba(37, 99, 235, 0.15);
-}
-
-.search-icon {
-  font-size: 36rpx;
-  margin-right: 16rpx;
-}
-
-.search-placeholder {
-  flex: 1;
-  font-size: 26rpx;
-  color: #9CA3AF;
-}
-
-.search-btn {
-  background: linear-gradient(135deg, #2563EB, #3B82F6);
-  padding: 12rpx 28rpx;
-  border-radius: 12rpx;
-  box-shadow: 0 4rpx 12rpx rgba(37, 99, 235, 0.3);
-}
-
-.search-btn-text {
-  font-size: 24rpx;
-  color: #FFFFFF;
-  font-weight: 600;
-}
-
 @keyframes slideInUp {
   from { opacity: 0; transform: translateY(40rpx); }
   to { opacity: 1; transform: translateY(0); }
@@ -367,6 +310,7 @@ export default {
 
 /* ===== 轮播图 ===== */
 .banner-section {
+  margin-top: 180rpx;
   margin-bottom: 24rpx;
   border-radius: 16rpx;
   overflow: hidden;
@@ -425,7 +369,7 @@ export default {
 
 .quick-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 16rpx;
 }
 
@@ -521,7 +465,7 @@ export default {
 
 .overview-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 12rpx;
 }
 
@@ -845,7 +789,7 @@ export default {
     padding: 0 16rpx 180rpx;
   }
 
-  .search-section {
+  .banner-section {
     margin-top: 160rpx;
   }
 
@@ -885,7 +829,7 @@ export default {
     padding: 0 32rpx 200rpx;
   }
 
-  .search-section {
+  .banner-section {
     margin-top: 200rpx;
   }
 
@@ -921,7 +865,7 @@ export default {
     padding: 0 32rpx 120rpx;
   }
 
-  .search-section {
+  .banner-section {
     margin-top: 120rpx;
   }
 
@@ -930,7 +874,7 @@ export default {
   }
 
   .quick-grid {
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(3, 1fr);
   }
 }
 
@@ -941,7 +885,7 @@ export default {
   }
 
   .quick-grid {
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(3, 1fr);
   }
 }
 </style>

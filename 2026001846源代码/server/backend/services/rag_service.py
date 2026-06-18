@@ -5,6 +5,11 @@ LightRAG 知识图谱检索服务
 - 支持 5 种查询模式: naive / local / global / hybrid / mix
 """
 import os
+import urllib.request
+# 绕过系统代理，避免 tiktoken 等库因代理不可用而失败
+os.environ.setdefault('NO_PROXY', '*')
+urllib.request.getproxies = lambda: {}
+
 import json
 import asyncio
 import logging
@@ -115,18 +120,28 @@ async def close_rag_storage():
             logger.error("LightRAG 存储关闭失败: %s", e)
 
 
+# ─── 持久化事件循环（解决 Flask 多线程 + LightRAG worker 事件循环冲突） ───
+_rag_loop = None
+_rag_loop_thread = None
+
+
+def _get_rag_loop():
+    """获取或创建 RAG 专用持久事件循环"""
+    global _rag_loop, _rag_loop_thread
+    if _rag_loop is None or _rag_loop.is_closed():
+        import threading
+        _rag_loop = asyncio.new_event_loop()
+        _rag_loop_thread = threading.Thread(target=_rag_loop.run_forever, daemon=True)
+        _rag_loop_thread.start()
+    return _rag_loop
+
+
 def _run_async(coro):
-    """在同步上下文中运行异步函数"""
-    try:
-        loop = asyncio.get_event_loop()
-        if loop.is_running():
-            # Flask 在多线程中运行时，loop 可能已在运行
-            import concurrent.futures
-            with concurrent.futures.ThreadPoolExecutor() as pool:
-                return pool.submit(asyncio.run, coro).result()
-        return loop.run_until_complete(coro)
-    except RuntimeError:
-        return asyncio.run(coro)
+    """在持久事件循环中运行异步函数，避免 Flask 多线程事件循环冲突"""
+    import concurrent.futures
+    loop = _get_rag_loop()
+    future = asyncio.run_coroutine_threadsafe(coro, loop)
+    return future.result(timeout=300)
 
 
 async def _ainsert_text(text: str) -> bool:

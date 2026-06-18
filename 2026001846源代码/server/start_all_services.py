@@ -574,10 +574,8 @@ class ServiceManager:
         print("   智能问答助手: 智能问答系统后端服务 (路径: /tuantuan)")
         print("   检修评估智能体: 检修评估智能体服务 (路径: /takeout)")
         print("   标准化作业服务: 标准化作业智能体服务 (路径: /health)")
-        print("   空间智能服务: 空间智能服务 (路径: /map)")
         print("   检修评估智能体(独立): 独立检修评估服务 (端口: 5001)")
-        print("   标准化作业服务(独立): 标准化作业独立服务 (端口: 8000)")
-        print("   空间智能服务(独立): 空间智能独立服务 (端口: 8002)")
+        # print("   标准化作业服务(独立): 标准化作业独立服务 (端口: 8000)")  # 暂时禁用
         print("=" * 60 + "\n")
 
 
@@ -815,7 +813,7 @@ def validate_config_files(script_dir: Path) -> Tuple[bool, List[str]]:
         "unified_app.py": script_dir / "backend" / "unified_app.py",
         "takeout-agent/app.py": script_dir / "backend" / "takeout-agent" / "app.py",
         "map-agent/main.py": script_dir / "map-agent" / "main.py",
-        "HealthManager/run.py": script_dir / "HealthManager" / "HealthManager" / "run.py",
+        # "HealthManager/run.py": script_dir / "HealthManager" / "HealthManager" / "run.py",  # 暂时禁用
     }
 
     missing_files = []
@@ -845,7 +843,7 @@ def check_service_directories(script_dir: Path) -> Tuple[bool, List[str]]:
         "backend": script_dir / "backend",
         "backend/takeout-agent": script_dir / "backend" / "takeout-agent",
         "map-agent": script_dir / "map-agent",
-        "HealthManager": script_dir / "HealthManager" / "HealthManager",
+        # "HealthManager": script_dir / "HealthManager" / "HealthManager",  # 暂时禁用
         "database": script_dir / "database",
     }
 
@@ -904,7 +902,6 @@ def main():
             "http://localhost:5000/tuantuan/",
             "http://localhost:5000/takeout/",
             "http://localhost:5000/health/",
-            "http://localhost:5000/map/"
         ],
         startup_delay=5,
         max_retries=3,
@@ -923,36 +920,36 @@ def main():
         restart_on_failure=True
     )
 
-    map_agent_service = Service(
-        name="空间智能服务(独立)",
-        command=[python_cmd, "-c",
-                 "import uvicorn, sys; sys.path.insert(0, '.'); "
-                 "from main import app; uvicorn.run(app, host='0.0.0.0', port=8002, log_level='warning')"],
-        cwd=str(script_dir / "map-agent"),
-        # FastAPI 没有定义 '/'，使用文档/开放接口用于健康检查
-        check_url="http://localhost:8002/openapi.json",
-        port=8002,
-        startup_delay=5,
-        max_retries=3,
-        restart_on_failure=True,
-        kill_on_port_conflict=True
-    )
+    # map_agent_service 已禁用 - 空间智能服务
+    # map_agent_service = Service(
+    #     name="空间智能服务(独立)",
+    #     command=[python_cmd, "-c",
+    #              "import uvicorn, sys; sys.path.insert(0, '.'); "
+    #              "from main import app; uvicorn.run(app, host='0.0.0.0', port=8002, log_level='warning')"],
+    #     cwd=str(script_dir / "map-agent"),
+    #     check_url="http://localhost:8002/openapi.json",
+    #     port=8002,
+    #     startup_delay=5,
+    #     max_retries=3,
+    #     restart_on_failure=True,
+    #     kill_on_port_conflict=True
+    # )
 
-    health_manager_service = Service(
-        name="标准化作业服务(独立)",
-        command=[python_cmd, "run.py"],
-        cwd=str(script_dir / "HealthManager" / "HealthManager"),
-        check_url="http://localhost:8000",
-        port=8000,
-        startup_delay=5,
-        max_retries=3,
-        restart_on_failure=True
-    )
+    # health_manager_service = Service(
+    #     name="标准化作业服务(独立)",
+    #     command=[python_cmd, "run.py"],
+    #     cwd=str(script_dir / "HealthManager" / "HealthManager"),
+    #     check_url="http://localhost:8000",
+    #     port=8000,
+    #     startup_delay=5,
+    #     max_retries=3,
+    #     restart_on_failure=True
+    # )
 
     # Phase 1（启动顺序）：智能体服务
     manager.add_service(takeout_service)
-    manager.add_service(map_agent_service)
-    manager.add_service(health_manager_service)
+    # manager.add_service(map_agent_service)  # 空间智能服务已禁用
+    # manager.add_service(health_manager_service)  # 暂时禁用 HealthManager
     # Phase 2（启动顺序）：后端 API 服务
     manager.add_service(unified_service)
 
@@ -963,10 +960,8 @@ def main():
     logger.info("   智能问答助手: http://localhost:5000/tuantuan")
     logger.info("   检修评估智能体: http://localhost:5000/takeout")
     logger.info("   标准化作业服务: http://localhost:5000/health")
-    logger.info("   空间智能服务: http://localhost:5000/map")
     logger.info("   检修评估智能体(独立): http://localhost:5001")
-    logger.info("   标准化作业服务(独立): http://localhost:8000")
-    logger.info("   空间智能服务(独立): http://localhost:8002")
+    # logger.info("   标准化作业服务(独立): http://localhost:8000")  # 暂时禁用
     logger.info("=" * 60)
     logger.info("启动参数:")
     logger.info("   端口检查: ✅ 启用")

@@ -52,7 +52,7 @@ def create_unified_app():
         ('routes.tuantuan', 'tuantuan_bp', '/tuantuan', 'tuantuan service'),
         ('routes.takeout', 'takeout_bp', '/takeout', 'takeout service'),
         ('routes.health_manager_deepseek', 'health_manager_bp', '/health', 'health manager service'),
-        ('routes.map_agent', 'map_agent_bp', '/map', 'map agent service'),
+        # ('routes.map_agent', 'map_agent_bp', '/map', 'map agent service'),  # 已禁用
         (
             'routes.recipe_recommendation',
             'recipe_recommendation_bp',
@@ -85,7 +85,6 @@ def create_unified_app():
                     'community': '/api/community - 检修社区服务',
                     'health': '/health - 标准作业指引服务',
                     'takeout': '/takeout - 检修评估智能体服务',
-                    'map': '/map - 现场空间智能服务',
                     'recipe-recommendation': '/api/recipe-recommendation - 维修资源推荐服务',
                     'openclaw': '/openclaw - 智能助手服务',
                     'speech': '/api/speech/transcribe - 语音识别服务',
@@ -100,7 +99,7 @@ def create_unified_app():
         return jsonify(
             {
                 'status': 'healthy',
-                'services': ['tuantuan', 'takeout', 'health_manager', 'map_agent', 'community', 'speech_asr'],
+                'services': ['tuantuan', 'takeout', 'health_manager', 'community', 'speech_asr'],
             }
         )
 
