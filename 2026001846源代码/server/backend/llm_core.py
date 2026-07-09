@@ -57,6 +57,36 @@ class ModelManager:
 
 model_manager = ModelManager()
 
+class _AIChatAdapter:
+    def __init__(self, model_name: str, temperature: float):
+        self.model_name = model_name
+        self.temperature = temperature
+
+    def invoke(self, langchain_messages):
+        messages = []
+        for item in langchain_messages:
+            role = "user"
+            item_type = getattr(item, "type", "")
+            if item_type == "system" or item.__class__.__name__ == "SystemMessage":
+                role = "system"
+            elif item_type == "ai" or item.__class__.__name__ == "AIMessage":
+                role = "assistant"
+            messages.append({"role": role, "content": getattr(item, "content", str(item))})
+
+        content = ai_agent.chat(
+            messages=messages,
+            model=self.model_name,
+            temperature=self.temperature,
+            max_tokens=2000,
+        )
+
+        class _Response:
+            def __init__(self, content):
+                self.content = content
+
+        return _Response(content)
+
+
 class LLMConfig(BaseModel):
     model_name: str = Field(default_factory=lambda: model_manager.get_current_model() or "qwen-plus", description="模型名称")
     temperature: float = Field(default=0.7, description="温度参数")
@@ -69,11 +99,10 @@ class LLMConfig(BaseModel):
         self.model_name = ai_agent.settings.chat_model
         self.base_url = ai_agent.settings.base_url
     
-    def create_llm(self) -> Optional[ChatOpenAI]:
-        try:
-            return ai_agent.langchain_chat(model=self.model_name, temperature=self.temperature)
-        except Exception:
+    def create_llm(self):
+        if not ai_agent.settings.configured:
             return None
+        return _AIChatAdapter(self.model_name, self.temperature)
 
 llm_config = LLMConfig()
 

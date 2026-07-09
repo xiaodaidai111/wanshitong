@@ -156,9 +156,9 @@
 </template>
 
 <script>
-import { API_HOST } from '../../utils/request.js'
+import { getBaseURL } from '../../utils/request.js'
 
-const COMMUNITY_API_BASE = `${API_HOST}:5000/api/community`
+const COMMUNITY_API_BASE = `${getBaseURL('tuantuan')}/api/community`
 
 export default {
   data() {

@@ -1,30 +1,4 @@
-const API_HOST = 'http://8.138.206.136'
-
-const DEFAULT_BACKEND_URLS = {
-  tuantuan: `${API_HOST}:5000`,
-  takeout: `${API_HOST}:5000/takeout`
-}
-
-const normalizeBaseURL = (url) => {
-  if (!url) return ''
-  return url.endsWith('/') ? url.slice(0, -1) : url
-}
-
-const getBaseURL = (service = 'tuantuan') => {
-  let urls = { ...DEFAULT_BACKEND_URLS }
-  try {
-    const stored = uni.getStorageSync('backend_urls')
-    if (stored) {
-      const parsed = typeof stored === 'string' ? JSON.parse(stored) : stored
-      if (parsed && typeof parsed === 'object') {
-        urls = { ...urls, ...parsed }
-      }
-    }
-  } catch (e) {
-    // ignore invalid local overrides
-  }
-  return normalizeBaseURL(urls[service] || urls.tuantuan)
-}
+import { getBaseURL } from './backend-config.js'
 
 class GuestManager {
   constructor() {

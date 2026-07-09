@@ -228,10 +228,10 @@
 </template>
 
 <script>
-import request, { API_HOST } from '../../utils/request.js';
+import request, { getBaseURL } from '../../utils/request.js';
 import { createVoiceInputController } from '../../utils/voice-input.js';
 
-const COOK_AGENT_BASE = `${API_HOST}:5000`;
+const COOK_AGENT_BASE = getBaseURL('tuantuan');
 
 export default {
   components: {

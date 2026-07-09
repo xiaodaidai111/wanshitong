@@ -22,12 +22,35 @@ uni-tabbar {
   box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
   backdrop-filter: blur(10px);
   background-color: rgba(255, 255, 255, 0.95);
+  height: 62px !important;
+}
+
+uni-tabbar .uni-tabbar,
+uni-tabbar .uni-tabbar__item {
+  height: 62px !important;
+}
+
+uni-tabbar .uni-tabbar__bd {
+  height: 62px !important;
+}
+
+uni-tabbar .uni-tabbar__icon,
+uni-tabbar .uni-tabbar__icon img,
+uni-tabbar .uni-tabbar__icon image {
+  width: 32px !important;
+  height: 32px !important;
+}
+
+uni-tabbar .uni-tabbar__label,
+uni-tabbar text {
+  font-size: 11px !important;
+  line-height: 14px !important;
 }
 
 /* 移动端适配 */
 @media screen and (max-width: 768px) {
   uni-tabbar {
-    height: 56px !important;
+    height: 62px !important;
   }
 }
 

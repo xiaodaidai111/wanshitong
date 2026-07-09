@@ -346,9 +346,9 @@
 </template>
 
 <script>
-import { API_HOST, getAssetURL, uploadFile } from '../../utils/request.js'
+import { getAssetURL, getBaseURL, uploadFile } from '../../utils/request.js'
 
-const COMMUNITY_API_BASE = `${API_HOST}:5000/api/community`
+const COMMUNITY_API_BASE = `${getBaseURL('tuantuan')}/api/community`
 
 export default {
   data() {

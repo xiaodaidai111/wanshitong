@@ -2169,7 +2169,7 @@ page {
 /* 智能体卡片 - Trust Teal 配色方案 */
 .agent-card {
   position: fixed;
-  bottom: calc(80rpx + env(safe-area-inset-bottom));
+  bottom: calc(150rpx + env(safe-area-inset-bottom));
   left: 30rpx;
   right: 30rpx;
   background: #ffffff;
@@ -3372,7 +3372,7 @@ page {
   flex: 1;
   height: 0;
   min-height: 0;
-  padding: 20rpx 18rpx 300rpx;
+  padding: 20rpx 18rpx calc(260rpx + env(safe-area-inset-bottom));
   box-sizing: border-box;
   background: #F8FAFC;
 }
@@ -3793,7 +3793,12 @@ page {
 .reader-action.primary { background: #60A5FA; color: #FFFFFF; }
 
 /* 技术资料库 */
-.tech-lib-area { padding: 0 24rpx; height: 0; min-height: 0; }
+.tech-lib-area {
+  padding: 0 24rpx calc(260rpx + env(safe-area-inset-bottom));
+  height: 0;
+  min-height: 0;
+  box-sizing: border-box;
+}
 .tech-filter-bar {
   display: flex;
   gap: 0;

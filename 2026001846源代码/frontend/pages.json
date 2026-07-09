@@ -133,14 +133,14 @@
     }
   },
   "tabBar": {
-    "color": "#999999",
+    "color": "#94A3B8",
     "selectedColor": "#2563EB",
     "backgroundColor": "#FFFFFF",
     "borderStyle": "white",
     "fontSize": "11px",
-    "height": "68px",
-    "iconWidth": "50px",
-    "spacing": "4px",
+    "height": "62px",
+    "iconWidth": "32px",
+    "spacing": "2px",
     "list": [
       {
         "pagePath": "pages/home/home",
@@ -150,19 +150,19 @@
       },
       {
         "pagePath": "pages/takeaway-expert/takeaway-expert",
-        "text": "智能检索",
+        "text": "检索",
         "iconPath": "static/tabbar-icons/expert.png",
         "selectedIconPath": "static/tabbar-icons/expert-selected.png"
       },
       {
         "pagePath": "pages/health-manager/health-manager",
-        "text": "检修任务",
+        "text": "任务",
         "iconPath": "static/tabbar-icons/helath.png",
         "selectedIconPath": "static/tabbar-icons/helath-selected.png"
       },
       {
         "pagePath": "pages/restaurant-recommendation/restaurant-recommendation",
-        "text": "知识库",
+        "text": "知识",
         "iconPath": "static/tabbar-icons/star.png",
         "selectedIconPath": "static/tabbar-icons/star-selected.png"
       },

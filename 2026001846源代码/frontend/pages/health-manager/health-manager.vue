@@ -1829,14 +1829,12 @@ view, text, image, input, textarea, scroll-view {
 /* 1. Global Page Style */
 .modern-health-page {
   min-height: 100vh;
-  max-height: 100vh;
-  height: 100vh;
-  background-color: #f0fdf4;
-  padding: calc(44px + constant(safe-area-inset-top)) 32rpx calc(200rpx + constant(safe-area-inset-bottom)) 32rpx;
-  padding: calc(44px + env(safe-area-inset-top)) 32rpx calc(200rpx + env(safe-area-inset-bottom)) 32rpx;
+  background-color: #EEF3F8;
+  padding: 72rpx 24rpx calc(216rpx + constant(safe-area-inset-bottom));
+  padding: 72rpx 24rpx calc(216rpx + env(safe-area-inset-bottom));
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   overflow-x: hidden;
-  overflow-y: auto;
+  overflow-y: visible;
   -webkit-overflow-scrolling: touch;
   box-sizing: border-box;
   position: relative;
@@ -1847,72 +1845,96 @@ view, text, image, input, textarea, scroll-view {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 48rpx;
+  gap: 18rpx;
+  margin: 0 -24rpx 40rpx;
+  padding: 36rpx 24rpx 30rpx;
+  background: rgba(248, 250, 252, 0.92);
+  border-bottom: 1rpx solid rgba(203, 213, 225, 0.68);
+  backdrop-filter: blur(18rpx);
+  -webkit-backdrop-filter: blur(18rpx);
+  position: relative;
+  top: auto;
+  z-index: 50;
 }
 
 .user-profile {
   display: flex;
   align-items: center;
-  gap: 24rpx;
+  gap: 16rpx;
+  flex: 1;
+  min-width: 0;
 }
 
 .avatar-container {
   position: relative;
-  width: 96rpx;
-  height: 96rpx;
-  border-radius: 50%;
+  width: 64rpx;
+  height: 64rpx;
+  border-radius: 18rpx;
   overflow: hidden;
+  flex-shrink: 0;
 }
 
 .avatar {
   width: 100%;
   height: 100%;
-  border-radius: 50%;
+  border-radius: 18rpx;
   display: block;
 }
 
 .greeting {
   display: flex;
   flex-direction: column;
+  min-width: 0;
 }
 
 .greeting-title {
-  font-size: 36rpx;
-  font-weight: 700;
+  font-size: 31rpx;
+  font-weight: 800;
   color: #0f172a;
-  letter-spacing: -0.5rpx;
+  letter-spacing: 0;
+  line-height: 1.18;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .greeting-subtitle {
-  font-size: 24rpx;
+  font-size: 20rpx;
   color: #64748b;
-  margin-top: 4rpx;
+  margin-top: 6rpx;
+  line-height: 1.24;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .notification-btn {
   position: relative;
-  width: 80rpx;
-  height: 80rpx;
-  background-color: white;
-  border-radius: 50%;
+  width: auto;
+  height: 48rpx;
+  min-width: 86rpx;
+  padding: 0 18rpx;
+  background-color: #ECFDF5;
+  border-radius: 999rpx;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 8rpx 24rpx rgba(148, 163, 184, 0.15); /* Soft drop shadow */
+  box-shadow: none;
+  flex-shrink: 0;
 }
 
 .icon-bell {
   font-size: 22rpx;
-  color: #334155;
-  font-weight: 700;
+  color: #047857;
+  font-weight: 800;
 }
 
 .red-dot {
   position: absolute;
-  top: 20rpx;
-  right: 22rpx;
-  width: 12rpx;
-  height: 12rpx;
+  top: 8rpx;
+  right: 12rpx;
+  width: 10rpx;
+  height: 10rpx;
   background-color: #ef4444; /* Red 500 */
   border-radius: 50%;
   border: 2rpx solid white;
@@ -1920,22 +1942,22 @@ view, text, image, input, textarea, scroll-view {
 
 /* 3. Dynamic Tabs */
 .tabs-container {
-  margin-bottom: 40rpx;
+  margin-bottom: 24rpx;
 }
 
 .tabs-bg {
   position: relative;
   display: flex;
-  background-color: #e2e8f0; /* Slate 200 */
+  background-color: #E2E8F0; /* Slate 200 */
   border-radius: 999px;
-  padding: 8rpx;
+  padding: 6rpx;
   box-shadow: inset 0 2rpx 4rpx rgba(0,0,0,0.05); /* Inner subtle shadow */
 }
 
 .tab-indicator {
   position: absolute;
-  top: 8rpx;
-  bottom: 8rpx;
+  top: 6rpx;
+  bottom: 6rpx;
   width: 33.33%;
   background-color: white;
   border-radius: 999px;
@@ -1946,14 +1968,14 @@ view, text, image, input, textarea, scroll-view {
 .tab-item {
   flex: 1;
   text-align: center;
-  padding: 16rpx 0;
+  padding: 14rpx 0;
   z-index: 1; /* Above indicator */
   position: relative;
 }
 
 .tab-item text {
-  font-size: 26rpx;
-  font-weight: 600;
+  font-size: 24rpx;
+  font-weight: 800;
   color: #64748b;
   transition: color 0.3s;
 }
@@ -4680,7 +4702,7 @@ view, text, image, input, textarea, scroll-view {
 
 @media screen and (min-width: 768px) {
   .modern-health-page {
-    max-width: 750px;
+    max-width: 430px;
     margin: 0 auto;
   }
   .plan-detail-modal,
@@ -4698,7 +4720,7 @@ view, text, image, input, textarea, scroll-view {
 
 @media screen and (min-width: 1024px) {
   .modern-health-page {
-    max-width: 900px;
+    max-width: 430px;
     margin: 0 auto;
   }
 }

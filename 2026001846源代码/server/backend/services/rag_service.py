@@ -171,14 +171,35 @@ async def _aquery(question: str, mode: str = "hybrid") -> str:
             chunks = []
             async for chunk in result:
                 chunks.append(chunk)
-            return ''.join(chunks)
-        return str(result)
+            return _normalize_rag_result(''.join(chunks), question)
+        return _normalize_rag_result(result, question)
     except Exception as e:
         logger.error("LightRAG 查询失败: %s", e)
         return f"查询出错: {str(e)}"
 
 
 # ─── 对外接口（同步，供 Flask 路由调用） ───
+
+def _normalize_rag_result(result, question: str) -> str:
+    if result is None:
+        return _fallback_rag_answer(question)
+    text = str(result).strip()
+    if not text or text.lower() == "none":
+        return _fallback_rag_answer(question)
+    return text
+
+
+def _fallback_rag_answer(question: str) -> str:
+    q = question or "\u8bbe\u5907\u68c0\u4fee\u95ee\u9898"
+    return (
+        f"\u77e5\u8bc6\u5e93\u6682\u65f6\u6ca1\u6709\u76f4\u63a5\u547d\u4e2d\u201c{q}\u201d\u7684\u5b8c\u6574\u7b54\u6848\u3002"
+        "\u5efa\u8bae\u5148\u6309\u6807\u51c6\u68c0\u4fee\u6d41\u7a0b\u6392\u67e5\uff1a"
+        "1. \u65ad\u7535\u6216\u7184\u706b\u5e76\u505a\u597d\u5b89\u5168\u9632\u62a4\uff1b"
+        "2. \u6838\u5bf9\u8bbe\u5907\u578b\u53f7\u3001\u6545\u969c\u73b0\u8c61\u3001\u62a5\u8b66\u4fe1\u606f\u548c\u6700\u8fd1\u4e00\u6b21\u7ef4\u62a4\u8bb0\u5f55\uff1b"
+        "3. \u6309\u7535\u6e90/\u71c3\u6cb9\u6216\u4f9b\u80fd\u3001\u63a7\u5236\u4fe1\u53f7\u3001\u6267\u884c\u90e8\u4ef6\u3001\u673a\u68b0\u78e8\u635f\u7684\u987a\u5e8f\u9010\u9879\u68c0\u67e5\uff1b"
+        "4. \u62cd\u6444\u73b0\u573a\u7167\u7247\u5e76\u8bb0\u5f55\u68c0\u6d4b\u6570\u636e\uff0c\u4fbf\u4e8e\u540e\u7eed\u5165\u5e93\u590d\u76d8\u3002"
+    )
+
 
 def insert_text(text: str) -> bool:
     """插入单条知识文本"""

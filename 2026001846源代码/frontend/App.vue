@@ -32,7 +32,7 @@ export default {
 @import './static/global-zindex.css';
 
 page {
-  background-color: #F0FDFA;
+  background-color: #E5EAF1;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
   font-size: 28rpx;
   color: #1a1a1a;
@@ -42,7 +42,7 @@ page {
 }
 
 uni-page-wrapper {
-  background: #F0FDFA;
+  background: #E5EAF1;
   min-height: 100vh;
 }
 
@@ -53,7 +53,8 @@ uni-page-body {
   box-sizing: border-box;
 }
 
-view, text {
+view,
+text {
   box-sizing: border-box;
 }
 
@@ -78,7 +79,8 @@ button::after {
   display: none;
 }
 
-input, textarea {
+input,
+textarea {
   font-family: inherit;
   outline: none;
 }
@@ -111,22 +113,37 @@ input, textarea {
   }
 }
 
-@media screen and (min-width: 750px) {
+@media screen and (min-width: 768px) {
   page {
-    font-size: 32rpx;
+    font-size: 28rpx;
+    background:
+      radial-gradient(circle at 22% 18%, rgba(37, 99, 235, 0.12), transparent 28%),
+      linear-gradient(135deg, #E2E8F0 0%, #F8FAFC 48%, #DBEAFE 100%);
   }
-  
+
+  uni-page-wrapper {
+    background: transparent;
+    min-height: 100vh;
+    padding: 24px 0;
+    box-sizing: border-box;
+  }
+
   uni-page-body {
-    max-width: 750rpx;
+    max-width: 430px;
+    min-height: calc(100vh - 48px);
     margin: 0 auto;
-    box-shadow: 0 0 40rpx rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    border-radius: 34px;
+    box-shadow: 0 26px 72px rgba(15, 23, 42, 0.22);
+    background: #EEF3F8;
   }
 }
 
-@media screen and (orientation: landscape) {
+@media screen and (orientation: landscape) and (max-width: 767px) {
   uni-page-body {
     max-width: none;
     box-shadow: none;
+    border-radius: 0;
   }
 }
 </style>
