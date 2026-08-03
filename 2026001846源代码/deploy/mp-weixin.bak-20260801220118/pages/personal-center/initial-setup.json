@@ -1,0 +1,6 @@
+{
+  "navigationStyle": "custom",
+  "usingComponents": {
+    "optimized-navbar": "../../src/components/optimized-navbar/optimized-navbar"
+  }
+}

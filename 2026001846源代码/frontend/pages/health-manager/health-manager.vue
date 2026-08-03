@@ -59,7 +59,7 @@
           <view v-if="showAddModal" class="task-add-form">
             <input class="task-add-input" v-model="newTaskTitle" placeholder="任务名称，如：完成配电柜二级检修" />
             <input class="task-add-input" v-model="newTaskDescription" placeholder="故障描述 / 检修要求" />
-            <input class="task-add-input" v-model="newTaskAssignee" placeholder="负责人，如：李宗泽" />
+            <input class="task-add-input" v-model="newTaskAssignee" placeholder="负责人，如：聪明的一修" />
             <view class="task-add-actions">
               <view class="task-add-confirm tap-effect" @click="addTask">加入任务列表</view>
               <view class="task-add-cancel tap-effect" @click="showAddModal = false">取消</view>
@@ -816,7 +816,7 @@ export default {
       contacts: [
         {
           id: 1,
-          name: '李宗泽',
+          name: '聪明的一修',
           role: '电气检修',
           avatar: '泽',
           bg: '#eff6ff',
@@ -1326,7 +1326,7 @@ export default {
     getAssigneeName(task) {
       const name = task.assignee_name || task.assignee?.name || '';
       const nameMap = {
-        '张工': '李宗泽',
+        '张工': '聪明的一修',
         '李工': '李志勇',
         '王工': '唐忆罗',
         '赵工': '陈程'
@@ -1342,7 +1342,7 @@ export default {
     },
     getAssigneeAvatarBg(task) {
       const colors = {
-        '李宗泽': 'linear-gradient(135deg, #2563eb, #38bdf8)',
+        '聪明的一修': 'linear-gradient(135deg, #2563eb, #38bdf8)',
         '李志勇': 'linear-gradient(135deg, #0f766e, #34d399)',
         '唐忆罗': 'linear-gradient(135deg, #7c3aed, #c084fc)',
         '陈程': 'linear-gradient(135deg, #ea580c, #fbbf24)'
@@ -1364,11 +1364,11 @@ export default {
     },
     getFallbackTasks() {
       return [
-        { id: 1, title: 'ZK-320配电柜过热检修', equipment_name: '配电柜', equipment_model: 'ZK-320', fault_code: 'E-001', description: '配电柜运行温度异常升高，红外测温显示局部超过80℃', severity: 'high', status: 'pending', assignee_name: '李宗泽', assignee_avatar: '', created_at: '2026-06-10 09:30:00' },
+        { id: 1, title: 'ZK-320配电柜过热检修', equipment_name: '配电柜', equipment_model: 'ZK-320', fault_code: 'E-001', description: '配电柜运行温度异常升高，红外测温显示局部超过80℃', severity: 'high', status: 'pending', assignee_name: '聪明的一修', assignee_avatar: '', created_at: '2026-06-10 09:30:00' },
         { id: 2, title: 'CG-125发动机异响排查', equipment_name: '摩托车发动机总成', equipment_model: 'CG-125', fault_code: 'E-002', description: '发动机启动后气门区域有明显异响，热车后略有减轻', severity: 'medium', status: 'in_progress', assignee_name: '李志勇', assignee_avatar: '', created_at: '2026-06-10 08:15:00' },
         { id: 3, title: '火花塞定期检查', equipment_name: '点火线圈', equipment_model: 'DLI-001', fault_code: '', description: '按维护计划对火花塞进行定期检查与间隙调整', severity: 'low', status: 'pending', assignee_name: '唐忆罗', assignee_avatar: '', created_at: '2026-06-10 07:00:00' },
         { id: 4, title: '液压千斤顶漏油处理', equipment_name: '液压千斤顶', equipment_model: 'YZ-50T', fault_code: 'E-003', description: '千斤顶油封老化导致液压油渗漏', severity: 'medium', status: 'in_progress', assignee_name: '陈程', assignee_avatar: '', created_at: '2026-06-09 13:30:00' },
-        { id: 5, title: '发动机二级检修', equipment_name: '摩托车发动机总成', equipment_model: 'CG-125', fault_code: '', description: '按90天维护周期进行发动机二级检修', severity: 'low', status: 'completed', assignee_name: '李宗泽', assignee_avatar: '', created_at: '2026-06-08 08:00:00' }
+        { id: 5, title: '发动机二级检修', equipment_name: '摩托车发动机总成', equipment_model: 'CG-125', fault_code: '', description: '按90天维护周期进行发动机二级检修', severity: 'low', status: 'completed', assignee_name: '聪明的一修', assignee_avatar: '', created_at: '2026-06-08 08:00:00' }
       ];
     },
     addTask() {

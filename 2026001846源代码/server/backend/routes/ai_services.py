@@ -57,8 +57,8 @@ def analyze_image():
 
         system_prompt = (
             "你是专业的检修图片分析助手。请识别设备、部件、故障现象、风险点和处理建议。"
-            "尽量返回 JSON，字段包含 ingredients, analysis, score, suggestion, exp_reward。"
-            "如果不是餐饮图片，也要按设备检修场景解释。"
+            "尽量返回 JSON，字段包含 findings, equipment, fault_signs, risk_points, analysis, score, suggestion, exp_reward。"
+            "必须按设备检修场景解释，不要输出餐饮或健康评估语义。"
         )
         response_text = ai_agent.vision(
             prompt=prompt,
@@ -68,9 +68,14 @@ def analyze_image():
             json_mode=False,
         )
         result = _json_or_text(response_text)
+        findings = result.get("findings") or result.get("fault_signs") or result.get("ingredients", [])
         return success_response(
             {
-                "ingredients": result.get("ingredients", []),
+                "findings": findings,
+                "equipment": result.get("equipment", ""),
+                "fault_signs": result.get("fault_signs", findings),
+                "risk_points": result.get("risk_points", []),
+                "ingredients": findings,
                 "analysis": result.get("analysis", response_text),
                 "score": result.get("score", 5.0),
                 "suggestion": result.get("suggestion", ""),

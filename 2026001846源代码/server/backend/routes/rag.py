@@ -100,6 +100,7 @@ def rag_init():
     # 如果没指定路径，使用默认路径
     if not kb_path:
         candidates = [
+            os.path.join(os.path.dirname(__file__), '..', 'data', 'maintenance_knowledge_base.json'),
             os.path.join(os.path.dirname(__file__), '..', 'takeout-agent', 'data', 'knowledge_base.json'),
             os.path.join(os.path.dirname(__file__), '..', '..', 'map-agent', 'knowledge_base.json'),
         ]

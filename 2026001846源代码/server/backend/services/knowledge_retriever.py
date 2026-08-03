@@ -17,6 +17,7 @@ CONTEXT_STUFFING_THRESHOLD = 20
 def _find_kb_path() -> Optional[str]:
     """查找 knowledge_base.json 的路径"""
     candidates = [
+        os.path.join(os.path.dirname(__file__), '..', 'data', 'maintenance_knowledge_base.json'),
         os.path.join(os.path.dirname(__file__), '..', 'takeout-agent', 'data', 'knowledge_base.json'),
         os.path.join(os.path.dirname(__file__), '..', '..', 'map-agent', 'knowledge_base.json'),
     ]
@@ -93,6 +94,14 @@ def retrieve(query: str, kb_path: Optional[str] = None, top_k: int = 3) -> str:
         title = item.get('title', '').lower()
         keywords = [k.lower() for k in item.get('keywords', [])]
         content = ' '.join(item.get('content', [])).lower() if isinstance(item.get('content'), list) else str(item.get('content', '')).lower()
+        haystack = f"{title}\n{' '.join(keywords)}\n{content}"
+
+        if query_lower and query_lower in haystack:
+            score += 5
+
+        for keyword in keywords:
+            if keyword and keyword in query_lower:
+                score += 4
 
         # 标题匹配权重最高
         for word in query_lower.split():

@@ -23,7 +23,10 @@ const getBackendURL = (path = '') => {
 
 const DEFAULT_BACKEND_URLS = {
   tuantuan: getBackendURL(),
-  takeout: getBackendURL('/takeout')
+  takeout: getBackendURL('/takeout'),
+  yixiu: getBackendURL('/api/yixiu'),
+  maintenance: getBackendURL('/api/maintenance-tasks'),
+  repair: getBackendURL('/api/yixiu')
 }
 
 const normalizeBaseURL = (url) => {

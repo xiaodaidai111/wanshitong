@@ -65,6 +65,7 @@ def create_unified_app():
         ('routes.monitor', 'monitor_bp', '/api', 'monitor service'),
         ('routes.ai_services', 'ai_services_bp', '', 'ai services'),
         ('routes.takeaway_health', 'takeaway_health_bp', '', 'takeaway health service'),
+        ('routes.yixiu', 'yixiu_bp', '/api/yixiu', 'yixiu web orchestration service'),
         ('routes.maintenance_tasks', 'maintenance_tasks_bp', '/api/maintenance-tasks', 'maintenance tasks service'),
         ('routes.rag', 'rag_bp', '/api/rag', 'LightRAG knowledge graph service'),
     ]
@@ -76,7 +77,7 @@ def create_unified_app():
     def index():
         return jsonify(
             {
-                'name': '智学多智能体 - 设备检修知识检索与标准作业系统',
+                'name': '一修 - 基于多模态大模型技术的设备检修知识检索与作业系统',
                 'version': '1.0.0',
                 'services': {
                     'cook-agent': '/cook-agent - 智能问修服务',
@@ -89,6 +90,7 @@ def create_unified_app():
                     'openclaw': '/openclaw - 智能助手服务',
                     'speech': '/api/speech/transcribe - 语音识别服务',
                     'rag': '/api/rag - LightRAG 知识图谱检索服务',
+                    'yixiu': '/api/yixiu - 一修多智能体编排服务',
                 },
                 'status': 'running',
             }

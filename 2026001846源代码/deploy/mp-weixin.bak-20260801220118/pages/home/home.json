@@ -1,0 +1,6 @@
+{
+  "navigationStyle": "custom",
+  "usingComponents": {
+    "skeleton-screen": "../../src/components/SkeletonScreen"
+  }
+}

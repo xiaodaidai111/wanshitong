@@ -1,7 +1,7 @@
 {
-    "name" : "智学多智能体",
+    "name" : "一修",
     "appid" : "__UNI__C8D11F1",
-    "description" : "智学多智能体 - 设备检修知识检索与标准作业系统",
+    "description" : "一修 - 基于多模态大模型技术的设备检修知识检索与作业系统",
     "versionName" : "1.0.1",
     "versionCode" : 101,
     "transformPx" : true,

@@ -7,6 +7,30 @@
       }
     },
     {
+      "path": "pages/repair-search/repair-search",
+      "style": {
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/repair-tasks/repair-tasks",
+      "style": {
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/knowledge-base/knowledge-base",
+      "style": {
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/yixiu-profile/yixiu-profile",
+      "style": {
+        "navigationStyle": "custom"
+      }
+    },
+    {
       "path": "pages/takeaway-expert/takeaway-expert",
       "style": {
         "navigationStyle": "custom"
@@ -149,25 +173,25 @@
         "selectedIconPath": "static/tabbar-icons/home-selected.png"
       },
       {
-        "pagePath": "pages/takeaway-expert/takeaway-expert",
+        "pagePath": "pages/repair-search/repair-search",
         "text": "检索",
         "iconPath": "static/tabbar-icons/expert.png",
         "selectedIconPath": "static/tabbar-icons/expert-selected.png"
       },
       {
-        "pagePath": "pages/health-manager/health-manager",
+        "pagePath": "pages/repair-tasks/repair-tasks",
         "text": "任务",
         "iconPath": "static/tabbar-icons/helath.png",
         "selectedIconPath": "static/tabbar-icons/helath-selected.png"
       },
       {
-        "pagePath": "pages/restaurant-recommendation/restaurant-recommendation",
+        "pagePath": "pages/knowledge-base/knowledge-base",
         "text": "知识",
         "iconPath": "static/tabbar-icons/star.png",
         "selectedIconPath": "static/tabbar-icons/star-selected.png"
       },
       {
-        "pagePath": "pages/personal-center/personal-center",
+        "pagePath": "pages/yixiu-profile/yixiu-profile",
         "text": "我的",
         "iconPath": "static/tabbar-icons/user.png",
         "selectedIconPath": "static/tabbar-icons/user-selected.png"
