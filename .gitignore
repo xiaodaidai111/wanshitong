@@ -22,3 +22,7 @@ dist/
 
 # Temp
 tmp/
+*.log
+*.db-shm
+*.db-wal
+2026001846源代码/server/backend/data/yixiu_web.db
