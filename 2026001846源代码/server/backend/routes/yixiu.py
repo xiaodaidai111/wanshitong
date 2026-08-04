@@ -1,386 +1,603 @@
-import logging
+"""一修网页版业务编排接口。
+
+提供多模态检索、标准作业、知识沉淀和人工审核所需的稳定接口。
+所有新增业务数据使用 SQLite 持久化，上传文件保存到本机 uploads/yixiu 目录。
+"""
+
+from __future__ import annotations
+
+import base64
 import json
+import logging
+import mimetypes
 import os
+import sqlite3
+import uuid
 from datetime import datetime
+from pathlib import Path
 
-from flask import Blueprint, request
+from flask import Blueprint, current_app, request, send_file
+from werkzeug.utils import secure_filename
 
-from utils import success_response
+from utils import error_response, success_response
 
 logger = logging.getLogger(__name__)
-yixiu_bp = Blueprint('yixiu', __name__)
+yixiu_bp = Blueprint("yixiu", __name__)
 
+BACKEND_DIR = Path(__file__).resolve().parent.parent
+DATA_DIR = BACKEND_DIR / "data"
+DB_PATH = DATA_DIR / "yixiu_web.db"
+KNOWLEDGE_PATH = DATA_DIR / "maintenance_knowledge_base.json"
 
 AGENTS = [
-    {
-        'id': 'retrieval',
-        'name': '检索智能体',
-        'role': '多模态资料召回',
-        'duty': '解析故障描述、现场图片和设备型号，召回维修手册、相似案例和标准作业流程。',
-        'status': 'online',
-    },
-    {
-        'id': 'procedure',
-        'name': '作业智能体',
-        'role': '标准作业编排',
-        'duty': '将检索结果转成安全确认、检测、维修、复测和报告提交步骤。',
-        'status': 'online',
-    },
-    {
-        'id': 'knowledge',
-        'name': '知识智能体',
-        'role': '知识沉淀与图谱维护',
-        'duty': '审核现场案例，提取故障、部件、工具、风险和处置关系。',
-        'status': 'online',
-    },
-    {
-        'id': 'collaboration',
-        'name': '协作智能体',
-        'role': '现场协同',
-        'duty': '连接负责人、专家和验收人员，支撑任务沟通与现场支援。',
-        'status': 'online',
-    },
-    {
-        'id': 'audit',
-        'name': '核查智能体',
-        'role': '结果复核',
-        'duty': '检查引用依据、作业合规、安全风险遗漏和报告完整性。',
-        'status': 'online',
-    },
+    {"id": "retrieval", "name": "观微", "role": "多模态检索智能体", "duty": "联合分析文字、现场图片、设备型号并召回手册、案例与作业流程。", "status": "online"},
+    {"id": "procedure", "name": "执矩", "role": "标准作业智能体", "duty": "按设备类型和检修等级编排安全确认、检测、维修、复测与归档步骤。", "status": "online"},
+    {"id": "knowledge", "name": "博闻", "role": "知识沉淀智能体", "duty": "整理一线案例，提取故障、部件、工具、风险和处置关系并进入审核。", "status": "online"},
+    {"id": "collaboration", "name": "和鸣", "role": "现场协作智能体", "duty": "连接负责人、专家与复检人员，支撑任务沟通和现场协作。", "status": "online"},
+    {"id": "audit", "name": "明鉴", "role": "质量核查智能体", "duty": "核验引用依据、作业合规、安全风险和报告完整性。", "status": "online"},
 ]
-
 
 MODULES = [
-    {
-        'key': 'multimodal_search',
-        'title': '多模态知识检索',
-        'desc': '支持文本、图片、语音和设备型号联合检索。',
-        'agent': '检索智能体',
-    },
-    {
-        'key': 'standard_work',
-        'title': '标准作业闭环',
-        'desc': '覆盖任务创建、SOP 步骤、状态流转、复测验收和报告提交。',
-        'agent': '作业智能体',
-    },
-    {
-        'key': 'knowledge_graph',
-        'title': '知识图谱沉淀',
-        'desc': '沉淀手册条款、故障案例、设备部件和检修经验。',
-        'agent': '知识智能体',
-    },
-    {
-        'key': 'quality_audit',
-        'title': '安全与质量核查',
-        'desc': '复核检索依据、风险提醒、操作顺序和报告字段。',
-        'agent': '核查智能体',
-    },
+    {"key": "multimodal_search", "title": "多模态知识检索", "desc": "支持文本、故障图片、维修文档和设备型号联合检索。", "agent": "观微"},
+    {"key": "standard_work", "title": "标准作业闭环", "desc": "覆盖任务创建、逐步作业、合规确认、复检和报告归档。", "agent": "执矩"},
+    {"key": "knowledge_graph", "title": "知识沉淀与更新", "desc": "支持案例上传、人工修正、审核入库与知识图谱更新。", "agent": "博闻"},
+    {"key": "quality_audit", "title": "安全与质量核查", "desc": "复核引用、风险提醒、操作顺序、数据记录和报告字段。", "agent": "明鉴"},
+]
+
+CONTACTS = [
+    {"id": 1, "name": "聪明的一修", "position": "检修工程师", "department": "动力设备检修一组", "specialty": "发动机 / 电气", "phone": "138-0000-1024", "status": "在线", "currentTask": "ZK-320 过热检修", "devices": ["CG-125", "ZK-320"], "workload": 72},
+    {"id": 2, "name": "王铭", "position": "复检人员", "department": "质量复检组", "specialty": "复检评估", "phone": "138-0000-2048", "status": "在线", "currentTask": "点火系统复核", "devices": ["DLI-001"], "workload": 48},
+    {"id": 3, "name": "赵宁", "position": "安全负责人", "department": "安全管理部", "specialty": "高风险作业", "phone": "138-0000-4096", "status": "忙碌", "currentTask": "高风险作业确认", "devices": ["配电柜", "液压系统"], "workload": 83},
 ]
 
 
-def _demo_tasks(status=''):
+def _now() -> str:
+    return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+
+def _db() -> sqlite3.Connection:
+    DATA_DIR.mkdir(parents=True, exist_ok=True)
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    conn.execute("PRAGMA journal_mode=WAL")
+    conn.executescript(
+        """
+        CREATE TABLE IF NOT EXISTS yixiu_files (
+          id TEXT PRIMARY KEY, name TEXT NOT NULL, stored_name TEXT, mime TEXT,
+          type TEXT, category TEXT, folder TEXT, size INTEGER DEFAULT 0,
+          equipment TEXT, model TEXT, uploader TEXT, uploaded_at TEXT,
+          audit_status TEXT, parse_status TEXT, version TEXT DEFAULT 'v1.0',
+          purpose TEXT DEFAULT 'knowledge', analysis_json TEXT DEFAULT '{}'
+        );
+        CREATE TABLE IF NOT EXISTS yixiu_tasks (
+          id TEXT PRIMARY KEY, payload TEXT NOT NULL, status TEXT NOT NULL,
+          completed_steps TEXT DEFAULT '[]', created_at TEXT, updated_at TEXT
+        );
+        CREATE TABLE IF NOT EXISTS yixiu_knowledge (
+          id TEXT PRIMARY KEY, title TEXT NOT NULL, type TEXT, category TEXT,
+          equipment TEXT, model TEXT, summary TEXT, content TEXT, tags TEXT,
+          source TEXT, status TEXT, reviewer TEXT, correction TEXT,
+          created_at TEXT, updated_at TEXT
+        );
+        CREATE TABLE IF NOT EXISTS yixiu_contacts (
+          id TEXT PRIMARY KEY, account TEXT UNIQUE, name TEXT NOT NULL,
+          avatar TEXT, position TEXT, department TEXT, specialty TEXT,
+          phone TEXT, status TEXT DEFAULT '在线', devices TEXT DEFAULT '[]',
+          current_task TEXT, workload INTEGER DEFAULT 0,
+          employee_id TEXT, updated_at TEXT
+        );
+        CREATE TABLE IF NOT EXISTS yixiu_messages (
+          id TEXT PRIMARY KEY, conversation_id TEXT NOT NULL,
+          sender_id TEXT, sender_name TEXT, message_type TEXT DEFAULT 'text',
+          text TEXT, attachment_json TEXT DEFAULT '{}', card_json TEXT DEFAULT '{}',
+          created_at TEXT
+        );
+        CREATE INDEX IF NOT EXISTS idx_yixiu_messages_conversation
+          ON yixiu_messages(conversation_id, created_at);
+        """
+    )
+    return conn
+
+
+def _json(value, default):
+    try:
+        return json.loads(value) if value else default
+    except (TypeError, ValueError):
+        return default
+
+
+def _file_type(filename: str, mime: str = "") -> str:
+    ext = Path(filename).suffix.lower()
+    if mime.startswith("image/") or ext in {".png", ".jpg", ".jpeg", ".webp", ".bmp", ".gif"}:
+        return "图片"
+    if mime == "application/pdf" or ext == ".pdf":
+        return "PDF"
+    if ext in {".doc", ".docx", ".wps"}:
+        return "Word"
+    if ext in {".xls", ".xlsx", ".csv"}:
+        return "Excel"
+    if mime.startswith("video/") or ext in {".mp4", ".webm", ".mov"}:
+        return "视频"
+    if mime.startswith("text/") or ext in {".txt", ".md", ".log"}:
+        return "文本"
+    return "其他"
+
+
+def _file_dict(row) -> dict:
+    item = dict(row)
+    item["auditStatus"] = item.pop("audit_status")
+    item["parseStatus"] = item.pop("parse_status")
+    item["uploaded_at"] = item.get("uploaded_at", "")
+    item["sizeBytes"] = item.pop("size", 0)
+    size = item["sizeBytes"]
+    item["size"] = f"{size / 1024 / 1024:.1f} MB" if size >= 1024 * 1024 else f"{max(size / 1024, 0.1):.1f} KB"
+    item["analysis"] = _json(item.pop("analysis_json", "{}"), {})
+    item["url"] = f"/api/yixiu/files/{item['id']}/content"
+    return item
+
+
+def _demo_tasks(status: str = "") -> list[dict]:
     try:
         from routes.maintenance_tasks import _get_demo_tasks
-
         return _get_demo_tasks(status)
     except Exception as exc:  # noqa: BLE001
-        logger.warning('读取演示检修任务失败: %s', exc)
+        logger.warning("读取演示任务失败: %s", exc)
         return []
 
 
-def _demo_knowledge():
-    kb_path = os.path.abspath(
-        os.path.join(os.path.dirname(__file__), '..', 'data', 'maintenance_knowledge_base.json')
-    )
-    if os.path.exists(kb_path):
+def _base_knowledge() -> list[dict]:
+    if KNOWLEDGE_PATH.exists():
         try:
-            with open(kb_path, 'r', encoding='utf-8') as file:
-                return json.load(file)
+            return json.loads(KNOWLEDGE_PATH.read_text(encoding="utf-8"))
         except Exception as exc:  # noqa: BLE001
-            logger.warning('读取一修设备检修知识库失败: %s', exc)
-
-    try:
-        from routes.maintenance_tasks import _get_demo_knowledge
-
-        return _get_demo_knowledge()
-    except Exception as exc:  # noqa: BLE001
-        logger.warning('读取演示知识库失败: %s', exc)
-        return []
+            logger.warning("读取基础知识库失败: %s", exc)
+    return []
 
 
-@yixiu_bp.route('/overview', methods=['GET'])
-def overview():
-    """一修网页版首页概览。"""
-    tasks = _demo_tasks('')
-    knowledge_items = _demo_knowledge()
-    high_risk = [task for task in tasks if task.get('severity') in ('high', 'critical')]
-    pending = [task for task in tasks if task.get('status') in ('pending', 'in_progress')]
-
-    return success_response(
-        {
-            'name': '一修',
-            'subtitle': '基于多模态大模型技术的设备检修知识检索与作业系统',
-            'updated_at': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-            'stats': {
-                'online_equipment': 128,
-                'pending_tasks': len(pending) or 8,
-                'high_risk_items': len(high_risk) or 3,
-                'knowledge_items': len(knowledge_items) or 156,
-            },
-            'agents': AGENTS,
-            'modules': MODULES,
-            'tasks': tasks[:4],
-            'knowledge': knowledge_items[:4],
-        },
-        '一修概览获取成功',
-    )
+def _stored_knowledge() -> list[dict]:
+    with _db() as conn:
+        rows = conn.execute("SELECT * FROM yixiu_knowledge ORDER BY created_at DESC").fetchall()
+    result = []
+    for row in rows:
+        item = dict(row)
+        item["tags"] = _json(item.get("tags"), [])
+        item["reviewable"] = True
+        result.append(item)
+    return result
 
 
-@yixiu_bp.route('/agents', methods=['GET'])
-def agents():
-    """多智能体分工。"""
-    return success_response({'agents': AGENTS}, '多智能体状态获取成功')
+def _task_payload(row) -> dict:
+    item = _json(row["payload"], {})
+    item.update({"id": row["id"], "status": row["status"], "completedSteps": _json(row["completed_steps"], [])})
+    return item
 
 
-@yixiu_bp.route('/tasks', methods=['GET'])
-def tasks():
-    """检修任务兼容查询入口。"""
-    status = request.args.get('status', '').strip()
-    items = _demo_tasks(status)
-    return success_response({'tasks': items, 'total': len(items)}, '检修任务获取成功')
+def _ensure_task_row(conn: sqlite3.Connection, task_id: str):
+    row = conn.execute("SELECT * FROM yixiu_tasks WHERE id=?", (task_id,)).fetchone()
+    if row:
+        return row
+    demo = next((item for item in _demo_tasks("") if str(item.get("id")) == str(task_id)), None)
+    if not demo:
+        return None
+    sop = demo.get("sop") or ["安全确认", "故障记录", "部件检测", "维修处置", "复测提交"]
+    demo = {**demo, "sop": sop}
+    conn.execute("INSERT INTO yixiu_tasks VALUES (?, ?, ?, ?, ?, ?)", (str(task_id), json.dumps(demo, ensure_ascii=False), demo.get("status", "pending"), "[]", demo.get("created_at", _now()), _now()))
+    return conn.execute("SELECT * FROM yixiu_tasks WHERE id=?", (str(task_id),)).fetchone()
 
 
-@yixiu_bp.route('/knowledge', methods=['GET'])
-def knowledge():
-    """检修知识库兼容查询入口。"""
-    keyword = request.args.get('keyword', '').strip()
-    items = _demo_knowledge()
-    if keyword:
-        items = [
-            item for item in items
-            if keyword in item.get('title', '') or keyword in item.get('fault_type', '') or keyword in item.get('source', '')
-        ]
-    return success_response({'items': items, 'total': len(items)}, '检修知识获取成功')
-
-
-@yixiu_bp.route('/search', methods=['POST'])
-def search():
-    """A1 演示用多模态检索编排入口。"""
-    data = request.get_json(silent=True) or {}
-    query = str(data.get('query') or data.get('question') or data.get('description') or '').strip()
-    device_model = str(data.get('device_model') or data.get('deviceModel') or 'CG-125').strip()
-    has_image = bool(data.get('image_url') or data.get('image_base64'))
-
-    if not query:
-        query = '发动机启动后异响并伴随怠速不稳'
-
-    return success_response(
-        {
-            'query': query,
-            'device_model': device_model,
-            'modalities': ['text'] + (['image'] if has_image else []),
-            'match_score': 92 if has_image else 88,
-            'matched_manuals': [
-                {
-                    'title': '摩托车发动机维修手册',
-                    'chapter': '点火系统与气门机构检查',
-                    'confidence': '高',
-                },
-                {
-                    'title': 'CG-125 标准检修流程',
-                    'chapter': '异响与怠速不稳联合排查',
-                    'confidence': '中高',
-                },
-            ],
-            'similar_cases': [
-                {
-                    'title': 'CG-125 热车后气门区异响',
-                    'similarity': '91%',
-                    'solution': '复核气门间隙，检查正时链条张紧器。',
-                },
-                {
-                    'title': '点火线圈接触不良导致怠速波动',
-                    'similarity': '84%',
-                    'solution': '检查高压包插接件和火花塞间隙。',
-                },
-            ],
-            'recommended_sop': [
-                '安全确认并断电停机',
-                '记录故障声音、转速和温度',
-                '检查火花塞间隙与点火线圈连接',
-                '复核气门间隙和正时链条张紧状态',
-                '复测怠速稳定性并提交检修报告',
-            ],
-            'audit': {
-                'risk_level': 'medium',
-                'must_check': ['防烫伤', '防误启动', '复测记录', '照片证据'],
-                'auditor': '核查智能体',
-            },
-        },
-        '多模态检索编排完成',
-    )
-
-
-@yixiu_bp.route('/audit', methods=['POST'])
-def audit():
-    """检修结果核查入口。"""
-    data = request.get_json(silent=True) or {}
-    checklist = [
-        {'item': '是否引用手册或知识库依据', 'passed': bool(data.get('references', True))},
-        {'item': '是否完成安全确认与断电验电', 'passed': bool(data.get('safety_checked', True))},
-        {'item': '是否记录故障现象和检测数据', 'passed': bool(data.get('measurements', True))},
-        {'item': '是否完成复测确认', 'passed': bool(data.get('retested', True))},
-        {'item': '是否提交现场照片或报告', 'passed': bool(data.get('report_ready', True))},
+def _sop_for(category: str, level: str, fault: str) -> tuple[list[dict], list[str]]:
+    category = category or "通用设备"
+    level = level or "二级检修"
+    fault = fault or "故障"
+    steps = [
+        {"title": "作业许可与安全隔离", "detail": f"确认{category}{level}作业票，执行停机、断电、验电和挂牌。", "required": True, "evidence": "安全确认"},
+        {"title": "故障现象记录", "detail": f"记录{fault}出现条件、报警、温度、声音及现场图片，禁止带故障盲目拆机。", "required": True, "evidence": "数据或图片"},
+        {"title": "按依据逐项检测", "detail": "按照召回手册和相似案例测量关键参数，先确认原因再更换部件。", "required": True, "evidence": "检测值"},
+        {"title": "维修处置与过程复核", "detail": "执行紧固、清洁、调整或更换，记录工具、部件及关键扭矩。", "required": True, "evidence": "过程记录"},
+        {"title": "复测验收", "detail": "恢复防护后试运行，对照标准复测并确认故障消除。", "required": True, "evidence": "复测结果"},
+        {"title": "报告与知识沉淀", "detail": "提交检修报告、引用依据和证据；有效经验进入知识审核队列。", "required": True, "evidence": "检修报告"},
     ]
-    passed = all(item['passed'] for item in checklist)
-    return success_response(
-        {
-            'passed': passed,
-            'score': 96 if passed else 78,
-            'checklist': checklist,
-            'suggestion': '可归档为标准案例' if passed else '请补齐未通过项后再提交验收',
-        },
-        '核查完成',
-    )
-
-YIXIU_FILES = [
-    {
-        'id': 'file-001',
-        'name': '摩托车发动机维修手册.pdf',
-        'type': 'PDF',
-        'category': '维修手册',
-        'folder': '发动机资料',
-        'size': '18.2 MB',
-        'equipment': '摩托车发动机总成',
-        'model': 'CG-125',
-        'uploader': '李宗泽',
-        'uploaded_at': '2026-07-28 10:12',
-        'updated_at': '2026-07-30 11:30',
-        'auditStatus': '已通过',
-        'parseStatus': '解析成功',
-        'version': 'v1.2',
-        'knowledgeLinks': 8,
-        'downloads': 36,
-        'url': '/static/manuals/摩托车发动机维修手册.pdf',
-        'favorite': True,
-    },
-    {
-        'id': 'file-002',
-        'name': 'ZK-320 配电柜过热 SOP.docx',
-        'type': 'Word',
-        'category': '标准作业流程',
-        'folder': '电气系统',
-        'size': '864 KB',
-        'equipment': '配电柜',
-        'model': 'ZK-320',
-        'uploader': '唐忆哲',
-        'uploaded_at': '2026-07-25 16:40',
-        'updated_at': '2026-07-25 16:40',
-        'auditStatus': '审核中',
-        'parseStatus': '解析中',
-        'version': 'v1.0',
-        'knowledgeLinks': 3,
-        'downloads': 12,
-        'url': '',
-        'favorite': False,
-    },
-]
-
-YIXIU_CONTACTS = [
-    {'id': 1, 'name': '李宗泽', 'avatar': '/static/avatar-1.png', 'position': '检修工程师', 'department': '动力设备检修一组', 'specialty': '发动机/电气', 'phone': '138-0000-1024', 'status': '在线', 'currentTask': 'ZK-320 过热检修', 'devices': ['CG-125', 'ZK-320'], 'workload': 72},
-    {'id': 2, 'name': '唐忆哲', 'avatar': '/static/avatar-2.png', 'position': '复检人员', 'department': '质量复检组', 'specialty': '复检评估', 'phone': '138-0000-2048', 'status': '在线', 'currentTask': '火花塞定检复核', 'devices': ['DLI-001'], 'workload': 48},
-    {'id': 3, 'name': '赵宁', 'avatar': '/static/avatar-3.png', 'position': '安全负责人', 'department': '安全管理部', 'specialty': '高风险作业', 'phone': '138-0000-4096', 'status': '忙碌', 'currentTask': '高风险作业确认', 'devices': ['配电柜', '液压系统'], 'workload': 83},
-]
+    safety = ["必须执行停机断电和挂牌上锁", "拆卸前确认温度、压力和残余能量", "检测结果异常时禁止直接恢复运行"]
+    return steps, safety
 
 
-@yixiu_bp.route('/files', methods=['GET'])
-def files():
-    keyword = request.args.get('keyword', '').strip()
-    files_list = YIXIU_FILES
-    if keyword:
-        files_list = [item for item in files_list if keyword in item.get('name', '') or keyword in item.get('equipment', '')]
-    return success_response({'files': files_list, 'total': len(files_list)}, '文件列表获取成功')
-
-
-@yixiu_bp.route('/files', methods=['POST'])
-def create_file_record():
-    data = request.get_json(silent=True) or {}
-    now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-    file_record = {
-        'id': f"file-{int(datetime.now().timestamp())}",
-        'name': data.get('name', '未命名检修资料'),
-        'type': data.get('type', '其他'),
-        'category': data.get('category', '其他技术资料'),
-        'folder': data.get('folder', '未分类'),
-        'size': data.get('size', '0 KB'),
-        'equipment': data.get('equipment', ''),
-        'model': data.get('model', ''),
-        'uploader': data.get('uploader', '当前用户'),
-        'uploaded_at': now,
-        'updated_at': now,
-        'auditStatus': '待审核',
-        'parseStatus': '等待解析',
-        'version': data.get('version', 'v1.0'),
-        'knowledgeLinks': 0,
-        'downloads': 0,
-        'url': data.get('url', ''),
-        'favorite': False,
+def _fallback_image_analysis(filename: str) -> dict:
+    return {
+        "equipment": "待结合设备型号确认",
+        "fault_signs": ["已接收现场图片", "需结合故障描述确认异常部位"],
+        "risk_points": ["仅凭图片不能直接判定部件失效", "维修前必须完成安全隔离"],
+        "analysis": f"图片 {filename} 已纳入跨模态检索，将与设备型号、故障现象和手册条目联合匹配。",
+        "suggestion": "补充拍摄设备铭牌、异常部位全景和细节图，可提高检索准确度。",
+        "provider": "local-fallback",
     }
-    YIXIU_FILES.insert(0, file_record)
-    return success_response(file_record, '文件记录已保存')
 
 
-@yixiu_bp.route('/contacts', methods=['GET'])
-def contacts():
-    return success_response({'contacts': YIXIU_CONTACTS, 'total': len(YIXIU_CONTACTS)}, '联系人获取成功')
+def _analyze_image(path: Path, mime: str) -> dict:
+    fallback = _fallback_image_analysis(path.name)
+    try:
+        from services.ai_gateway import ai_agent
+        status = ai_agent.status()
+        if not status.get("configured"):
+            return fallback
+        encoded = base64.b64encode(path.read_bytes()).decode("ascii")
+        text = ai_agent.vision(
+            prompt="识别设备、异常部位、故障迹象和安全风险，给出简洁 JSON。",
+            image_base64=f"data:{mime};base64,{encoded}",
+            system_prompt="你是设备检修视觉分析助手。只根据可见证据描述，不确定内容必须标注待确认。",
+        )
+        parsed = ai_agent.parse_json(text)
+        return parsed or {**fallback, "analysis": text, "provider": status.get("provider", "ai")}
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("视觉模型不可用，使用本地回退: %s", exc)
+        return fallback
 
 
-@yixiu_bp.route('/tasks', methods=['POST'])
-def create_task():
+@yixiu_bp.get("/overview")
+def overview():
+    tasks = _demo_tasks("")
+    with _db() as conn:
+        stored_tasks = [_task_payload(row) for row in conn.execute("SELECT * FROM yixiu_tasks ORDER BY created_at DESC").fetchall()]
+        file_count = conn.execute("SELECT COUNT(*) FROM yixiu_files").fetchone()[0]
+    tasks = stored_tasks + tasks
+    knowledge = _stored_knowledge() + _base_knowledge()
+    pending = [item for item in tasks if item.get("status") in {"pending", "in_progress"}]
+    high = [item for item in tasks if item.get("severity") in {"high", "critical"}]
+    return success_response({
+        "name": "一修", "subtitle": "设备检修知识检索与标准作业系统", "updated_at": _now(),
+        "stats": {"online_equipment": 128, "pending_tasks": len(pending), "high_risk_items": len(high), "knowledge_items": len(knowledge), "files": file_count},
+        "agents": AGENTS, "modules": MODULES, "tasks": tasks[:8], "knowledge": knowledge[:8],
+    }, "一修概览获取成功")
+
+
+@yixiu_bp.get("/agents")
+def agents():
+    return success_response({"agents": AGENTS}, "智能体状态获取成功")
+
+
+@yixiu_bp.route("/tasks", methods=["GET", "POST"])
+def tasks():
+    if request.method == "GET":
+        status = request.args.get("status", "").strip()
+        with _db() as conn:
+            stored = [_task_payload(row) for row in conn.execute("SELECT * FROM yixiu_tasks ORDER BY created_at DESC").fetchall()]
+        items = stored + _demo_tasks(status)
+        if status:
+            items = [item for item in items if item.get("status") == status]
+        return success_response({"tasks": items, "total": len(items)}, "检修任务获取成功")
+
     data = request.get_json(silent=True) or {}
+    task_id = f"task-{uuid.uuid4().hex[:10]}"
+    category = data.get("category") or data.get("equipment_category") or "通用设备"
+    level = data.get("maintenanceLevel") or data.get("maintenance_level") or "二级检修"
+    fault = data.get("faultType") or data.get("fault_type") or data.get("description") or "待确认故障"
+    generated_sop, safety = _sop_for(category, level, fault)
     task = {
-        'id': int(datetime.now().timestamp()),
-        'workOrderNo': data.get('workOrderNo') or f"YX-{datetime.now().strftime('%Y%m%d-%H%M%S')}",
-        'title': data.get('title') or f"{data.get('equipment_name', data.get('deviceName', '设备'))}检修任务",
-        'equipment_name': data.get('equipment_name') or data.get('deviceName') or '未登记设备',
-        'equipment_no': data.get('equipment_no') or '',
-        'equipment_model': data.get('equipment_model') or data.get('deviceModel') or '',
-        'fault_type': data.get('fault_type') or data.get('faultType') or '',
-        'description': data.get('description') or '',
-        'severity': data.get('severity') or 'medium',
-        'status': 'pending',
-        'assignee_name': data.get('assignee_name') or '未分配',
-        'current_step': '待接收',
-        'progress': 0,
-        'due_at': data.get('due_at') or '',
-        'created_at': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-        'sop': data.get('sop') or [],
-        'tools': data.get('tools') or [],
-        'parts': data.get('parts') or [],
-        'safety': data.get('safety') or [],
+        "id": task_id, "workOrderNo": data.get("workOrderNo") or f"YX-{datetime.now():%Y%m%d-%H%M%S}",
+        "title": data.get("title") or f"{data.get('deviceName') or data.get('equipment_name') or '设备'}检修任务",
+        "equipment_name": data.get("equipment_name") or data.get("deviceName") or "待登记设备",
+        "equipment_no": data.get("equipment_no", ""), "equipment_model": data.get("equipment_model") or data.get("deviceModel") or "",
+        "category": category, "maintenanceLevel": level, "fault_type": fault, "description": data.get("description", ""),
+        "severity": data.get("severity", "medium"), "assignee_name": data.get("assignee_name", "待分配"),
+        "current_step": "作业许可与安全隔离", "progress": 0, "due_at": data.get("due_at", ""), "created_at": _now(),
+        "sop": data.get("sopDetails") or generated_sop, "tools": data.get("tools", []), "parts": data.get("parts", []),
+        "safety": data.get("safety") or safety, "references": data.get("references", []),
     }
-    return success_response(task, '检修任务创建成功')
+    with _db() as conn:
+        conn.execute("INSERT INTO yixiu_tasks VALUES (?, ?, ?, ?, ?, ?)", (task_id, json.dumps(task, ensure_ascii=False), "pending", "[]", _now(), _now()))
+    task.update({"status": "pending", "completedSteps": []})
+    return success_response(task, "检修任务创建成功")
 
 
-@yixiu_bp.route('/tasks/<task_id>/status', methods=['PUT'])
-def change_task_status(task_id):
+@yixiu_bp.put("/tasks/<task_id>/status")
+def change_task_status(task_id: str):
     data = request.get_json(silent=True) or {}
-    status = data.get('status', 'pending')
-    if status not in ('pending', 'in_progress', 'review', 'completed', 'paused', 'rejected', 'overdue'):
-        status = 'pending'
-    return success_response({'task_id': task_id, 'status': status, 'operator': data.get('operator', '当前用户'), 'operated_at': datetime.now().strftime('%Y-%m-%d %H:%M:%S'), 'note': data.get('note', '')}, '任务状态已更新')
+    status = data.get("status", "pending")
+    allowed = {"pending", "in_progress", "review", "completed", "paused", "rejected", "overdue"}
+    if status not in allowed:
+        return error_response(400, "无效的任务状态")
+    with _db() as conn:
+        if not _ensure_task_row(conn, task_id):
+            return error_response(404, "任务不存在")
+        conn.execute("UPDATE yixiu_tasks SET status=?, updated_at=? WHERE id=?", (status, _now(), task_id))
+    return success_response({"task_id": task_id, "status": status, "operator": data.get("operator", "当前用户"), "operated_at": _now(), "note": data.get("note", "")}, "任务状态已更新")
 
 
-@yixiu_bp.route('/recheck', methods=['POST'])
+@yixiu_bp.put("/tasks/<task_id>/steps/<int:step_index>")
+def complete_task_step(task_id: str, step_index: int):
+    data = request.get_json(silent=True) or {}
+    with _db() as conn:
+        row = _ensure_task_row(conn, task_id)
+        if not row:
+            return error_response(404, "任务不存在或不是本页面创建的任务")
+        task = _task_payload(row)
+        steps = task.get("sop", [])
+        if step_index < 0 or step_index >= len(steps):
+            return error_response(400, "作业步骤不存在")
+        completed = _json(row["completed_steps"], [])
+        if data.get("completed", True) and step_index not in completed:
+            completed.append(step_index)
+        elif not data.get("completed", True) and step_index in completed:
+            completed.remove(step_index)
+        completed.sort()
+        progress = round(len(completed) / max(len(steps), 1) * 100)
+        status = "review" if progress == 100 else "in_progress"
+        conn.execute("UPDATE yixiu_tasks SET completed_steps=?, status=?, updated_at=? WHERE id=?", (json.dumps(completed), status, _now(), task_id))
+    return success_response({"task_id": task_id, "completedSteps": completed, "progress": progress, "status": status, "evidence": data.get("evidence", "")}, "作业步骤已记录")
+
+
+@yixiu_bp.post("/recheck")
 def save_recheck():
     data = request.get_json(silent=True) or {}
-    result = data.get('result', '通过')
-    next_status = 'completed' if result == '通过' else 'in_progress'
-    return success_response({'task_id': data.get('task_id'), 'result': result, 'next_status': next_status, 'comment': data.get('comment', ''), 'reviewer': data.get('reviewer', '复检人员'), 'reviewed_at': datetime.now().strftime('%Y-%m-%d %H:%M:%S')}, '复检结果已保存')
+    passed = data.get("result", "通过") == "通过"
+    status = "completed" if passed else "in_progress"
+    with _db() as conn:
+        conn.execute("UPDATE yixiu_tasks SET status=?, updated_at=? WHERE id=?", (status, _now(), str(data.get("task_id", ""))))
+    return success_response({"task_id": data.get("task_id"), "result": data.get("result", "通过"), "next_status": status, "comment": data.get("comment", ""), "reviewer": data.get("reviewer", "复检人员"), "reviewed_at": _now()}, "复检结果已保存")
 
 
-@yixiu_bp.route('/knowledge/update', methods=['POST'])
+@yixiu_bp.route("/files", methods=["GET", "POST"])
+def files():
+    if request.method == "GET":
+        keyword = request.args.get("keyword", "").strip()
+        with _db() as conn:
+            rows = conn.execute("SELECT * FROM yixiu_files ORDER BY uploaded_at DESC").fetchall()
+        items = [_file_dict(row) for row in rows]
+        if keyword:
+            items = [item for item in items if keyword in item["name"] or keyword in (item.get("equipment") or "")]
+        return success_response({"files": items, "total": len(items)}, "文件列表获取成功")
+
+    if "file" not in request.files:
+        return error_response(400, "请选择需要上传的文件")
+    upload = request.files["file"]
+    if not upload.filename:
+        return error_response(400, "文件名为空")
+    original_name = Path(upload.filename).name
+    ext = Path(original_name).suffix.lower()
+    allowed = {".png", ".jpg", ".jpeg", ".webp", ".bmp", ".gif", ".pdf", ".doc", ".docx", ".xls", ".xlsx", ".csv", ".txt", ".md", ".mp4", ".webm"}
+    if ext not in allowed:
+        return error_response(400, "不支持的文件类型")
+    file_id = f"file-{uuid.uuid4().hex[:12]}"
+    stored_name = f"{file_id}{ext}"
+    upload_dir = Path(current_app.config["UPLOAD_FOLDER"]) / "yixiu"
+    upload_dir.mkdir(parents=True, exist_ok=True)
+    path = upload_dir / secure_filename(stored_name)
+    upload.save(path)
+    mime = upload.mimetype or mimetypes.guess_type(original_name)[0] or "application/octet-stream"
+    kind = _file_type(original_name, mime)
+    analysis = _analyze_image(path, mime) if kind == "图片" else {"summary": "文件已保存，等待知识解析与人工审核。"}
+    form = request.form
+    with _db() as conn:
+        conn.execute(
+            "INSERT INTO yixiu_files VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            (file_id, original_name, stored_name, mime, kind, form.get("category", "现场资料"), form.get("folder", "现场资料"), path.stat().st_size, form.get("equipment", ""), form.get("model", ""), form.get("uploader", "当前用户"), _now(), "待审核", "解析成功" if kind == "图片" else "等待解析", form.get("version", "v1.0"), form.get("purpose", "knowledge"), json.dumps(analysis, ensure_ascii=False)),
+        )
+        row = conn.execute("SELECT * FROM yixiu_files WHERE id=?", (file_id,)).fetchone()
+    return success_response(_file_dict(row), "文件上传成功")
+
+
+@yixiu_bp.get("/files/<file_id>/content")
+def file_content(file_id: str):
+    with _db() as conn:
+        row = conn.execute("SELECT * FROM yixiu_files WHERE id=?", (file_id,)).fetchone()
+    if not row:
+        return error_response(404, "文件不存在")
+    path = Path(current_app.config["UPLOAD_FOLDER"]) / "yixiu" / row["stored_name"]
+    if not path.exists():
+        return error_response(404, "文件内容不存在")
+    return send_file(path, mimetype=row["mime"], download_name=row["name"])
+
+
+@yixiu_bp.post("/search")
+def search():
+    data = request.get_json(silent=True) or {}
+    query = str(data.get("query") or data.get("description") or "").strip()
+    device = str(data.get("deviceName") or data.get("device_name") or "设备").strip()
+    model = str(data.get("deviceModel") or data.get("device_model") or "待确认型号").strip()
+    category = str(data.get("category") or "通用设备").strip()
+    fault = str(data.get("faultType") or data.get("fault_type") or "待确认故障").strip()
+    level = str(data.get("maintenanceLevel") or "二级检修").strip()
+    file_ids = data.get("fileIds") or []
+    attachments = []
+    if file_ids:
+        marks = ",".join("?" for _ in file_ids)
+        with _db() as conn:
+            rows = conn.execute(f"SELECT * FROM yixiu_files WHERE id IN ({marks})", tuple(file_ids)).fetchall()
+        attachments = [_file_dict(row) for row in rows]
+    images = [item for item in attachments if item["type"] == "图片"]
+    docs = [item for item in attachments if item["type"] != "图片"]
+    steps, safety = _sop_for(category, level, fault)
+    knowledge = _stored_knowledge() + _base_knowledge()
+    terms = [term for term in [query, device, model, fault] if term]
+    ranked = []
+    for index, item in enumerate(knowledge):
+        haystack = json.dumps(item, ensure_ascii=False)
+        score = sum(1 for term in terms if term.lower() in haystack.lower())
+        if score or index < 4:
+            ranked.append((score, item))
+    ranked.sort(key=lambda pair: pair[0], reverse=True)
+    matched = [item for _, item in ranked[:6]]
+    visual_findings = []
+    for image in images:
+        visual_findings.extend(image.get("analysis", {}).get("fault_signs", []))
+    confidence = min(96, 82 + (6 if images else 0) + (3 if docs else 0) + (3 if model != "待确认型号" else 0))
+    causes = [f"{fault}相关部件存在调整、磨损或连接异常", "运行参数或装配状态偏离手册要求", "需结合检测值排除供电、润滑或压力因素"]
+    return success_response({
+        "query": query, "device_name": device, "device_model": model, "category": category, "maintenance_level": level,
+        "modalities": ["text", "equipment_model"] + (["image"] if images else []) + (["document"] if docs else []),
+        "match_score": confidence, "phenomenon_summary": f"{device}（{model}）{fault}联合检索结果",
+        "risk": "high" if any(word in query for word in ["冒烟", "漏电", "起火", "严重", "高温"]) else "medium",
+        "stop_advice": "先完成安全隔离和数据记录，再按引用依据检修",
+        "causes": causes, "positions": ["故障关联部件", "连接与紧固位置", "供电/润滑/压力回路"],
+        "tools": ["万用表", "测温仪", "扭矩工具"], "visual_findings": visual_findings,
+        "attachments": attachments, "matched_manuals": matched,
+        "recommended_sop": steps, "safety": safety,
+        "audit": {"risk_level": "medium", "must_check": ["安全隔离", "引用依据", "检测数据", "复测记录", "现场证据"], "auditor": "明鉴"},
+    }, "多模态检索完成")
+
+
+@yixiu_bp.route("/knowledge", methods=["GET"])
+def knowledge():
+    keyword = request.args.get("keyword", "").strip()
+    items = _stored_knowledge() + _base_knowledge()
+    if keyword:
+        items = [item for item in items if keyword.lower() in json.dumps(item, ensure_ascii=False).lower()]
+    return success_response({"items": items, "total": len(items)}, "知识资料获取成功")
+
+
+@yixiu_bp.post("/knowledge/update")
 def update_knowledge():
     data = request.get_json(silent=True) or {}
-    item = {'id': f"kb-{int(datetime.now().timestamp())}", 'title': data.get('title', '未命名知识条目'), 'type': data.get('type', '技术资料'), 'category': data.get('category', '案例'), 'equipment': data.get('equipment', ''), 'model': data.get('model', ''), 'summary': data.get('summary', ''), 'tags': data.get('tags', []), 'status': 'pending', 'updated_at': datetime.now().strftime('%Y-%m-%d')}
-    return success_response(item, '知识条目已进入沉淀审核队列')
+    title = str(data.get("title", "")).strip()
+    summary = str(data.get("summary", "")).strip()
+    if not title or not summary:
+        return error_response(400, "知识标题和沉淀摘要不能为空")
+    item_id = f"kb-{uuid.uuid4().hex[:12]}"
+    tags = data.get("tags") or ["设备检修", "经验总结"]
+    content = data.get("content") or f"# {title}\n\n## 适用范围\n- 设备：{data.get('equipment') or '待补充'}\n- 型号：{data.get('model') or '通用'}\n\n## 故障现象与经验\n{summary}\n\n## 安全与复核\n提交内容须经人工审核，确认引用依据、适用范围和安全风险后方可入库。"
+    with _db() as conn:
+        conn.execute("INSERT INTO yixiu_knowledge VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", (item_id, title, data.get("type", "历史故障案例"), data.get("category", "案例"), data.get("equipment", ""), data.get("model", ""), summary, content, json.dumps(tags, ensure_ascii=False), data.get("source", "一线经验提交"), "pending", "", "", _now(), _now()))
+        row = conn.execute("SELECT * FROM yixiu_knowledge WHERE id=?", (item_id,)).fetchone()
+    item = dict(row)
+    item["tags"] = _json(item["tags"], [])
+    item["reviewable"] = True
+    return success_response(item, "知识条目已进入人工审核队列")
+
+
+@yixiu_bp.put("/knowledge/<item_id>/review")
+def review_knowledge(item_id: str):
+    data = request.get_json(silent=True) or {}
+    status = data.get("status", "approved")
+    if status not in {"approved", "rejected", "pending"}:
+        return error_response(400, "无效的审核状态")
+    correction = str(data.get("correction", "")).strip()
+    tags = data.get("tags")
+    with _db() as conn:
+        row = conn.execute("SELECT * FROM yixiu_knowledge WHERE id=?", (item_id,)).fetchone()
+        if not row:
+            return error_response(404, "知识条目不存在")
+        summary = correction or row["summary"]
+        tag_value = json.dumps(tags, ensure_ascii=False) if isinstance(tags, list) else row["tags"]
+        conn.execute("UPDATE yixiu_knowledge SET status=?, reviewer=?, correction=?, summary=?, tags=?, updated_at=? WHERE id=?", (status, data.get("reviewer", "当前审核人"), correction, summary, tag_value, _now(), item_id))
+    return success_response({"id": item_id, "status": status, "summary": summary, "tags": _json(tag_value, []), "reviewer": data.get("reviewer", "当前审核人"), "updated_at": _now(), "graph_synced": status == "approved"}, "审核结果已保存并同步知识状态")
+
+
+@yixiu_bp.post("/assistant/chat")
+def assistant_chat():
+    data = request.get_json(silent=True) or {}
+    message = str(data.get("message", "")).strip()
+    file_ids = data.get("fileIds") or []
+    if not message and not file_ids:
+        return error_response(400, "请输入问题或上传现场资料")
+    attachments = []
+    if file_ids:
+        marks = ",".join("?" for _ in file_ids)
+        with _db() as conn:
+            attachments = [_file_dict(row) for row in conn.execute(f"SELECT * FROM yixiu_files WHERE id IN ({marks})", tuple(file_ids)).fetchall()]
+    findings = []
+    risks = []
+    for item in attachments:
+        analysis = item.get("analysis") or {}
+        findings.extend(analysis.get("fault_signs") or analysis.get("findings") or [])
+        risks.extend(analysis.get("risk_points") or [])
+    context = f"已结合 {len(attachments)} 个附件进行分析。" if attachments else ""
+    evidence = f"图像线索：{'、'.join(dict.fromkeys(findings))}。" if findings else ""
+    risk_text = f"风险提示：{'、'.join(dict.fromkeys(risks))}。" if risks else ""
+    answer = f"{context}{evidence}{risk_text}建议先确认设备型号和安全状态，再依据故障现象检索手册与相似案例；检测结果异常时再进入拆检或更换步骤。"
+    return success_response({
+        "response": answer,
+        "modalities": ["text"] + (["image" if any(item.get("type") == "图片" for item in attachments) else "file"] if attachments else []),
+        "findings": findings, "risk_points": risks, "attachments": attachments,
+        "references": ["设备维修手册", "标准作业流程", "历史故障案例"], "agent": data.get("agent", "观微"),
+    }, "智能检修助手已完成多模态分析")
+
+
+@yixiu_bp.post("/audit")
+def audit():
+    data = request.get_json(silent=True) or {}
+    checks = [
+        ("引用手册或知识库依据", bool(data.get("references"))),
+        ("完成安全确认与断电验电", bool(data.get("safety_checked"))),
+        ("记录故障现象和检测数据", bool(data.get("measurements"))),
+        ("完成复测确认", bool(data.get("retested"))),
+        ("提交现场证据或报告", bool(data.get("report_ready"))),
+    ]
+    checklist = [{"item": item, "passed": passed} for item, passed in checks]
+    score = round(sum(1 for _, passed in checks if passed) / len(checks) * 100)
+    return success_response({"passed": score == 100, "score": score, "checklist": checklist, "suggestion": "可归档并提交知识沉淀" if score == 100 else "请补齐未通过项目后再提交验收"}, "核查完成")
+
+
+@yixiu_bp.get("/contacts")
+def contacts():
+    with _db() as conn:
+        rows = conn.execute("SELECT * FROM yixiu_contacts ORDER BY updated_at DESC").fetchall()
+    stored = []
+    for row in rows:
+        item = dict(row)
+        item["devices"] = _json(item.pop("devices", "[]"), [])
+        item["currentTask"] = item.pop("current_task", "")
+        item["employeeId"] = item.pop("employee_id", "")
+        stored.append(item)
+    merged = list(CONTACTS)
+    known = {str(item.get("id")) for item in merged}
+    merged.extend(item for item in stored if str(item.get("id")) not in known)
+    return success_response({"contacts": merged, "total": len(merged)}, "contacts loaded")
+
+
+@yixiu_bp.put("/contacts/<contact_id>")
+def upsert_contact(contact_id: str):
+    data = request.get_json(silent=True) or {}
+    name = str(data.get("name", "")).strip()
+    if not name:
+        return error_response("contact name is required", 400)
+    now = _now()
+    with _db() as conn:
+        conn.execute(
+            """INSERT INTO yixiu_contacts
+               (id, account, name, avatar, position, department, specialty, phone,
+                status, devices, current_task, workload, employee_id, updated_at)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+               ON CONFLICT(id) DO UPDATE SET account=excluded.account, name=excluded.name,
+               avatar=excluded.avatar, position=excluded.position, department=excluded.department,
+               specialty=excluded.specialty, phone=excluded.phone, status=excluded.status,
+               devices=excluded.devices, current_task=excluded.current_task,
+               workload=excluded.workload, employee_id=excluded.employee_id, updated_at=excluded.updated_at""",
+            (contact_id, data.get("account"), name, data.get("avatar", ""),
+             data.get("position", "maintenance worker"), data.get("department", "unassigned"),
+             data.get("specialty", "maintenance"), data.get("phone", ""), data.get("status", "online"),
+             json.dumps(data.get("devices", []), ensure_ascii=False), data.get("currentTask", ""),
+             int(data.get("workload", 0) or 0), data.get("employeeId", ""), now),
+        )
+    return success_response({**data, "id": contact_id, "updated_at": now}, "contact synchronized")
+
+
+@yixiu_bp.get("/conversations/<conversation_id>/messages")
+def conversation_messages(conversation_id: str):
+    with _db() as conn:
+        rows = conn.execute("SELECT * FROM yixiu_messages WHERE conversation_id=? ORDER BY created_at ASC LIMIT 500", (conversation_id,)).fetchall()
+    items = []
+    for row in rows:
+        item = dict(row)
+        item["attachment"] = _json(item.pop("attachment_json", "{}"), {})
+        item["card"] = _json(item.pop("card_json", "{}"), {})
+        items.append(item)
+    return success_response({"messages": items}, "messages loaded")
+
+
+@yixiu_bp.post("/conversations/<conversation_id>/messages")
+def create_conversation_message(conversation_id: str):
+    data = request.get_json(silent=True) or {}
+    if not str(data.get("text", "")).strip() and not data.get("attachment") and not data.get("card"):
+        return error_response("message content is required", 400)
+    message_id = str(data.get("id") or uuid.uuid4())
+    created_at = str(data.get("created_at") or _now())
+    with _db() as conn:
+        conn.execute(
+            """INSERT INTO yixiu_messages
+               (id, conversation_id, sender_id, sender_name, message_type, text,
+                attachment_json, card_json, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+            (message_id, conversation_id, data.get("sender_id"), data.get("sender_name"),
+             data.get("message_type", "text"), data.get("text", ""),
+             json.dumps(data.get("attachment") or {}, ensure_ascii=False),
+             json.dumps(data.get("card") or {}, ensure_ascii=False), created_at),
+        )
+    return success_response({**data, "id": message_id, "conversation_id": conversation_id, "created_at": created_at}, "message created")
