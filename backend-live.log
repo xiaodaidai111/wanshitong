@@ -1,0 +1,66 @@
+2026-08-04 11:14:19,673 - INFO - cook-agent service registered
+2026-08-04 11:14:19,731 - INFO - auth service registered
+2026-08-04 11:14:19,760 - INFO - user service registered
+2026-08-04 11:14:19,766 - INFO - community service registered
+2026-08-04 11:14:20,893 - INFO - chat service registered
+2026-08-04 11:14:20,897 - INFO - health record service registered
+2026-08-04 11:14:20,899 - INFO - restaurants service registered
+2026-08-04 11:14:20,901 - INFO - tuantuan service registered
+2026-08-04 11:14:20,902 - INFO - 统一视觉模型状态: {'provider': 'qwen', 'configured': False, 'base_url': 'https://dashscope.aliyuncs.com/compatible-mode/v1', 'chat_model': 'qwen-plus', 'vision_model': 'qwen-vl-plus', 'embedding_model': 'text-embedding-v4', 'image_model': 'qwen-image-2.0'}
+2026-08-04 11:14:20,905 - INFO - takeout service registered
+2026-08-04 11:14:20,907 - INFO - health manager service registered
+2026-08-04 11:14:20,910 - INFO - recipe recommendation service registered
+2026-08-04 11:14:20,917 - INFO - openclaw service registered
+2026-08-04 11:14:20,920 - INFO - speech asr service registered
+2026-08-04 11:14:20,921 - INFO - speech tts service registered
+2026-08-04 11:14:20,924 - INFO - monitor service registered
+2026-08-04 11:14:20,926 - INFO - ai services registered
+2026-08-04 11:14:20,929 - INFO - takeaway health service registered
+2026-08-04 11:14:20,955 - INFO - yixiu web orchestration service registered
+2026-08-04 11:14:20,957 - INFO - maintenance tasks service registered
+2026-08-04 11:14:20,959 - INFO - LightRAG knowledge graph service registered
+2026-08-04 11:14:20,960 - INFO - ============================================================
+2026-08-04 11:14:20,960 - INFO - 统一智能体服务启动中...
+2026-08-04 11:14:20,960 - INFO - 访问地址: http://localhost:5000
+2026-08-04 11:14:20,960 - INFO - ============================================================
+ * Serving Flask app 'unified_app'
+ * Debug mode: off
+2026-08-04 11:14:30,411 - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://198.18.0.1:5000
+2026-08-04 11:14:30,413 - INFO - [33mPress CTRL+C to quit[0m
+2026-08-04 11:14:41,341 - INFO - 127.0.0.1 - - [04/Aug/2026 11:14:41] "GET /api/system/health HTTP/1.1" 200 -
+2026-08-04 11:46:23,991 - INFO - 127.0.0.1 - - [04/Aug/2026 11:46:23] "OPTIONS /api/yixiu/overview HTTP/1.1" 200 -
+2026-08-04 11:46:23,992 - INFO - 127.0.0.1 - - [04/Aug/2026 11:46:23] "GET /api/system/health HTTP/1.1" 200 -
+2026-08-04 11:46:23,994 - INFO - 127.0.0.1 - - [04/Aug/2026 11:46:23] "OPTIONS /api/yixiu/tasks HTTP/1.1" 200 -
+2026-08-04 11:46:23,996 - INFO - 127.0.0.1 - - [04/Aug/2026 11:46:23] "OPTIONS /api/yixiu/knowledge HTTP/1.1" 200 -
+2026-08-04 11:46:24,001 - INFO - 127.0.0.1 - - [04/Aug/2026 11:46:24] "OPTIONS /api/yixiu/files HTTP/1.1" 200 -
+2026-08-04 11:46:24,004 - INFO - 127.0.0.1 - - [04/Aug/2026 11:46:24] "OPTIONS /api/yixiu/contacts HTTP/1.1" 200 -
+2026-08-04 11:46:24,011 - INFO - 127.0.0.1 - - [04/Aug/2026 11:46:24] "GET /api/yixiu/contacts HTTP/1.1" 200 -
+2026-08-04 11:46:24,153 - INFO - 127.0.0.1 - - [04/Aug/2026 11:46:24] "GET /api/yixiu/tasks HTTP/1.1" 200 -
+2026-08-04 11:46:24,162 - INFO - 127.0.0.1 - - [04/Aug/2026 11:46:24] "GET /api/yixiu/files HTTP/1.1" 200 -
+2026-08-04 11:46:24,174 - INFO - 127.0.0.1 - - [04/Aug/2026 11:46:24] "GET /api/yixiu/knowledge HTTP/1.1" 200 -
+2026-08-04 11:46:24,205 - INFO - 127.0.0.1 - - [04/Aug/2026 11:46:24] "GET /api/yixiu/overview HTTP/1.1" 200 -
+2026-08-04 11:55:26,561 - INFO - 127.0.0.1 - - [04/Aug/2026 11:55:26] "OPTIONS /api/yixiu/overview HTTP/1.1" 200 -
+2026-08-04 11:55:26,563 - INFO - 127.0.0.1 - - [04/Aug/2026 11:55:26] "OPTIONS /api/yixiu/tasks HTTP/1.1" 200 -
+2026-08-04 11:55:26,565 - INFO - 127.0.0.1 - - [04/Aug/2026 11:55:26] "OPTIONS /api/yixiu/knowledge HTTP/1.1" 200 -
+2026-08-04 11:55:26,566 - INFO - 127.0.0.1 - - [04/Aug/2026 11:55:26] "GET /api/system/health HTTP/1.1" 200 -
+2026-08-04 11:55:26,570 - INFO - 127.0.0.1 - - [04/Aug/2026 11:55:26] "OPTIONS /api/yixiu/files HTTP/1.1" 200 -
+2026-08-04 11:55:26,572 - INFO - 127.0.0.1 - - [04/Aug/2026 11:55:26] "OPTIONS /api/yixiu/contacts HTTP/1.1" 200 -
+2026-08-04 11:55:26,579 - INFO - 127.0.0.1 - - [04/Aug/2026 11:55:26] "GET /api/yixiu/contacts HTTP/1.1" 200 -
+2026-08-04 11:55:26,580 - INFO - 127.0.0.1 - - [04/Aug/2026 11:55:26] "GET /api/yixiu/tasks HTTP/1.1" 200 -
+2026-08-04 11:55:26,581 - INFO - 127.0.0.1 - - [04/Aug/2026 11:55:26] "GET /api/yixiu/files HTTP/1.1" 200 -
+2026-08-04 11:55:26,583 - INFO - 127.0.0.1 - - [04/Aug/2026 11:55:26] "GET /api/yixiu/knowledge HTTP/1.1" 200 -
+2026-08-04 11:55:26,584 - INFO - 127.0.0.1 - - [04/Aug/2026 11:55:26] "GET /api/yixiu/overview HTTP/1.1" 200 -
+2026-08-04 11:56:19,953 - INFO - 127.0.0.1 - - [04/Aug/2026 11:56:19] "OPTIONS /api/yixiu/overview HTTP/1.1" 200 -
+2026-08-04 11:56:19,955 - INFO - 127.0.0.1 - - [04/Aug/2026 11:56:19] "OPTIONS /api/yixiu/tasks HTTP/1.1" 200 -
+2026-08-04 11:56:19,957 - INFO - 127.0.0.1 - - [04/Aug/2026 11:56:19] "OPTIONS /api/yixiu/knowledge HTTP/1.1" 200 -
+2026-08-04 11:56:19,961 - INFO - 127.0.0.1 - - [04/Aug/2026 11:56:19] "GET /api/system/health HTTP/1.1" 200 -
+2026-08-04 11:56:19,964 - INFO - 127.0.0.1 - - [04/Aug/2026 11:56:19] "OPTIONS /api/yixiu/files HTTP/1.1" 200 -
+2026-08-04 11:56:19,973 - INFO - 127.0.0.1 - - [04/Aug/2026 11:56:19] "OPTIONS /api/yixiu/contacts HTTP/1.1" 200 -
+2026-08-04 11:56:19,982 - INFO - 127.0.0.1 - - [04/Aug/2026 11:56:19] "GET /api/yixiu/contacts HTTP/1.1" 200 -
+2026-08-04 11:56:19,983 - INFO - 127.0.0.1 - - [04/Aug/2026 11:56:19] "GET /api/yixiu/tasks HTTP/1.1" 200 -
+2026-08-04 11:56:19,989 - INFO - 127.0.0.1 - - [04/Aug/2026 11:56:19] "GET /api/yixiu/knowledge HTTP/1.1" 200 -
+2026-08-04 11:56:19,993 - INFO - 127.0.0.1 - - [04/Aug/2026 11:56:19] "GET /api/yixiu/overview HTTP/1.1" 200 -
+2026-08-04 11:56:19,996 - INFO - 127.0.0.1 - - [04/Aug/2026 11:56:19] "GET /api/yixiu/files HTTP/1.1" 200 -

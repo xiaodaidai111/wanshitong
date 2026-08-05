@@ -1,0 +1,75 @@
+
+> yixiu-web@0.0.0 dev
+> vite --host 127.0.0.1 --host 127.0.0.1
+
+
+  [32m[1mVITE[22m v5.4.21[39m  [2mready in [0m[1m681[22m[2m[0m ms[22m
+
+  [32m➜[39m  [1mLocal[22m:   [36mhttp://127.0.0.1:[1m5173[22m/[39m
+[2m11:05:32[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/App.vue[22m
+[2m11:08:03[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/App.vue[22m
+[2m11:13:24[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/App.vue[22m
+[2m11:54:55[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/App.vue[22m
+[2m11:55:26[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/App.vue[22m
+[2m11:56:19[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/App.vue[22m
+[2m11:57:44[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/App.vue?vue&type=style&index=0&scoped=f13b4d11&lang.css[22m
+[2m12:36:18[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/App.vue[22m
+[2m12:37:39[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/App.vue?vue&type=style&index=0&scoped=f13b4d11&lang.css[22m
+[2m12:46:18[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/App.vue[22m
+[2m12:47:32[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/App.vue?vue&type=style&index=0&scoped=f13b4d11&lang.css[22m
+[2m13:08:15[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/App.vue[22m
+[2m13:08:53[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/App.vue[22m
+[2m13:09:57[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/App.vue?vue&type=style&index=0&scoped=f13b4d11&lang.css[22m
+[2m13:17:09[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/App.vue[22m
+[2m13:28:06[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/App.vue[22m
+[2m13:28:30[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/App.vue[22m
+[2m13:29:15[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/App.vue?vue&type=style&index=0&scoped=f13b4d11&lang.css[22m
+[2m13:43:44[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/App.vue[22m
+[2m13:44:14[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/App.vue?vue&type=style&index=0&scoped=f13b4d11&lang.css[22m
+[2m13:45:06[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/App.vue?vue&type=style&index=0&scoped=f13b4d11&lang.css[22m
+[2m13:46:20[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/App.vue?vue&type=style&index=0&scoped=f13b4d11&lang.css[22m
+[2m13:48:21[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/App.vue[22m
+[2m14:08:46[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/App.vue[22m
+[2m14:09:13[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/App.vue[22m
+[2m14:09:41[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/App.vue[22m
+[2m14:10:10[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/App.vue[22m
+[2m14:10:55[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/App.vue[22m
+[2m14:11:17[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/App.vue[22m
+[2m14:11:35[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/App.vue[22m
+[2m14:12:10[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/App.vue[22m
+[2m14:12:36[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/App.vue[22m
+[2m14:13:52[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/App.vue?vue&type=style&index=0&scoped=f13b4d11&lang.css[22m
+[2m14:53:23[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/App.vue[22m
+[2m14:57:22[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/App.vue?vue&type=style&index=0&scoped=f13b4d11&lang.css[22m
+[2m15:16:27[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/App.vue[22m
+[2m15:22:25[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/App.vue[22m
+[2m15:40:26[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/App.vue?vue&type=style&index=0&scoped=f13b4d11&lang.css[22m
+[2m15:51:31[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/App.vue[22m
+[2m15:52:05[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/App.vue[22m
+[2m15:53:06[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/App.vue?vue&type=style&index=0&scoped=f13b4d11&lang.css[22m
+[2m16:01:41[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/App.vue[22m
+[2m16:02:51[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/App.vue?vue&type=style&index=0&scoped=f13b4d11&lang.css[22m
+[2m16:03:07[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/App.vue?vue&type=style&index=0&scoped=f13b4d11&lang.css[22m
+[2m16:31:57[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/App.vue[22m
+[2m16:32:50[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/App.vue[22m
+[2m16:33:59[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/App.vue[22m
+[2m16:34:21[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/App.vue[22m
+[2m16:35:07[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/App.vue[22m
+[2m16:35:24[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/App.vue[22m
+[2m16:35:50[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/App.vue[22m
+[2m16:36:04[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/App.vue[22m
+[2m16:36:33[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/App.vue[22m
+[2m16:37:34[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/App.vue?vue&type=style&index=0&scoped=f13b4d11&lang.css[22m
+[2m16:42:33[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/App.vue[22m
+[2m16:42:57[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/App.vue[22m
+[2m17:40:44[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/App.vue[22m
+[2m17:43:55[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/App.vue[22m
+[2m19:31:37[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/App.vue, /App.vue?vue&type=style&index=0&scoped=f13b4d11&lang.css[22m
+[2m19:31:37[22m [36m[1m[vite][22m[39m [32mpage reload [39m[2mindex.html[22m
+[2m19:31:37[22m [36m[1m[vite][22m[39m [32mpage reload [39m[2mmain.js[22m
+[2m19:31:38[22m [36m[1m[vite][22m[39m [32mpage reload [39m[2msrc/api/yixiuWeb.js[22m
+[2m19:31:39[22m [36m[1m[vite][22m[39m [32mpage reload [39m[2msrc/data/yixiuMock.js[22m
+[2m19:31:42[22m [36m[1m[vite][22m[39m [32mpage reload [39m[2mstatic/yixiu-logo-full.png[22m
+[2m19:31:42[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/uni.scss[22m
+[2m19:31:43[22m [36m[1m[vite][22m[39m [32mvite.config.ts changed, restarting server...[39m
+[2m19:31:43[22m [36m[1m[vite][22m[39m server restarted.

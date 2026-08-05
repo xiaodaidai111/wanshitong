@@ -1,0 +1,42 @@
+Deprecation [legacy-js-api]: The legacy JS API is deprecated and will be removed in Dart Sass 2.0.0.
+
+More info: https://sass-lang.com/d/legacy-js-api
+[2m14:08:46[22m [31m[1m[vite][22m[39m [31mInternal server error: Element is missing end tag.[39m
+  Plugin: [35mvite:vue[39m
+  File: [36mE:/软件杯/knowledge-butler-skill-web-latest/2026001846源代码/frontend/App.vue[39m:46:5
+[33m  44 |        </div>
+  45 |      </section>
+  46 |      <template v-else>
+     |       ^
+  47 |      <div v-if="showSplash" ref="bootScreenRef" class="boot-screen" aria-label="一修系统开屏动画">
+  48 |        <div class="boot-grid" aria-hidden="true"></div>[39m
+      at createCompilerError (E:\软件杯\knowledge-butler-skill-web-latest\2026001846源代码\frontend\node_modules\@vue\compiler-core\dist\compiler-core.cjs.js:1329:17)
+      at emitError (E:\软件杯\knowledge-butler-skill-web-latest\2026001846源代码\frontend\node_modules\@vue\compiler-core\dist\compiler-core.cjs.js:2822:5)
+      at Object.onclosetag (E:\软件杯\knowledge-butler-skill-web-latest\2026001846源代码\frontend\node_modules\@vue\compiler-core\dist\compiler-core.cjs.js:2186:13)
+      at Tokenizer.stateInClosingTagName (E:\软件杯\knowledge-butler-skill-web-latest\2026001846源代码\frontend\node_modules\@vue\compiler-core\dist\compiler-core.cjs.js:749:16)
+      at Tokenizer.parse (E:\软件杯\knowledge-butler-skill-web-latest\2026001846源代码\frontend\node_modules\@vue\compiler-core\dist\compiler-core.cjs.js:1107:16)
+      at Object.baseParse (E:\软件杯\knowledge-butler-skill-web-latest\2026001846源代码\frontend\node_modules\@vue\compiler-core\dist\compiler-core.cjs.js:2861:13)
+      at Object.parse (E:\软件杯\knowledge-butler-skill-web-latest\2026001846源代码\frontend\node_modules\@vue\compiler-dom\dist\compiler-dom.cjs.js:703:23)
+      at Object.parse$2 [as parse] (E:\软件杯\knowledge-butler-skill-web-latest\2026001846源代码\frontend\node_modules\@vue\compiler-sfc\dist\compiler-sfc.cjs.js:1851:24)
+      at createDescriptor (file:///E:/%E8%BD%AF%E4%BB%B6%E6%9D%AF/knowledge-butler-skill-web-latest/2026001846%E6%BA%90%E4%BB%A3%E7%A0%81/frontend/node_modules/@vitejs/plugin-vue/dist/index.mjs:50:42)
+      at handleHotUpdate (file:///E:/%E8%BD%AF%E4%BB%B6%E6%9D%AF/knowledge-butler-skill-web-latest/2026001846%E6%BA%90%E4%BB%A3%E7%A0%81/frontend/node_modules/@vitejs/plugin-vue/dist/index.mjs:1197:25)
+[2m14:09:13[22m [31m[1m[vite][22m[39m [31mInternal server error: Element is missing end tag.[39m
+  Plugin: [35mvite:vue[39m
+  File: [36mE:/软件杯/knowledge-butler-skill-web-latest/2026001846源代码/frontend/App.vue[39m:46:5
+[33m  44 |        </div>
+  45 |      </section>
+  46 |      <template v-else>
+     |       ^
+  47 |      <div v-if="showSplash" ref="bootScreenRef" class="boot-screen" aria-label="一修系统开屏动画">
+  48 |        <div class="boot-grid" aria-hidden="true"></div>[39m
+      at createCompilerError (E:\软件杯\knowledge-butler-skill-web-latest\2026001846源代码\frontend\node_modules\@vue\compiler-core\dist\compiler-core.cjs.js:1329:17)
+      at emitError (E:\软件杯\knowledge-butler-skill-web-latest\2026001846源代码\frontend\node_modules\@vue\compiler-core\dist\compiler-core.cjs.js:2822:5)
+      at Object.onclosetag (E:\软件杯\knowledge-butler-skill-web-latest\2026001846源代码\frontend\node_modules\@vue\compiler-core\dist\compiler-core.cjs.js:2186:13)
+      at Tokenizer.stateInClosingTagName (E:\软件杯\knowledge-butler-skill-web-latest\2026001846源代码\frontend\node_modules\@vue\compiler-core\dist\compiler-core.cjs.js:749:16)
+      at Tokenizer.parse (E:\软件杯\knowledge-butler-skill-web-latest\2026001846源代码\frontend\node_modules\@vue\compiler-core\dist\compiler-core.cjs.js:1107:16)
+      at Object.baseParse (E:\软件杯\knowledge-butler-skill-web-latest\2026001846源代码\frontend\node_modules\@vue\compiler-core\dist\compiler-core.cjs.js:2861:13)
+      at Object.parse (E:\软件杯\knowledge-butler-skill-web-latest\2026001846源代码\frontend\node_modules\@vue\compiler-dom\dist\compiler-dom.cjs.js:703:23)
+      at Object.parse$2 [as parse] (E:\软件杯\knowledge-butler-skill-web-latest\2026001846源代码\frontend\node_modules\@vue\compiler-sfc\dist\compiler-sfc.cjs.js:1851:24)
+      at createDescriptor (file:///E:/%E8%BD%AF%E4%BB%B6%E6%9D%AF/knowledge-butler-skill-web-latest/2026001846%E6%BA%90%E4%BB%A3%E7%A0%81/frontend/node_modules/@vitejs/plugin-vue/dist/index.mjs:50:42)
+      at handleHotUpdate (file:///E:/%E8%BD%AF%E4%BB%B6%E6%9D%AF/knowledge-butler-skill-web-latest/2026001846%E6%BA%90%E4%BB%A3%E7%A0%81/frontend/node_modules/@vitejs/plugin-vue/dist/index.mjs:1197:25)
+[33m(!) Could not auto-determine entry point from rollupOptions or html files and there are no explicit optimizeDeps.include patterns. Skipping dependency pre-bundling.[39m
