@@ -263,42 +263,5 @@ export const yixiuApi = {
 
   audit(payload) {
     return requestJson('/audit', { method: 'POST', body: payload })
-  },
-
-  saveKnowledgeContent(itemId, payload) {
-    return requestJson(`/knowledge/${itemId}/content`, { method: 'PUT', body: payload })
-  },
-  knowledgeVersions(itemId) {
-    return requestJson(`/knowledge/${itemId}/versions`)
-  },
-  restoreKnowledgeVersion(itemId, versionId) {
-    return requestJson(`/knowledge/${itemId}/versions/${versionId}/restore`, { method: 'POST', body: {} })
-  },
-  knowledgeLinks(itemId) {
-    return requestJson(`/knowledge/${itemId}/links`)
-  },
-  addKnowledgeLink(itemId, payload) {
-    return requestJson(`/knowledge/${itemId}/links`, { method: 'POST', body: payload })
-  },
-  removeKnowledgeLink(itemId, linkId) {
-    return requestJson(`/knowledge/${itemId}/links/${linkId}`, { method: 'DELETE' })
-  },
-  linkedKnowledge(linkType, targetId) {
-    return requestJson(`/knowledge/linked/${linkType}/${encodeURIComponent(targetId)}`)
-  },
-  knowledgeCollaborators(itemId) {
-    return requestJson(`/knowledge/${itemId}/collaborators`)
-  },
-  addKnowledgeCollaborator(itemId, payload) {
-    return requestJson(`/knowledge/${itemId}/collaborators`, { method: 'POST', body: payload })
-  },
-  templates(keyword = '') {
-    return requestJson(`/templates${keyword ? `?keyword=${encodeURIComponent(keyword)}` : ''}`)
-  },
-  createTemplate(payload) {
-    return requestJson('/templates', { method: 'POST', body: payload })
-  },
-  deleteTemplate(id) {
-    return requestJson(`/templates/${id}`, { method: 'DELETE' })
   }
 }
