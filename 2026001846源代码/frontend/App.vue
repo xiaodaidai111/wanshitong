@@ -3888,3 +3888,4 @@ button { transition: background-color .18s, border-color .18s, color .18s, trans
   .recheck-panel .recheck-grid { grid-template-columns: 1fr; }
 }
 </style>
+<style scoped src="./src/styles/yixiu-refinement.css"></style>
