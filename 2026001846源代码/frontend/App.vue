@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <main class="app-shell" :class="{ collapsed: navCollapsed, 'auth-shell': !isAuthenticated }">
     <section v-if="!isAuthenticated" class="auth-gate">
       <div class="auth-visual">
@@ -53,9 +53,13 @@
       </section>
     </div>
     <aside class="side-nav">
-      <button class="brand" type="button" @click="activePage = 'home'">
-        <img ref="brandLogoRef" :src="navCollapsed ? '/static/yixiu-logo-icon.png' : '/static/yixiu-logo-full.png'" alt="一修" />
-      </button>
+      <img
+        ref="brandLogoRef"
+        class="brand"
+        :src="navCollapsed ? '/static/yixiu-logo-icon.png' : '/static/yixiu-logo-full.png'"
+        alt="一修"
+        @click="activePage = 'home'"
+      />
 
       <nav>
         <button
@@ -119,9 +123,9 @@
       </header>
 
       <div class="content-shell" :style="{ '--operator-width': `${operatorWidth}px` }">
-      <section class="page-scroll">
+      <section class="page-scroll" :class="`page-theme-${activePage}`">
         <section v-if="activePage === 'home'" class="page-grid">
-          <div class="welcome-card span-8">
+          <div class="welcome-card span-all">
             <div class="welcome-brand">
               <img src="/static/yixiu-logo-full.png" alt="一修系统 Logo" />
               <div>
@@ -158,22 +162,6 @@
             </div>
           </div>
 
-          <div class="agent-card span-4">
-            <div class="panel-head agent-card-head">
-              <div><p class="eyebrow">器灵协作台</p><h3>六个智能体分工在线</h3></div>
-              <small>点击切换</small>
-            </div>
-            <button v-for="agent in agents" :key="agent.id" :class="['agent-row', { active: selectedAgentId === agent.id }]" type="button" @click="focusAgent(agent)">
-              <img :src="agent.avatar" :alt="agent.name" @error="handleAvatarError" />
-              <span :class="['dot', agent.status]"></span>
-              <div>
-                <b>{{ agent.name }}</b>
-                <small>{{ agent.role }} · {{ agent.lastResult || agent.duty }}</small>
-              </div>
-              <i>→</i>
-            </button>
-          </div>
-
           <section class="kpi-ribbon span-all" aria-label="核心运行指标">
             <button
               v-for="card in statCards.slice(0, 6)"
@@ -188,7 +176,7 @@
             </button>
           </section>
 
-          <div class="panel home-task-panel span-8">
+          <div class="panel home-task-panel span-all">
             <div class="section-title-row home-task-title">
               <div>
                 <p class="eyebrow">今日任务摘要</p>
@@ -222,17 +210,6 @@
             </div>
           </div>
 
-          <div class="panel quick-panel span-4">
-            <div class="section-title-row quick-panel-title"><div><p class="eyebrow">快捷入口</p><h3>常用操作</h3></div><span class="quiet-label">8 项</span></div>
-            <div class="quick-grid home-quick-grid">
-              <button v-for="item in quickActions" :key="item.label" :class="`quick-${item.tone}`" type="button" @click="runQuickAction(item)">
-                <span class="quick-icon"><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path v-for="path in iconParts(item.icon)" :key="path" :d="path"></path></svg></span>
-                <span class="quick-copy"><b>{{ item.label }}</b><small>{{ item.desc }}</small></span>
-                <i>→</i>
-              </button>
-            </div>
-          </div>
-
           <div class="panel alert-panel span-4">
             <div class="section-title-row">
               <div><p class="eyebrow">风险与异常</p><h3>需要关注的事项</h3></div>
@@ -258,30 +235,15 @@
               <div class="chart-legend"><i></i>任务处理量 <span>近 7 天</span></div>
             </div>
             <div class="chart-wrap">
-              <svg viewBox="0 0 700 260" aria-label="任务趋势">
-                <defs>
-                  <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#68a8c6"/><stop offset="1" stop-color="#b8d4de"/></linearGradient>
-                  <linearGradient id="areaGradient" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#147b73" stop-opacity=".2"/><stop offset="1" stop-color="#147b73" stop-opacity="0"/></linearGradient>
-                </defs>
-                <line v-for="y in [44, 88, 132, 176, 220]" :key="y" x1="16" :y1="y" x2="676" :y2="y" class="chart-grid-line" />
-                <polygon :points="`24,220 ${trendPoints} 624,220`" fill="url(#areaGradient)" />
-                <g v-for="(value, index) in overview.trend" :key="index">
-                  <rect :x="index * 100 + 8" :y="220 - value * 8" width="32" :height="value * 8" rx="8" fill="url(#barGradient)" />
-                  <text :x="index * 100 + 24" y="246" text-anchor="middle" class="chart-label">{{ trendLabels[index] }}</text>
-                  <circle :cx="index * 100 + 24" :cy="220 - value * 8" r="5" class="trend-dot" />
-                </g>
-                <polyline fill="none" stroke="#147b73" stroke-width="3" :points="trendPoints" />
-              </svg>
+              <EChart :option="homeTrendOption" class="chart-canvas" height="270px" />
               <div class="distribution">
                 <div class="distribution-head"><b>故障构成</b><small>按案例占比</small></div>
-                <span v-for="(item, index) in overview.faultDistribution" :key="item.label" :style="{ '--dist-color': faultColors[index] }">
-                  <i></i><em>{{ item.label }}</em><strong>{{ item.value }}%</strong><b><u :style="{ width: `${item.value}%` }"></u></b>
-                </span>
+                <EChart :option="homeFaultOption" class="chart-canvas chart-canvas-mini" height="220px" />
               </div>
             </div>
           </div>
 
-          <div class="panel activity-panel span-5">
+          <div class="panel activity-panel span-all">
             <div class="section-title-row"><div><p class="eyebrow">工作轨迹</p><h3>最近使用记录</h3></div><span class="quiet-label">今天</span></div>
             <div class="activity-list">
               <button v-for="item in recentActivities" :key="item.raw" :class="`activity-${item.tone}`" type="button" @click="runRecentActivity(item)">
@@ -294,16 +256,6 @@
             </div>
           </div>
 
-          <div class="panel knowledge-recent-panel span-7">
-            <div class="section-title-row"><div><p class="eyebrow">知识沉淀</p><h3>最近知识资料</h3></div><button class="text-link" type="button" @click="goStat({ page: 'knowledge', panel: 'library' })">查看资料库 →</button></div>
-            <div class="knowledge-recent-grid">
-              <button v-for="(item, index) in knowledge.slice(0, 4)" :key="item.id" :style="{ '--knowledge-accent': knowledgeColors[index] }" type="button" @click="openKnowledge(item)">
-                <span class="knowledge-file-icon">{{ item.fileType || 'DOC' }}</span>
-                <span class="knowledge-card-copy"><b>{{ item.title }}</b><small>{{ item.equipment }} · {{ item.updated_at }}</small><em>{{ item.type || item.category }}</em></span>
-                <span class="citation-count">引用 {{ item.citations || 0 }}</span>
-              </button>
-            </div>
-          </div>
         </section>
 
         <section v-else-if="activePage === 'search'" class="two-column search-workbench">
@@ -436,29 +388,17 @@
                 <section>
                   <div class="trend-card-head"><b>近 7 天任务趋势</b><span>累计 {{ taskTrendTotal }} 项</span></div>
                   <div class="trend-summary"><strong>{{ taskTrendData.at(-1) }}</strong><span>今日处理量</span><em :class="{ down: taskTrendChange < 0 }">{{ taskTrendChange >= 0 ? '↑' : '↓' }} {{ Math.abs(taskTrendChange) }} 较昨日</em></div>
-                  <svg viewBox="0 0 320 176" aria-label="近7天任务趋势" class="task-trend-chart">
-                    <defs><linearGradient id="taskTrendArea" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2f8794" stop-opacity=".28"/><stop offset="1" stop-color="#2f8794" stop-opacity=".02"/></linearGradient></defs>
-                    <line v-for="y in [44, 84, 124]" :key="y" x1="28" :y1="y" x2="304" :y2="y" class="task-trend-grid" />
-                    <polygon :points="taskTrendAreaPoints" fill="url(#taskTrendArea)" />
-                    <polyline :points="taskTrendPoints" fill="none" stroke="#2f7f8f" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
-                    <g v-for="(point, index) in taskTrendDots" :key="point.x">
-                      <circle :cx="point.x" :cy="point.y" r="6" class="task-trend-dot" />
-                      <text :x="point.x" :y="point.y - 12" text-anchor="middle" class="task-trend-value">{{ taskTrendData[index] }}</text>
-                      <text :x="point.x" y="158" text-anchor="middle" class="task-trend-label">{{ trendLabels[index] }}</text>
-                    </g>
-                  </svg>
+                  <EChart :option="taskTrendOption" class="chart-canvas task-trend-echart" height="166px" />
                 </section>
-                <section>
+                <section class="chart-section">
                   <b>任务状态占比</b>
-                  <button v-for="item in taskStatusAnalysis" :key="item.key" type="button" class="bar-row" @click="filterTaskBy('status', item.key)">
-                    <span>{{ item.label }}</span><i :style="{ width: `${item.percent}%` }"></i><em>{{ item.count }}</em>
-                  </button>
+                  <EChart :option="taskStatusOption" class="chart-canvas" height="200px" click-field="key" @click="filterTaskBy('status', $event)" />
+                  <p class="chart-hint">点击柱条可按状态筛选</p>
                 </section>
-                <section>
+                <section class="chart-section">
                   <b>风险等级分布</b>
-                  <button v-for="item in taskRiskAnalysis" :key="item.key" type="button" class="bar-row risk" @click="filterTaskBy('severity', item.key)">
-                    <span>{{ item.label }}</span><i :class="item.key" :style="{ width: `${item.percent}%` }"></i><em>{{ item.count }}</em>
-                  </button>
+                  <EChart :option="taskRiskOption" class="chart-canvas" height="200px" click-field="key" @click="filterTaskBy('severity', $event)" />
+                  <p class="chart-hint">点击扇区可按风险筛选</p>
                 </section>
                 <section>
                   <b>设备类型与故障排行</b>
@@ -683,6 +623,7 @@
                   <option v-for="item in graphRelationTypes" :key="item" :value="item">{{ item }}</option>
                 </select>
                 <select v-model="graphLayoutMode" @change="relayoutGraph">
+                  <option value="grid">蛛网</option>
                   <option value="force">力导向</option>
                   <option value="tree">树形</option>
                   <option value="circle">环形</option>
@@ -692,60 +633,22 @@
               </div>
             </div>
             <div class="knowledge-map">
-              <div ref="mapCanvasRef" class="map-canvas" @pointermove="dragGraphNode" @pointerup="stopGraphDrag" @pointerleave="stopGraphDrag">
-                <div class="graph-legend">
-                  <span v-for="item in graphLegend" :key="item.kind"><i :class="item.kind"></i>{{ item.label }}</span>
-                </div>
-                <div class="graph-zoom">
-                  <button type="button" @click="graphZoom = Math.min(graphZoom + 0.08, 1.35)">＋</button>
-                  <input v-model.number="graphZoom" type="range" min="0.72" max="1.35" step="0.01" />
-                  <button type="button" @click="graphZoom = Math.max(graphZoom - 0.08, 0.72)">－</button>
-                </div>
-                <svg class="map-lines" viewBox="0 0 820 520" aria-hidden="true">
-                  <defs>
-                    <marker id="graphArrow" markerWidth="8" markerHeight="8" refX="7" refY="3.5" orient="auto">
-                      <path d="M0,0 L7,3.5 L0,7 Z" fill="#8ba9b6"></path>
-                    </marker>
-                    <filter id="graphGlow">
-                      <feGaussianBlur stdDeviation="2.4" result="blur" />
-                      <feMerge>
-                        <feMergeNode in="blur" />
-                        <feMergeNode in="SourceGraphic" />
-                      </feMerge>
-                    </filter>
-                  </defs>
-                  <line
-                    v-for="edge in graphEdges"
-                    :key="edge.id"
-                    :class="{ faint: edge.faint }"
-                    :x1="edge.x1"
-                    :y1="edge.y1"
-                    :x2="edge.x2"
-                    :y2="edge.y2"
-                    marker-end="url(#graphArrow)"
-                  />
-                  <text v-for="edge in graphEdges.filter((item) => !item.faint)" :key="`${edge.id}-label`" :x="(edge.x1 + edge.x2) / 2" :y="(edge.y1 + edge.y2) / 2 - 4">{{ edge.label }}</text>
-                </svg>
-                <div class="graph-stage" :style="{ transform: `scale(${graphZoom})` }">
-                  <button class="graph-node center" type="button" @click="toast('一修知识中枢：统一连接检修资料、任务与经验')">
-                    <span></span>
-                    <b>一修</b>
-                  </button>
-                  <button
-                    v-for="node in graphNodes"
-                    :key="node.id"
-                    type="button"
-                    class="graph-node"
-                    :class="[node.kind, { important: node.important, active: selectedGraphNode?.id === node.id, matched: node.matched, showLabel: graphShowLabels || node.important }]"
-                    :style="{ left: `${node.x}%`, top: `${node.y}%` }"
-                    @pointerdown.stop.prevent="startGraphDrag(node, $event)"
-                    @click="selectGraphNode(node)"
-                  >
-                    <span></span>
-                    <b>{{ node.label }}</b>
-                  </button>
+              <div class="map-canvas-wrap">
+                <div ref="graphChartRef" class="map-canvas echarts-canvas"></div>
+                <div class="graph-legend-panel">
+                  <div class="legend-body">
+                    <span
+                      v-for="item in graphLegend"
+                      :key="item.kind"
+                      :class="{ dimmed: graphLegendFiltered[item.kind] }"
+                      @click="toggleLegendFilter(item.kind)"
+                    >
+                      <i :class="item.kind"></i>{{ item.label }}
+                    </span>
+                  </div>
                 </div>
               </div>
+              <div class="map-sidebar">
               <aside class="map-inspector">
                 <p class="eyebrow">节点详情</p>
                 <template v-if="selectedGraphNode">
@@ -759,6 +662,7 @@
                 </template>
                 <div v-else class="empty">点击图谱节点查看关联资料、任务和检修建议。</div>
               </aside>
+              </div>
             </div>
           </div>
 
@@ -824,42 +728,124 @@
           </div>
 
           <div v-if="knowledgePanel === 'library'" class="panel span-all knowledge-library-panel">
-            <div class="library-heading">
-              <div>
-                <p class="eyebrow">技术资料库</p>
-                <h3>检索可靠的设备检修知识</h3>
-                <span>覆盖维修手册、历史案例、标准作业流程与安全规范</span>
+            <div class="kb-hero">
+              <div class="kb-hero-left">
+                <h3>技术资料库</h3>
+                <span>模板创建 · 多人协作 · 版本追踪 · 任务联动</span>
               </div>
-              <b>{{ filteredKnowledge.length }} 条资料</b>
+              <div class="kb-hero-right">
+                <button class="kb-cta kb-cta-new" type="button" @click="showTemplatePicker = true">
+                  <svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+                  <span>新建文档</span>
+                </button>
+                <button class="kb-cta kb-cta-tpl" type="button" @click="showTemplateLibrary = true">
+                  <svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+                  <span>模板库</span>
+                </button>
+              </div>
             </div>
-            <div class="filters library-searchbar">
-              <span class="library-search-icon" aria-hidden="true">
-                <svg class="ui-icon" viewBox="0 0 24 24"><path v-for="path in iconParts('search')" :key="path" :d="path"></path></svg>
-              </span>
-              <input v-model.trim="knowledgeKeyword" placeholder="输入设备、故障现象或资料名称" @keyup.enter="loadKnowledge" />
-              <button type="button" @click="loadKnowledge">检索资料库</button>
+
+            <div class="kb-toolbar">
+              <div class="kb-toolbar-left">
+                <h4>全部文档 <small>{{ filteredKnowledgeDocs.length }} 篇</small></h4>
+                <div class="kb-filter">
+                  <button type="button" :class="{ active: kbFilter === 'all' }" @click="kbFilter = 'all'">全部</button>
+                  <button type="button" :class="{ active: kbFilter === 'mine' }" @click="kbFilter = 'mine'">我创建的</button>
+                  <button type="button" :class="{ active: kbFilter === 'starred' }" @click="kbFilter = 'starred'">星标</button>
+                  <button type="button" :class="{ active: kbFilter === 'recent' }" @click="kbFilter = 'recent'">最近编辑</button>
+                </div>
+              </div>
+              <div class="kb-search">
+                <svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+                <input v-model.trim="kbSearch" placeholder="搜索文档标题、标签或内容" />
+              </div>
             </div>
-            <div v-if="filteredKnowledge.length" class="result-grid library-result-grid">
-              <article v-for="(item, index) in filteredKnowledge" :key="item.id" class="result-card library-result-card" :style="{ '--library-index': index % 4 }">
-                <div class="library-card-head">
-                  <span class="library-type">{{ knowledgeTypeText(item) }}</span>
-                  <span v-if="item.match" class="library-match">匹配度 {{ item.match }}%</span>
+
+            <div v-if="filteredKnowledgeDocs.length" class="kb-grid">
+              <article
+                v-for="(doc, idx) in filteredKnowledgeDocs"
+                :key="doc.id"
+                class="kb-doc-card"
+                :class="{ starred: doc.starred }"
+                @click="openKnowledge(doc)"
+              >
+                <div class="kb-doc-head">
+                  <span class="kb-doc-type" :class="doc.category || 'general'">{{ doc.type || doc.category || '技术资料' }}</span>
+                  <svg v-if="doc.starred" class="ui-icon kb-star-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
                 </div>
-                <h4>{{ item.title }}</h4>
-                <div class="library-meta">
-                  <span v-for="meta in knowledgeMetaParts(item)" :key="meta">{{ meta }}</span>
+                <h4 class="kb-doc-title">{{ doc.title }}</h4>
+                <p class="kb-doc-summary">{{ (doc.content || '').replace(/[#*>\-\[\]]/g, '').slice(0, 80) || '暂无内容，点击开始编辑' }}</p>
+                <div v-if="(doc.tags || []).length" class="kb-doc-tags">
+                  <span v-for="tag in (doc.tags || []).slice(0, 3)" :key="tag" class="kb-tag">{{ tag }}</span>
                 </div>
-                <div class="library-summary">
-                  <p v-for="(line, lineIndex) in knowledgeSummaryLines(item)" :key="lineIndex">{{ line }}</p>
-                </div>
-                <div v-if="item.tags?.length" class="tag-line library-tags"><span v-for="tag in item.tags" :key="tag">{{ tag }}</span></div>
-                <div class="library-card-footer">
-                  <small>{{ item.updated_at ? `更新于 ${item.updated_at}` : '平台知识资料' }}<template v-if="item.citations"> · 引用 {{ item.citations }} 次</template></small>
-                  <div class="card-actions"><button type="button" @click="openKnowledge(item)">查看详情</button><button class="primary" type="button" @click="searchFromKnowledge(item)">发起检索</button></div>
+                <div class="kb-doc-foot">
+                  <div class="kb-collab">
+                    <div v-if="doc.collaborators?.length" class="kb-avatars">
+                      <span v-for="(c, ci) in doc.collaborators.slice(0, 3)" :key="ci" class="kb-avatar" :style="{ background: avatarColors[ci % avatarColors.length] }">{{ (c.name || '?')[0] }}</span>
+                      <span v-if="doc.collaborators.length > 3" class="kb-more">+{{ doc.collaborators.length - 3 }}</span>
+                    </div>
+                    <span class="kb-collab-count" v-if="doc.collaborators?.length">{{ doc.collaborators.length }} 人协作</span>
+                    <span v-else class="kb-no-collab">仅自己</span>
+                  </div>
+                  <small class="kb-time">{{ doc.updated_at || '新建' }}</small>
                 </div>
               </article>
             </div>
-            <div v-else class="library-empty"><b>未找到相关资料</b><span>请尝试更换设备型号、故障现象或资料名称</span></div>
+            <div v-else class="kb-empty-state">
+              <h4>暂无技术文档</h4>
+              <p>点击上方「新建文档」按钮，选择模板快速创建</p>
+              <button class="primary kb-empty-btn" type="button" @click="showTemplatePicker = true">+ 新建文档</button>
+            </div>
+          </div>
+
+          <!-- 模板选择弹窗 -->
+          <div v-if="showTemplatePicker" class="modal" @click.self="showTemplatePicker = false">
+            <article class="modal-card kb-template-modal">
+              <button class="close" type="button" @click="showTemplatePicker = false">×</button>
+              <header>
+                <p class="eyebrow">选择模板</p>
+                <h2>从模板创建文档</h2>
+                <span>选择一个模板快速开始，创建后可随时修改</span>
+              </header>
+              <div class="kb-template-grid">
+                <article
+                  v-for="tpl in availableTemplates"
+                  :key="tpl.id"
+                  class="kb-template-card"
+                  @click="createDocFromTemplate(tpl)"
+                >
+                  <div class="kb-template-icon">{{ tpl.icon }}</div>
+                  <div class="kb-template-info">
+                    <h4>{{ tpl.name }}</h4>
+                    <span>{{ tpl.category }}</span>
+                    <p>{{ tpl.description }}</p>
+                  </div>
+                  <button class="kb-template-use" type="button">使用模板 →</button>
+                </article>
+              </div>
+            </article>
+          </div>
+
+          <!-- 模板库弹窗 -->
+          <div v-if="showTemplateLibrary" class="modal" @click.self="showTemplateLibrary = false">
+            <article class="modal-card kb-template-lib-modal">
+              <button class="close" type="button" @click="showTemplateLibrary = false">×</button>
+              <header>
+                <p class="eyebrow">模板库</p>
+                <h2>全部模板（{{ availableTemplates.length }} 个）</h2>
+              </header>
+              <div class="kb-template-grid">
+                <article v-for="tpl in availableTemplates" :key="'lib-' + tpl.id" class="kb-template-card">
+                  <div class="kb-template-icon">{{ tpl.icon }}</div>
+                  <div class="kb-template-info">
+                    <h4>{{ tpl.name }}</h4>
+                    <span>{{ tpl.category }}</span>
+                    <p>{{ tpl.description }}</p>
+                  </div>
+                  <button class="kb-template-use" type="button" @click="createDocFromTemplate(tpl)">使用 →</button>
+                </article>
+              </div>
+            </article>
           </div>
 
           <div v-if="knowledgePanel === 'update'" class="panel span-all">
@@ -922,7 +908,7 @@
             <div class="panel-head">
               <div>
                 <p class="eyebrow">智能体使用记录</p>
-                <h3>最近协助我的器灵</h3>
+                <h3>最近协助我的 agent</h3>
               </div>
               <button type="button" @click="runAudit">查看核查建议</button>
             </div>
@@ -946,7 +932,7 @@
         <span></span>
       </button>
 
-      <aside class="operator-panel" aria-label="页面智能体对话">
+      <aside class="operator-panel" :class="'op-theme-' + (operatorProfile.id || 'tiangong')" aria-label="页面智能体对话">
         <div class="operator-head">
           <img class="operator-avatar" :src="operatorProfile.avatar" :alt="operatorProfile.name" @error="handleAvatarError" />
           <div>
@@ -956,10 +942,6 @@
           </div>
           <div class="operator-head-actions">
             <span :class="['operator-status', operatorProfile.status]">{{ operatorProfile.statusText }}</span>
-            <div class="panel-size-actions" aria-label="智能体面板显示大小">
-              <button type="button" title="缩小智能体面板" @click="resizeOperator(-40)">−</button>
-              <button type="button" title="放大智能体面板" @click="resizeOperator(40)">＋</button>
-            </div>
           </div>
         </div>
 
@@ -976,7 +958,16 @@
           <div class="bubble assistant">
             {{ operatorProfile.sampleAnswer }}
           </div>
-          <div v-for="message in currentOperatorMessages" :key="message.id" :class="['bubble', message.role]">
+          <div v-for="message in currentOperatorMessages" :key="message.id" :class="['bubble', message.role, { loading: message.loading }]">
+            <span v-if="message.loading" class="loading-dots"><i></i><i></i><i></i></span>
+            <details v-if="message.steps && message.steps.length" class="tiangong-trace" v-show="!message.loading">
+              <summary>天工执行过程 · {{ message.steps.length }} 步 · {{ message.toolCalls || 0 }} 次工具调用</summary>
+              <div v-for="(step, idx) in message.steps" :key="idx" class="trace-step">
+                <span class="trace-tag" :class="step.type">{{ stepLabel(step.type) }}</span>
+                <span v-if="step.tool" class="trace-tool">{{ step.tool }}<template v-if="step.args && Object.keys(step.args).length"> · {{ JSON.stringify(step.args) }}</template></span>
+                <span class="trace-text">{{ step.content || traceResult(step) }}</span>
+              </div>
+            </details>
             {{ message.text }}
           </div>
           <button class="quick-card" type="button" @click="runOperatorPrimary">
@@ -1051,6 +1042,24 @@
           </span>
         </div>
         <div v-if="selectedTask.safety?.length" class="safety-reminders"><div><b>合规与安全提醒</b><small>操作前逐项确认</small></div><span v-for="item in selectedTask.safety" :key="item">{{ item }}</span></div>
+
+        <!-- 关联技术资料：反向联动 -->
+        <div class="task-linked-knowledge">
+          <h4>📚 关联技术资料
+            <span v-if="taskLinkedKnowledge.length === 0" class="tl-go-kb" @click.stop="activePage = 'knowledge'; knowledgePanel = 'library'; selectedTask = null">去知识库关联 →</span>
+          </h4>
+          <div v-if="taskLinkedKnowledge.length === 0" class="tl-empty">暂无关联技术资料</div>
+          <div v-else class="task-linked-list">
+            <div class="task-linked-item" v-for="k in taskLinkedKnowledge" :key="k.id" @click.stop="openKnowledge(k)">
+              <div>
+                <div class="tl-title">{{ k.title }}</div>
+                <div class="tl-meta">{{ k.category || '技术资料' }} · {{ k.updated_at || '未知时间' }}</div>
+              </div>
+              <span class="tl-arrow">→</span>
+            </div>
+          </div>
+        </div>
+
         <div class="actions task-modal-actions">
           <button class="primary" type="button" @click="handleTaskPrimary(selectedTask)">{{ taskPrimaryLabel(selectedTask) }}</button>
           <button type="button" :disabled="selectedTask.status === 'pending'" @click="enterTaskRecheck(selectedTask)">进入复检</button>
@@ -1106,14 +1115,187 @@
       </article>
     </div>
 
-    <div v-if="selectedKnowledge" class="modal" @click.self="selectedKnowledge = null">
-      <article class="modal-card knowledge-detail-card">
-        <button class="close" type="button" @click="selectedKnowledge = null">×</button>
-        <header><div><p class="eyebrow">知识详情</p><h2>{{ selectedKnowledge.title }}</h2></div><span>{{ knowledgeTypeText(selectedKnowledge) }}</span></header>
-        <div class="knowledge-detail-meta"><span><small>适用设备</small><b>{{ selectedKnowledge.equipment || '通用检修设备' }}</b></span><span><small>型号</small><b>{{ selectedKnowledge.model || '通用型号' }}</b></span><span><small>来源</small><b>{{ selectedKnowledge.source || '一修知识库' }}</b></span><span><small>引用</small><b>{{ selectedKnowledge.citations || 0 }} 次</b></span></div>
-        <section><h3>内容摘要</h3><ul><li v-for="(line, index) in knowledgeSummaryLines(selectedKnowledge)" :key="index">{{ line }}</li></ul></section>
-        <div class="tag-line"><span v-for="tag in selectedKnowledge.tags || []" :key="tag">{{ tag }}</span></div>
-        <div class="actions"><button type="button" @click="selectedKnowledge = null">关闭</button><button class="primary" type="button" @click="searchFromKnowledge(selectedKnowledge); selectedKnowledge = null">作为检索依据</button></div>
+    <div v-if="selectedKnowledge" class="modal" @click.self="closeKnowledgeDetail()">
+      <article class="modal-card knowledge-detail-card" :class="{ editing: isKnowledgeEditing }">
+        <button class="close" type="button" @click="closeKnowledgeDetail()">×</button>
+        
+        <!-- 编辑模式：三栏布局 -->
+        <template v-if="isKnowledgeEditing">
+          <aside class="kd-sidebar-left">
+            <div class="kd-sidebar-header">
+              <span class="kd-sidebar-icon">📂</span>
+              <span class="kd-sidebar-title">技术资料库</span>
+            </div>
+            <div class="kd-sidebar-breadcrumb">
+              <span>📁 {{ selectedKnowledge.category || '默认分类' }}</span>
+              <span class="kd-arrow">›</span>
+              <span class="kd-current-doc">📄 {{ knowledgeDraft.title || '未命名文档' }}</span>
+            </div>
+            <div class="kd-outline">
+              <div class="kd-outline-title">📋 文档大纲</div>
+              <div class="kd-outline-list">
+                <div v-for="(line, idx) in knowledgeOutline" :key="idx" class="kd-outline-item" :class="'level-' + line.level">
+                  <span class="kd-outline-dot">•</span>
+                  <span>{{ line.text }}</span>
+                </div>
+                <div v-if="knowledgeOutline.length === 0" class="kd-outline-empty">
+                  暂无大纲内容
+                </div>
+              </div>
+            </div>
+            <div class="kd-sidebar-footer">
+              <span>📝 {{ knowledgeDraft.content?.length || 0 }} 字</span>
+              <span>⏱ {{ knowledgeSaveStatus === 'saved' ? '已保存' : '编辑中' }}</span>
+            </div>
+          </aside>
+        </template>
+
+        <div class="kd-main-area">
+          <header class="kd-header">
+            <div class="kd-header-left">
+              <div v-if="isKnowledgeEditing" class="kd-top-bar">
+                <span class="kd-doc-icon">📝</span>
+                <input v-model="knowledgeDraft.title" class="kd-title-input" placeholder="无标题文档" />
+              </div>
+              <h2 v-else>{{ selectedKnowledge.title }}</h2>
+              <small v-if="knowledgeSaveStatus" class="kd-save-status" :class="knowledgeSaveStatus">{{ knowledgeSaveText }}</small>
+            </div>
+            <div class="kd-header-right">
+              <span class="kd-type">{{ knowledgeTypeText(selectedKnowledge) }}</span>
+              <button v-if="!isKnowledgeEditing" type="button" class="btn-edit" @click="startKnowledgeEdit()">✏️ 编辑内容</button>
+              <div v-else class="kd-edit-actions">
+                <button type="button" class="btn-edit-cancel" @click="cancelKnowledgeEdit()">取消</button>
+                <button type="button" class="btn-edit-save" @click="saveKnowledgeNow(true)">💾 保存</button>
+              </div>
+            </div>
+          </header>
+
+          <div v-if="isKnowledgeEditing" class="kd-editor-toolbar">
+            <button type="button" title="标题" @click="insertMarkdown('heading')">H</button>
+            <button type="button" title="加粗" @click="insertMarkdown('bold')"><b>B</b></button>
+            <button type="button" title="斜体" @click="insertMarkdown('italic')"><i>I</i></button>
+            <span class="kd-toolbar-divider"></span>
+            <button type="button" title="无序列表" @click="insertMarkdown('list')">• 列表</button>
+            <button type="button" title="有序列表" @click="insertMarkdown('olist')">1. 列表</button>
+            <button type="button" title="待办事项" @click="insertMarkdown('todo')">☑ 待办</button>
+            <span class="kd-toolbar-divider"></span>
+            <button type="button" title="表格" @click="insertMarkdown('table')">📊 表格</button>
+            <button type="button" title="代码块" @click="insertMarkdown('code')"><> 代码</button>
+            <button type="button" title="引用" @click="insertMarkdown('quote')">"</button>
+            <span class="kd-toolbar-divider"></span>
+            <span class="kd-toolbar-spacer"></span>
+            <span class="kd-toolbar-hint">Markdown 格式</span>
+          </div>
+
+          <div class="kd-meta-bar" :class="{ editing: isKnowledgeEditing }">
+            <template v-if="!isKnowledgeEditing">
+              <span><small>适用设备</small><b>{{ selectedKnowledge.equipment || '通用检修设备' }}</b></span>
+              <span><small>型号</small><b>{{ selectedKnowledge.model || '通用型号' }}</b></span>
+              <span><small>来源</small><b>{{ selectedKnowledge.source || '一修知识库' }}</b></span>
+              <span><small>引用</small><b>{{ selectedKnowledge.citations || 0 }} 次</b></span>
+            </template>
+            <template v-else>
+              <label class="kd-meta-input"><small>适用设备</small><input v-model="knowledgeDraft.equipment" /></label>
+              <label class="kd-meta-input"><small>型号</small><input v-model="knowledgeDraft.model" /></label>
+              <label class="kd-meta-input"><small>标签(逗号分隔)</small><input v-model="knowledgeDraft.tagsText" /></label>
+              <label class="kd-meta-input"><small>来源</small><input v-model="knowledgeDraft.source" /></label>
+            </template>
+          </div>
+
+          <section class="kd-content-section">
+            <div class="kd-content-head" v-if="!isKnowledgeEditing">
+              <h3>📝 内容摘要</h3>
+            </div>
+            <textarea v-if="isKnowledgeEditing" v-model="knowledgeDraft.content" @input="onKnowledgeContentInput" placeholder="开始输入文档内容...
+
+支持 Markdown 格式：
+## 二级标题
+**加粗文本**
+- 无序列表项
+1. 有序列表项
+- [ ] 待办事项
+| 表头 | 表头 |
+|------|------|
+| 内容 | 内容 |" class="kd-editor"></textarea>
+            <ul v-else class="kd-summary-list"><li v-for="(line, index) in knowledgeFullLines(selectedKnowledge)" :key="index">{{ line }}</li></ul>
+          </section>
+
+          <div v-if="!isKnowledgeEditing && selectedKnowledge.tags?.length" class="tag-line"><span v-for="tag in selectedKnowledge.tags" :key="tag">{{ tag }}</span></div>
+        </div>
+
+        <!-- 右侧边栏：仅非编辑模式显示 -->
+        <aside v-if="!isKnowledgeEditing" class="kd-sidebar-right">
+          <!-- 联动：关联任务 & 引用知识 -->
+          <section class="kd-links-section">
+            <div class="kd-links-head"><h3>🔗 板块联动</h3><small v-if="kdLinks.length">关联 {{ kdLinks.length }} 项</small></div>
+            <div v-if="kdTasks.length" class="kd-link-block">
+              <p class="kd-link-label">📋 关联检修任务</p>
+              <div class="kd-link-list">
+                <div v-for="link in kdTasks" :key="link.id" class="kd-link-item" @click="openTaskById(link.target_id)">
+                  <span>{{ link.target_title }}</span>
+                  <button type="button" class="kd-link-del" @click.stop="removeKdLink(link.id)">✕</button>
+                </div>
+              </div>
+            </div>
+            <div v-if="kdKnowledgeLinks.length" class="kd-link-block">
+              <p class="kd-link-label">📚 引用知识</p>
+              <div class="kd-link-list">
+                <div v-for="link in kdKnowledgeLinks" :key="link.id" class="kd-link-item" @click="openKnowledge({ id: link.target_id, title: link.target_title })">
+                  <span>📖 {{ link.target_title }}</span>
+                  <button type="button" class="kd-link-del" @click.stop="removeKdLink(link.id)">✕</button>
+                </div>
+              </div>
+            </div>
+            <div class="kd-link-add">
+              <select v-model="kdNewLink.type">
+                <option value="task">关联任务</option><option value="knowledge">引用知识</option>
+              </select>
+              <input v-model="kdNewLink.targetId" placeholder="目标ID" />
+              <input v-model="kdNewLink.title" placeholder="显示标题" />
+              <button type="button" @click="addKdLink()">+ 添加</button>
+            </div>
+          </section>
+
+          <!-- 版本历史 -->
+          <section class="kd-versions-section">
+            <div class="kd-links-head"><h3>📜 版本历史</h3><small v-if="kdVersions.length">共 {{ kdVersions.length }} 个版本</small></div>
+            <div v-if="kdVersions.length === 0" class="kd-empty">暂无版本记录，首次编辑后会生成版本。</div>
+            <div v-else class="kd-version-list">
+              <div v-for="ver in kdVersions" :key="ver.id" class="kd-version-item">
+                <div class="kd-version-main">
+                  <b>v{{ ver.version }}</b><small>{{ ver.editor_name || '系统' }} · {{ ver.created_at }}</small>
+                </div>
+                <p v-if="ver.change_summary" class="kd-version-summary">{{ ver.change_summary }}</p>
+                <button type="button" class="kd-version-restore" @click="restoreKdVersion(ver)">↩ 恢复</button>
+              </div>
+            </div>
+          </section>
+
+          <!-- 协作成员 -->
+          <section class="kd-collab-section">
+            <div class="kd-links-head">
+              <h3>👥 协作成员 <small v-if="kdCollaborators.length">{{ kdCollaborators.length }} 人</small></h3>
+              <button type="button" class="kd-invite-btn" @click="inviteCollaborator">+ 邀请</button>
+            </div>
+            <div v-if="kdCollaborators.length === 0" class="kd-empty">暂无协作成员，点击右上角邀请同事共同编辑此文档。</div>
+            <div v-else class="kd-collab-list">
+              <div v-for="(c, ci) in kdCollaborators" :key="ci" class="kd-collab-item">
+                <span class="kd-collab-avatar" :style="{ background: avatarColors[ci % avatarColors.length] }">{{ (c.name || '?')[0] }}</span>
+                <div>
+                  <b>{{ c.name }}</b>
+                  <small>{{ c.role === 'owner' ? '所有者' : c.role === 'editor' ? '编辑者' : '查看者' }}</small>
+                </div>
+                <span class="kd-collab-status" :class="c.status || 'offline'">{{ c.status === 'online' ? '🟢 在线' : '⚪ 离线' }}</span>
+              </div>
+            </div>
+          </section>
+        </aside>
+
+        <div class="kd-actions actions" v-if="!isKnowledgeEditing">
+          <button type="button" @click="selectedKnowledge = null">关闭</button>
+          <button class="primary" type="button" @click="searchFromKnowledge(selectedKnowledge); selectedKnowledge = null">作为检索依据</button>
+          <button type="button" class="btn-submit" @click="submitKnowledgeReview()">📤 提交知识审核</button>
+        </div>
       </article>
     </div>
 
@@ -1158,13 +1340,19 @@
 
     <div v-if="toastText" class="toast">{{ toastText }}</div>
     </template>
+    <div class="tg-cursor" :style="{ position: 'fixed', left: tgCursor.x + 'px', top: tgCursor.y + 'px', opacity: tgCursor.visible ? 1 : 0, zIndex: 99999 }">
+      <span class="tg-cursor-dot"></span>
+      <span v-if="tgCursor.label" class="tg-cursor-label">{{ tgCursor.label }}</span>
+    </div>
   </main>
 </template>
 
 <script setup>
-import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
+import * as echarts from 'echarts'
 import { yixiuApi } from './src/api/yixiuWeb.js'
 import { createOverviewFromMock, mockAgents, mockUser } from './src/data/yixiuMock.js'
+import EChart from './src/components/EChart.vue'
 
 const navItems = [
   { key: 'home', label: '首页', title: '综合工作台', icon: 'dashboard' },
@@ -1288,6 +1476,35 @@ let speechRecognition = null
 const selectedTask = ref(null)
 const selectedFile = ref(null)
 const selectedKnowledge = ref(null)
+const isKnowledgeEditing = ref(false)
+const knowledgeDraft = reactive({ title: '', content: '', equipment: '', model: '', tagsText: '', source: '' })
+const knowledgeSaveStatus = ref('')
+const kdAutoSaveTimer = ref(null)
+const kdVersions = ref([])
+const kdLinks = ref([])
+const kdCollaborators = ref([])
+const kdNewLink = reactive({ type: 'task', targetId: '', title: '' })
+const kdLinksComputed = computed(() => ({
+  tasks: kdLinks.value.filter(l => l.link_type === 'task'),
+  knowledge: kdLinks.value.filter(l => l.link_type === 'knowledge')
+}))
+const kdTasks = computed(() => kdLinksComputed.value.tasks)
+const kdKnowledgeLinks = computed(() => kdLinksComputed.value.knowledge)
+const knowledgeSaveText = computed(() => ({
+  unsaved: '未保存', editing: '编辑中...', saving: '保存中...', saved: '✅ 已自动保存', error: '❌ 保存失败', manualSaved: '✅ 已保存并生成版本'
+}[knowledgeSaveStatus.value] || ''))
+const knowledgeOutline = computed(() => {
+  const content = knowledgeDraft.content || ''
+  const lines = content.split('\n')
+  const result = []
+  for (const line of lines) {
+    const m = line.match(/^(#{1,4})\s+(.+)/)
+    if (m) {
+      result.push({ level: m[1].length, text: m[2].trim() })
+    }
+  }
+  return result
+})
 const toastText = ref('')
 const auditResult = ref('')
 const selectedAgentId = ref('')
@@ -1344,18 +1561,58 @@ const graphKindFilter = ref('all')
 const graphDepth = ref(2)
 const graphZoom = ref(1)
 const graphShowLabels = ref(false)
-const graphLayoutMode = ref('force')
+const graphLayoutMode = ref('grid')
 const graphRelationFilter = ref('all')
 const graphRelationTypes = ['包含', '对应', '导致', '检测', '形成方案', '引用', '提示风险', '沉淀案例', '支撑']
 const graphNodePositions = reactive({})
 const graphDragging = ref(null)
 const mapCanvasRef = ref(null)
+const graphChartRef = ref(null)
+let graphChartInstance = null
+let graphChartInitTimer = null
+const tryInitGraphChart = () => {
+  if (graphChartInstance) { updateGraphChart(); return }
+  if (!graphChartRef.value) {
+    if (graphChartInitTimer) return
+    graphChartInitTimer = setTimeout(() => {
+      graphChartInitTimer = null
+      tryInitGraphChart()
+    }, 150)
+    return
+  }
+  try {
+    graphChartInstance = echarts.init(graphChartRef.value)
+    graphChartInstance.setOption(buildGraphChartOption())
+    graphChartInstance.on('click', (params) => {
+      if (params.dataType === 'node') {
+        const node = graphNodes.value.find((n) => n.id === params.data.id)
+        if (node) selectGraphNode(node)
+      }
+    })
+    window.addEventListener('resize', handleGraphResize)
+  } catch (e) {
+    console.error('[graph] init failed:', e)
+  }
+}
+watch([knowledgePanel, isAuthenticated], () => {
+  if (knowledgePanel.value === 'network' && isAuthenticated.value) {
+    nextTick(tryInitGraphChart)
+  }
+}, { immediate: true })
+const graphLegendFiltered = ref({})
 const fileKeyword = ref('')
 const fileType = ref('all')
 const fileView = ref('card')
 const activeFolder = ref('全部文件')
 const selectedFileRow = ref('')
 const selectedGraphNode = ref(null)
+const tgSuggestion = ref({
+  title: '今日优先处理建议',
+  level: '高优先级',
+  content: '建议先处理高风险配电柜过热工单，再推进待复检任务，同时关注文件解析异常。',
+  tags: ['高风险', '配电柜', '过热', '待复检', '文件解析']
+})
+const graphCenterNode = ref(null)
 const knowledgeForm = reactive({ title: '', type: '历史故障案例', equipment: '', model: '', source: '', tagText: '', summary: '' })
 const knowledgeCorrections = reactive({})
 const operatorInput = ref('')
@@ -1366,7 +1623,7 @@ const operatorProfiles = {
     icon: 'dashboard',
     status: 'online',
     statusText: '在线',
-    welcome: '我是天工，负责统筹其他器灵，帮你盯住今日任务、系统状态和高风险异常。',
+    welcome: '我是天工，负责统筹其他 agent，帮你盯住今日任务、系统状态和高风险异常。',
     sampleAsk: '帮我看一下今天优先处理什么？',
     sampleAnswer: '建议先处理高风险配电柜过热工单，再推进待复检任务，同时关注文件解析异常。',
     quickTitle: '生成今日检修简报',
@@ -1506,7 +1763,6 @@ const quickActions = [
   { label: '联系现场负责人', desc: '发起协作沟通', icon: 'user', tone: 'violet', action: () => goStat({ page: 'tasks', panel: 'contacts' }) },
   { label: '个人检修记录', desc: '查看工作档案', icon: 'dashboard', tone: 'amber', action: () => activePage.value = 'profile' }
 ]
-const trendPoints = computed(() => overview.trend.map((value, index) => `${index * 100 + 24},${220 - value * 8}`).join(' '))
 const trendLabels = ['周一', '周二', '周三', '周四', '周五', '周六', '今天']
 const faultColors = ['#e15d50', '#e69a35', '#387dc2', '#8d68c7', '#6f8992']
 const knowledgeColors = ['#4f82c4', '#8b67c7', '#dc8a35', '#2b9383']
@@ -1600,14 +1856,105 @@ const taskRiskAnalysis = computed(() => countBy(tasks.value, (task) => task.seve
 const taskCategoryAnalysis = computed(() => countBy(tasks.value, (task) => task.equipment_category).slice(0, 5))
 const faultRankAnalysis = computed(() => countBy(tasks.value, (task) => task.fault_type).sort((a, b) => b.count - a.count).slice(0, 5))
 const taskTrendData = computed(() => overview.trend?.length ? overview.trend.slice(0, 7) : [3, 4, 2, 5, 4, 6, tasks.value.length])
-const taskTrendDots = computed(() => {
-  const max = Math.max(...taskTrendData.value, 1)
-  return taskTrendData.value.map((value, index) => ({ x: 34 + index * 44, y: 124 - value / max * 76 }))
-})
-const taskTrendPoints = computed(() => taskTrendDots.value.map((point) => `${point.x},${point.y}`).join(' '))
-const taskTrendAreaPoints = computed(() => `34,132 ${taskTrendPoints.value} ${taskTrendDots.value.at(-1)?.x || 298},132`)
 const taskTrendTotal = computed(() => taskTrendData.value.reduce((total, value) => total + Number(value || 0), 0))
 const taskTrendChange = computed(() => Number(taskTrendData.value.at(-1) || 0) - Number(taskTrendData.value.at(-2) || 0))
+
+// ===== ECharts 美化图表配置 =====
+const chartTheme = {
+  ink: '#172328', muted: '#68787e', line: '#e6ecee',
+  teal: '#16766f', tealDark: '#0f5854', blue: '#3979b8', amber: '#c8872e',
+  danger: '#b44c43', coral: '#d86657', violet: '#8062b5'
+}
+const statusColorMap = { pending: '#c8872e', in_progress: '#3979b8', review: '#8062b5', completed: '#16766f', paused: '#94a3b8', rejected: '#b44c43', overdue: '#d86657' }
+const riskColorMap = { low: '#6c9b72', medium: '#d79542', high: '#c95f5a', critical: '#b44c43' }
+const chartTooltip = { backgroundColor: 'rgba(23,35,40,.92)', borderWidth: 0, textStyle: { color: '#fff', fontSize: 12 }, extraCssText: 'border-radius:10px;box-shadow:0 6px 18px rgba(0,0,0,.18);' }
+
+// 首页：最近 7 天任务趋势（柱状 + 折线组合）
+const homeTrendOption = computed(() => ({
+  tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' }, ...chartTooltip },
+  legend: { data: ['任务处理量', '趋势'], top: 4, right: 6, icon: 'roundRect', itemWidth: 14, itemHeight: 8, textStyle: { color: chartTheme.muted, fontSize: 11 } },
+  grid: { left: 38, right: 18, top: 38, bottom: 28 },
+  xAxis: {
+    type: 'category', data: trendLabels, boundaryGap: true,
+    axisLine: { lineStyle: { color: chartTheme.line } }, axisTick: { show: false },
+    axisLabel: { color: chartTheme.muted, fontSize: 11 }
+  },
+  yAxis: { type: 'value', splitLine: { lineStyle: { color: chartTheme.line, type: 'dashed' } }, axisLabel: { color: chartTheme.muted, fontSize: 11 } },
+  series: [
+    {
+      name: '任务处理量', type: 'bar', data: overview.trend, barWidth: 22,
+      itemStyle: { borderRadius: [6, 6, 0, 0], color: { type: 'linear', x: 0, y: 0, x2: 0, y2: 1, colorStops: [{ offset: 0, color: '#5fa7c4' }, { offset: 1, color: '#c4dde3' }] } },
+      emphasis: { itemStyle: { color: { type: 'linear', x: 0, y: 0, x2: 0, y2: 1, colorStops: [{ offset: 0, color: '#4d96b6' }, { offset: 1, color: '#aed1d8' }] } } }
+    },
+    {
+      name: '趋势', type: 'line', data: overview.trend, smooth: true, symbol: 'circle', symbolSize: 7,
+      lineStyle: { color: chartTheme.teal, width: 3 },
+      itemStyle: { color: '#fff', borderColor: chartTheme.teal, borderWidth: 2.5 },
+      areaStyle: { color: { type: 'linear', x: 0, y: 0, x2: 0, y2: 1, colorStops: [{ offset: 0, color: 'rgba(22,118,111,.28)' }, { offset: 1, color: 'rgba(22,118,111,.02)' }] } }
+    }
+  ]
+}))
+
+// 首页：故障构成环形图
+const homeFaultOption = computed(() => ({
+  tooltip: { trigger: 'item', formatter: '{b}: {c}%', ...chartTooltip },
+  legend: { orient: 'vertical', right: 2, top: 'center', icon: 'circle', itemWidth: 9, itemHeight: 9, textStyle: { color: chartTheme.muted, fontSize: 11 } },
+  series: [{
+    type: 'pie', radius: ['46%', '70%'], center: ['36%', '50%'], avoidLabelOverlap: true,
+    itemStyle: { borderColor: '#fff', borderWidth: 2, borderRadius: 6 },
+    label: { show: true, formatter: '{d}%', color: chartTheme.ink, fontSize: 11, fontWeight: 'bold' },
+    labelLine: { length: 8, length2: 8 },
+    data: overview.faultDistribution.map((item, index) => ({ name: item.label, value: item.value, itemStyle: { color: faultColors[index] } }))
+  }]
+}))
+
+// 任务页：近 7 天任务趋势折线图
+const taskTrendOption = computed(() => ({
+  tooltip: { trigger: 'axis', ...chartTooltip },
+  grid: { left: 30, right: 16, top: 22, bottom: 24 },
+  xAxis: {
+    type: 'category', data: trendLabels, boundaryGap: false,
+    axisLine: { lineStyle: { color: chartTheme.line } }, axisTick: { show: false },
+    axisLabel: { color: chartTheme.muted, fontSize: 10 }
+  },
+  yAxis: { type: 'value', splitLine: { lineStyle: { color: chartTheme.line, type: 'dashed' } }, axisLabel: { color: chartTheme.muted, fontSize: 10 } },
+  series: [{
+    type: 'line', data: taskTrendData.value, smooth: true, symbol: 'circle', symbolSize: 7,
+    lineStyle: { color: '#2f7f8f', width: 3 },
+    itemStyle: { color: '#fff', borderColor: '#2f7f8f', borderWidth: 2.5 },
+    areaStyle: { color: { type: 'linear', x: 0, y: 0, x2: 0, y2: 1, colorStops: [{ offset: 0, color: 'rgba(47,135,148,.32)' }, { offset: 1, color: 'rgba(47,135,148,.02)' }] } },
+    markPoint: { symbol: 'pin', symbolSize: 38, data: [{ type: 'max', name: '峰值' }], itemStyle: { color: chartTheme.teal }, label: { color: '#fff', fontSize: 10 } }
+  }]
+}))
+
+// 任务页：任务状态占比（横向柱状图，可点击筛选）
+const taskStatusOption = computed(() => ({
+  tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' }, ...chartTooltip },
+  grid: { left: 52, right: 26, top: 10, bottom: 16 },
+  xAxis: { type: 'value', splitLine: { lineStyle: { color: chartTheme.line, type: 'dashed' } }, axisLabel: { color: chartTheme.muted, fontSize: 10 } },
+  yAxis: {
+    type: 'category', data: taskStatusAnalysis.value.map((i) => i.label),
+    axisLine: { lineStyle: { color: chartTheme.line } }, axisTick: { show: false },
+    axisLabel: { color: chartTheme.ink, fontSize: 11 }
+  },
+  series: [{
+    type: 'bar', barWidth: 14,
+    data: taskStatusAnalysis.value.map((i) => ({ value: i.count, key: i.key, itemStyle: { color: statusColorMap[i.key] || chartTheme.teal, borderRadius: [0, 7, 7, 0] } })),
+    label: { show: true, position: 'right', color: chartTheme.ink, fontSize: 11, fontWeight: 'bold' }
+  }]
+}))
+
+// 任务页：风险等级分布（环形图，可点击筛选）
+const taskRiskOption = computed(() => ({
+  tooltip: { trigger: 'item', formatter: '{b}: {c} 项 ({d}%)', ...chartTooltip },
+  legend: { orient: 'vertical', right: 2, top: 'center', icon: 'circle', itemWidth: 9, itemHeight: 9, textStyle: { color: chartTheme.muted, fontSize: 10 } },
+  series: [{
+    type: 'pie', radius: ['42%', '66%'], center: ['36%', '50%'],
+    itemStyle: { borderColor: '#fff', borderWidth: 2, borderRadius: 6 },
+    label: { show: true, formatter: '{c}', color: chartTheme.ink, fontSize: 10, fontWeight: 'bold' },
+    data: taskRiskAnalysis.value.map((i) => ({ name: i.label, value: i.count, key: i.key, itemStyle: { color: riskColorMap[i.key] || chartTheme.coral } }))
+  }]
+}))
 const priorityTasks = computed(() => tasks.value.filter((task) => task.severity === 'high' || task.status === 'review' || isTaskOverdue(task) || task.progress < 25).slice(0, 5))
 const taskEvents = computed(() => tasks.value.flatMap((task, index) => [
   { id: `${task.id}-create`, time: task.created_at, text: `${task.title} 已创建，负责人 ${task.assignee_name}` },
@@ -1782,7 +2129,7 @@ const graphKindMeta = {
   case: { text: '历史案例' },
   doc: { text: '技术资料', important: true }
 }
-const graphLegend = Object.entries(graphKindMeta).map(([kind, meta]) => ({ kind, label: meta.text }))
+const graphLegend = Object.entries(graphKindMeta).filter(([, meta]) => meta.important).map(([kind, meta]) => ({ kind, label: meta.text }))
 const cleanGraphLabel = (value, fallback) => {
   const text = String(value || fallback || '').replace(/[\[\]{}"']/g, '').replace(/\s+/g, ' ').trim()
   return text.length > 12 ? `${text.slice(0, 12)}…` : text
@@ -2117,22 +2464,360 @@ const resetGraphView = () => {
   Object.keys(graphNodePositions).forEach((key) => delete graphNodePositions[key])
 }
 const relayoutGraph = () => {
-  Object.keys(graphNodePositions).forEach((key) => delete graphNodePositions[key])
   selectedGraphNode.value = null
+  updateGraphChart()
 }
-const startGraphDrag = (node, event) => {
-  graphDragging.value = node.id
-  event.currentTarget.setPointerCapture?.(event.pointerId)
+const applyTgSuggestion = () => {
+  toast('已应用天工建议，正在跳转到高风险工单...')
+  activePage.value = 'tasks'
+  taskPanel.value = 'manage'
+  taskFilters.severity = 'high'
 }
-const dragGraphNode = (event) => {
-  if (!graphDragging.value || !mapCanvasRef.value) return
-  const rect = mapCanvasRef.value.getBoundingClientRect()
-  const x = Math.min(94, Math.max(6, (event.clientX - rect.left) / rect.width * 100))
-  const y = Math.min(92, Math.max(8, (event.clientY - rect.top) / rect.height * 100))
-  graphNodePositions[graphDragging.value] = { x, y }
+const toggleLegendFilter = (kind) => {
+  graphLegendFiltered.value = { ...graphLegendFiltered.value, [kind]: !graphLegendFiltered.value[kind] }
+  updateGraphChart()
 }
-const stopGraphDrag = () => {
-  graphDragging.value = null
+const graphColorPalette = {
+  equipment: '#3f7fa7',
+  model: '#8fc0d6',
+  part: '#45aeb0',
+  fault: '#d79542',
+  cause: '#cf6d45',
+  method: '#8b879f',
+  solution: '#6c9b72',
+  sop: '#2f5f88',
+  risk: '#c95f5a',
+  case: '#9a7858',
+  doc: '#7d95a8'
+}
+const buildGraphChartOption = () => {
+  const hiddenKinds = Object.entries(graphLegendFiltered.value).filter(([, v]) => v).map(([k]) => k)
+  const visibleNodes = graphNodes.value.filter((n) => !hiddenKinds.includes(n.kind))
+  const categories = Object.entries(graphKindMeta).map(([kind, meta]) => ({
+    name: meta.text,
+    itemStyle: { color: graphColorPalette[kind] }
+  }))
+  const isRadial = graphLayoutMode.value === 'grid'
+  const centerX = 300
+  const centerY = 260
+  const pseudoRand = (seed) => { const v = Math.sin(seed * 99.7) * 43758.5; return v - Math.floor(v) }
+  const center = graphCenterNode.value && visibleNodes.find((n) => n.id === graphCenterNode.value.id)
+  const similarity = (a, b) => {
+    if (!b || !center) return 0
+    let score = 0
+    if ((a.source?.id ?? 'a1') === (b.source?.id ?? 'b1')) score += 3
+    if (a.kind === b.kind) score += 2
+    const wa = String(a.label || '').toLowerCase()
+    const wb = String(b.label || '').toLowerCase()
+    const ta = new Set(wa.split(/[\s,，、/]+/).filter((s) => s.length > 1))
+    const tb = new Set(wb.split(/[\s,，、/]+/).filter((s) => s.length > 1))
+    let overlap = 0
+    ta.forEach((w) => { if (tb.has(w)) overlap++ })
+    score += overlap
+    return score
+  }
+  const scoreToRadius = (score) => {
+    if (score >= 5) return 60
+    if (score >= 3) return 150
+    if (score >= 1) return 260
+    return 380
+  }
+  const nodes = visibleNodes.map((node, i) => {
+    let x, y
+    if (isRadial) {
+      if (center && node.id === center.id) {
+        x = centerX; y = centerY
+      } else if (center) {
+        const score = similarity(node, center)
+        const radius = scoreToRadius(score) + (pseudoRand(i + 10) - 0.5) * 30
+        const angle = (i / Math.max(1, visibleNodes.length - 1)) * Math.PI * 2 + pseudoRand(i) * 0.5
+        x = centerX + Math.cos(angle) * radius
+        y = centerY + Math.sin(angle) * radius
+      } else {
+        if (i === 0) { x = centerX; y = centerY }
+        else {
+          const ringIdx = Math.ceil((i) / 8)
+          const inRingIdx = (i - 1) % 8
+          const angle = (inRingIdx / 8) * Math.PI * 2 + ringIdx * 0.3 + (pseudoRand(i) - 0.5) * 0.8
+          const radius = 80 * ringIdx + (pseudoRand(i + 50) - 0.5) * 40
+          x = centerX + Math.cos(angle) * radius
+          y = centerY + Math.sin(angle) * radius
+        }
+      }
+    }
+    return {
+      id: node.id,
+      name: node.label,
+      category: Object.keys(graphKindMeta).indexOf(node.kind),
+      symbolSize: 20,
+      x, y,
+      itemStyle: {
+        color: graphColorPalette[node.kind],
+        borderColor: selectedGraphNode.value?.id === node.id ? '#b88a44' : '#fff',
+        borderWidth: selectedGraphNode.value?.id === node.id ? 4 : 2,
+        shadowBlur: node.matched ? 20 : 8,
+        shadowColor: node.matched ? 'rgba(184,138,68,.5)' : 'rgba(0,0,0,.12)'
+      },
+      label: {
+        show: graphShowLabels.value || node.matched,
+        position: 'bottom',
+        distance: 6,
+        fontSize: 11,
+        color: '#29333a',
+        backgroundColor: 'rgba(255,255,255,.9)',
+        padding: [3, 7],
+        borderRadius: 999
+      },
+      depth: node.level
+    }
+  })
+  const kindOrder = ['equipment', 'model', 'part', 'fault', 'cause', 'method', 'solution', 'sop', 'risk', 'case', 'doc']
+  const sourceGroups = {}
+  visibleNodes.forEach((node) => {
+    const key = node.source?.id ?? 'misc'
+    if (!sourceGroups[key]) sourceGroups[key] = []
+    sourceGroups[key].push(node)
+  })
+  const links = []
+  if (isRadial && visibleNodes.length > 1) {
+    const centerId = center ? center.id : visibleNodes[0].id
+    visibleNodes.forEach((node) => {
+      if (node.id === centerId) return
+      links.push({
+        source: centerId,
+        target: node.id,
+        label: { show: false },
+        lineStyle: { color: graphColorPalette[node.kind], opacity: 0.4, width: 1, curveness: 0 }
+      })
+    })
+  } else {
+    Object.values(sourceGroups).forEach((group) => {
+      const sorted = [...group].sort((a, b) => kindOrder.indexOf(a.kind) - kindOrder.indexOf(b.kind))
+      for (let i = 0; i < sorted.length - 1; i++) {
+        const relName = graphRelationTypes[i % graphRelationTypes.length]
+        if (graphRelationFilter.value !== 'all' && graphRelationFilter.value !== relName) continue
+        links.push({
+          source: sorted[i].id,
+          target: sorted[i + 1].id,
+          label: { show: false, formatter: relName, fontSize: 10, color: '#8ba9b6' },
+          lineStyle: {
+            color: graphColorPalette[sorted[i].kind],
+            opacity: 0.55,
+            width: 1.5,
+            curveness: 0
+          }
+        })
+      }
+    })
+  }
+  return {
+    categories,
+    tooltip: {
+      trigger: 'item',
+      formatter: (params) => {
+        if (params.dataType === 'node') {
+          const d = params.data
+          return `<strong>${d.name}</strong><br/>类型: ${categories[d.category]?.name || '未知'}`
+        }
+        return ''
+      }
+    },
+    series: [{
+      type: 'graph',
+      layout: graphLayoutMode.value === 'circle' ? 'circular' : 'force',
+      roam: true,
+      draggable: true,
+      focusNodeAdjacency: true,
+      data: nodes,
+      links,
+      edgeSymbol: ['none', 'none'],
+      label: { show: false },
+      lineStyle: { curveness: 0 },
+      force: {
+        repulsion: 120,
+        edgeLength: [50, 120],
+        gravity: 0.08,
+        friction: 0.1,
+        layoutAnimation: true
+      },
+      circular: { rotateLabel: true },
+      emphasis: {
+        focus: 'adjacency',
+        lineStyle: { width: 3 },
+        itemStyle: { shadowBlur: 30, shadowColor: 'rgba(47,95,136,.5)' }
+      },
+      select: {
+        itemStyle: { borderColor: '#b88a44', borderWidth: 5, shadowBlur: 30, shadowColor: 'rgba(184,138,68,.4)' },
+        label: { show: true, fontSize: 13, fontWeight: 'bold' }
+      }
+    }]
+  }
+}
+const updateGraphChart = () => {
+  if (!graphChartInstance) return
+  graphChartInstance.setOption(buildGraphChartOption(), true)
+}
+const handleGraphResize = () => {
+  graphChartInstance?.resize()
+}
+watch([graphNodes, graphKindFilter, graphDepth, graphRelationFilter, graphLayoutMode, graphShowLabels, knowledgeKeyword], () => {
+  updateGraphChart()
+}, { deep: true })
+watch(selectedGraphNode, () => {
+  updateGraphChart()
+})
+const taskLinkedKnowledge = ref([])
+watch(selectedTask, async (task) => {
+  if (!task) { taskLinkedKnowledge.value = []; return }
+  try {
+    const result = await yixiuApi.linkedKnowledge('task', task.id)
+    taskLinkedKnowledge.value = result.items || []
+  } catch { taskLinkedKnowledge.value = [] }
+}, { immediate: true })
+
+// 知识库文档列表（从mock知识构建，支持协作元数据）
+const avatarColors = ['#2563EB', '#059669', '#D97706', '#DC2626', '#7C3AED', '#0891B2', '#DB2777', '#65A30D']
+const knowledgeDocs = ref([])
+const kbFilter = ref('all')
+const kbSearch = ref('')
+const showTemplatePicker = ref(false)
+const showTemplateLibrary = ref(false)
+const availableTemplates = ref([])
+
+const filteredKnowledgeDocs = computed(() => {
+  let docs = knowledgeDocs.value
+  if (kbFilter.value === 'mine') docs = docs.filter(d => d.collaborators?.some(c => c.role === 'owner'))
+  else if (kbFilter.value === 'starred') docs = docs.filter(d => d.starred)
+  else if (kbFilter.value === 'recent') docs = [...docs].sort((a, b) => (b.updated_at || '').localeCompare(a.updated_at || ''))
+  if (kbSearch.value) {
+    const kw = kbSearch.value.toLowerCase()
+    docs = docs.filter(d =>
+      (d.title || '').toLowerCase().includes(kw) ||
+      (d.content || '').toLowerCase().includes(kw) ||
+      (d.tags || []).some(t => t.toLowerCase().includes(kw))
+    )
+  }
+  return docs
+})
+
+const loadTemplates = async () => {
+  try {
+    const res = await yixiuApi.templates()
+    availableTemplates.value = res.templates || []
+  } catch {
+    availableTemplates.value = [
+      { id: 'tpl-blank', name: '空白文档', icon: '📝', category: '通用', description: '从零开始创建', skeleton: { content: '# 文档标题\n\n在此输入内容...' } },
+      { id: 'tpl-sop', name: '检修作业 SOP', icon: '📋', category: '检修流程', description: '标准作业流程模板', skeleton: { content: '# 检修作业 SOP\n\n## 安全确认\n- [ ] 停机断电\n\n## 作业步骤\n1. 检查\n2. 处置' } },
+      { id: 'tpl-fault', name: '故障排查报告', icon: '🔍', category: '故障分析', description: '故障排查过程记录', skeleton: { content: '# 故障排查报告\n\n## 故障现象\n\n## 排查过程\n\n## 处置措施' } },
+      { id: 'tpl-meeting', name: '检修会议纪要', icon: '📒', category: '协作沟通', description: '班组例会纪要', skeleton: { content: '# 会议纪要\n\n## 议题\n\n## 行动计划' } },
+      { id: 'tpl-safety', name: '安全操作规范', icon: '🛡️', category: '安全规范', description: '高风险作业规程', skeleton: { content: '# 安全操作规范\n\n## 防护用品\n- [ ] 安全帽\n\n## 安全流程' } }
+    ]
+  }
+}
+
+const loadKnowledgeDocs = () => {
+  const collaboratorPool = [
+    { name: '张三', role: 'owner', status: 'online' },
+    { name: '李四', role: 'editor', status: 'online' },
+    { name: '王五', role: 'editor', status: 'offline' },
+    { name: '赵宁', role: 'viewer', status: 'offline' },
+  ]
+  const docs = overview.value?.knowledge || []
+  const mockDocs = [
+    {
+      id: 'kb-sop-001',
+      title: 'CG-125 发动机检修作业 SOP',
+      type: 'SOP', category: '检修流程',
+      content: '# 发动机检修作业 SOP\n## 基本信息\n- 设备：CG-125 摩托车发动机\n- 型号：MTR-CG125-12\n## 安全确认\n- 停机断电\n- 验电挂牌\n- 穿戴劳保用品\n## 作业步骤\n1. 外观检查\n2. 参数测量\n3. 故障定位\n4. 维修处置',
+      tags: ['发动机', 'SOP', '异响'],
+      collaborators: [collaboratorPool[0], collaboratorPool[1], collaboratorPool[2]],
+      starred: true,
+      updated_at: '2026-08-06 16:30',
+    },
+    {
+      id: 'kb-fault-001',
+      title: '配电柜过热故障排查报告',
+      type: '故障案例', category: '故障分析',
+      content: '# 故障排查报告\n## 故障现象\n配电柜PD-ZK-320-07运行中温度异常升高，超过报警阈值。\n## 排查过程\n1. 红外测温确认发热点位于母排连接处\n2. 检查螺栓紧固力矩，发现松动\n3. 热成像分析确认接触电阻增大\n## 处置措施\n停电检修，重新紧固螺栓，涂抹导电膏，复测温度正常。',
+      tags: ['配电柜', '过热', '案例'],
+      collaborators: [collaboratorPool[0], collaboratorPool[1]],
+      starred: false,
+      updated_at: '2026-08-05 14:20',
+    },
+    {
+      id: 'kb-safety-001',
+      title: '高压电气设备安全操作规范',
+      type: '安全规范', category: '安全规范',
+      content: '# 安全操作规范\n## 适用范围\n适用于10kV及以上高压电气设备的检修与维护作业。\n## 防护用品\n- 绝缘手套\n- 绝缘鞋\n- 安全帽\n- 防电弧服\n## 安全流程\n1. 办理工作票\n2. 验电\n3. 装设接地线\n4. 悬挂标示牌',
+      tags: ['安全', '高压', '电气'],
+      collaborators: [collaboratorPool[0]],
+      starred: true,
+      updated_at: '2026-08-04 09:15',
+    },
+    {
+      id: 'kb-meeting-001',
+      title: '8月检修班组例会纪要',
+      type: '会议纪要', category: '协作沟通',
+      content: '# 检修班组例会纪要\n## 时间\n2026年8月3日 14:00\n## 参会人员\n李宗泽、李志勇、唐忆罗、陈程\n## 议题\n1. 本周检修任务进展\n2. 配电柜过热工单风险确认\n3. CG-125发动机异响排查方案\n## 行动计划\n- 李宗泽负责配电柜停机检修\n- 李志勇跟进发动机拆检',
+      tags: ['会议', '纪要'],
+      collaborators: [collaboratorPool[0], collaboratorPool[1], collaboratorPool[2], collaboratorPool[3]],
+      starred: false,
+      updated_at: '2026-08-03 16:00',
+    },
+    {
+      id: 'kb-manual-001',
+      title: '液压千斤顶使用维护手册',
+      type: '维修手册', category: '通用',
+      content: '# 液压千斤顶使用维护手册\n## 型号\nYZ-50T 液压千斤顶\n## 使用前检查\n1. 检查油位是否正常\n2. 检查活塞有无划伤\n3. 确认底座稳固\n## 维护保养\n- 每月更换液压油\n- 每季度检查密封圈\n- 每年校验压力表',
+      tags: ['液压', '千斤顶', '手册'],
+      collaborators: [],
+      starred: false,
+      updated_at: '2026-08-02 10:30',
+    },
+    {
+      id: 'kb-sop-002',
+      title: '点火线圈更换作业指导书',
+      type: 'SOP', category: '检修流程',
+      content: '# 点火线圈更换 SOP\n## 适用设备\nDLI-001 点火线圈\n## 准备工具\n- 扭力扳手\n- 绝缘手套\n- 万用表\n## 作业步骤\n1. 断开蓄电池负极\n2. 拆卸旧点火线圈\n3. 清洁安装面\n4. 安装新线圈，紧固至规定力矩\n5. 连接线束，复测电阻值',
+      tags: ['点火线圈', 'SOP'],
+      collaborators: [collaboratorPool[0], collaboratorPool[2]],
+      starred: false,
+      updated_at: '2026-08-01 11:45',
+    },
+  ]
+  knowledgeDocs.value = [...mockDocs, ...docs.map((k, idx) => ({
+    ...k,
+    collaborators: idx < 3 ? collaboratorPool.slice(0, 1 + (idx % 3)) : [],
+    starred: idx % 4 === 0,
+  }))]
+}
+
+const createDocFromTemplate = async (tpl) => {
+  showTemplatePicker.value = false
+  showTemplateLibrary.value = false
+  const content = tpl?.skeleton?.content || '# 新文档\n\n在此输入内容...'
+  const title = tpl.name === '空白文档' ? '新文档' : `${tpl.name} - 待命名`
+  let id = `kb-new-${Date.now()}`
+  try {
+    const saved = await yixiuApi.updateKnowledge({
+      title, summary: `基于「${tpl.name}」模板创建的文档`,
+      content, type: tpl.category || '技术资料', category: tpl.category || '通用',
+      equipment: '通用', model: '', tags: [], source: tpl.name,
+    })
+    id = saved.id || id
+  } catch {}
+  const newDoc = {
+    id, title,
+    type: tpl.category || '技术资料', category: tpl.category || '通用',
+    content, tags: [], source: tpl.name,
+    updated_at: new Date().toLocaleString('zh-CN'),
+    collaborators: [{ name: user.name || '我', role: 'owner', status: 'online' }],
+    starred: false,
+  }
+  knowledgeDocs.value.unshift(newDoc)
+  openKnowledge(newDoc)
+  startKnowledgeEdit()
+  toast(`已基于「${tpl.name}」创建文档`)
 }
 const isTaskOverdue = (task) => task.status !== 'completed' && new Date(task.due_at).getTime() < Date.now()
 const remainingTime = (task) => {
@@ -2280,11 +2965,161 @@ const openMessageCard = (card) => {
 const openTask = (task) => {
   selectedTask.value = task
 }
-const openKnowledge = (item) => {
+const openKnowledge = async (item) => {
   selectedKnowledge.value = item
+  isKnowledgeEditing.value = false
+  knowledgeSaveStatus.value = ''
+  try {
+    const [versions, links, collabs] = await Promise.allSettled([
+      yixiuApi.knowledgeVersions(item.id).then(r => r.versions || []),
+      yixiuApi.knowledgeLinks(item.id).then(r => r.links || []),
+      yixiuApi.knowledgeCollaborators(item.id).then(r => r.collaborators || []),
+    ])
+    kdVersions.value = versions.status === 'fulfilled' ? versions.value : []
+    kdLinks.value = links.status === 'fulfilled' ? links.value : []
+    kdCollaborators.value = collabs.status === 'fulfilled' ? collabs.value : (item.collaborators || [])
+  } catch {
+    kdVersions.value = []; kdLinks.value = []
+    kdCollaborators.value = item.collaborators || []
+  }
+}
+const knowledgeFullLines = (item) => {
+  const lines = flattenKnowledgeText(item.content || item.summary)
+  if (lines.length) return lines
+  const content = String(item.content || item.summary || '')
+  if (content) return content.split('\n').map(s => s.trim()).filter(Boolean)
+  return ['该资料已纳入一修知识库，可编辑完善内容或作为智能检索依据。']
+}
+const closeKnowledgeDetail = () => {
+  if (isKnowledgeEditing.value && knowledgeDraft.content !== String(selectedKnowledge.value?.content || '')) {
+    if (!window.confirm('正在编辑中，是否关闭？未保存内容将丢失。')) return
+  }
+  selectedKnowledge.value = null
+  isKnowledgeEditing.value = false
+}
+const startKnowledgeEdit = () => {
+  const k = selectedKnowledge.value || {}
+  const tags = k.tags || []
+  knowledgeDraft.title = k.title || ''
+  knowledgeDraft.content = flattenKnowledgeText(k.content || k.summary).join('\n') || String(k.content || k.summary || '')
+  knowledgeDraft.equipment = k.equipment || '通用'
+  knowledgeDraft.model = k.model || ''
+  knowledgeDraft.tagsText = Array.isArray(tags) ? tags.join(', ') : String(tags || '')
+  knowledgeDraft.source = k.source || '技术资料库'
+  isKnowledgeEditing.value = true
+  knowledgeSaveStatus.value = 'unsaved'
+}
+const cancelKnowledgeEdit = () => {
+  const hasChange = knowledgeDraft.content !== String(selectedKnowledge.value?.content || '')
+  if (hasChange && !window.confirm('有未保存修改，确定退出编辑？')) return
+  isKnowledgeEditing.value = false
+  knowledgeSaveStatus.value = ''
+}
+const onKnowledgeContentInput = () => {
+  knowledgeSaveStatus.value = 'editing'
+  if (kdAutoSaveTimer.value) clearTimeout(kdAutoSaveTimer.value)
+  kdAutoSaveTimer.value = setTimeout(() => saveKnowledgeContent(true), 1500)
+}
+const insertMarkdown = (type) => {
+  const map = { heading: '\n## ', bold: '**加粗内容**', list: '\n- ', todo: '\n- [ ] ', table: '\n| 设备 | 参数 | 检测值 |\n|------|------|--------|\n| CG125 | 气门间隙 | 0.08mm |\n' }
+  knowledgeDraft.content += map[type] || ''
+  onKnowledgeContentInput()
+}
+const saveKnowledgeContent = async (isAuto = false) => {
+  if (!selectedKnowledge.value) return
+  knowledgeSaveStatus.value = 'saving'
+  const tags = knowledgeDraft.tagsText.split(/[,，]/).map(s => s.trim()).filter(Boolean)
+  try {
+    const result = await yixiuApi.saveKnowledgeContent(selectedKnowledge.value.id, {
+      title: knowledgeDraft.title, content: knowledgeDraft.content,
+      equipment: knowledgeDraft.equipment, model: knowledgeDraft.model, tags,
+      editor_name: user.name || '当前用户', change_summary: isAuto ? '自动保存' : '手动保存',
+    })
+    Object.assign(selectedKnowledge.value, result)
+    knowledgeSaveStatus.value = isAuto ? 'saved' : 'manualSaved'
+    if (!isAuto) toast('已保存并生成版本快照')
+    // 刷新版本列表
+    try { kdVersions.value = (await yixiuApi.knowledgeVersions(selectedKnowledge.value.id)).versions || [] } catch {}
+  } catch (e) {
+    knowledgeSaveStatus.value = 'error'
+    toast('保存失败：' + (e.message || '请检查服务连接'))
+  }
+}
+const saveKnowledgeNow = (stayInEdit = false) => {
+  if (kdAutoSaveTimer.value) { clearTimeout(kdAutoSaveTimer.value); kdAutoSaveTimer.value = null }
+  saveKnowledgeContent(false).then(() => { if (!stayInEdit) isKnowledgeEditing.value = false })
+}
+const addKdLink = async () => {
+  if (!kdNewLink.targetId || !kdNewLink.title) { toast('请填写ID和标题'); return }
+  try {
+    await yixiuApi.addKnowledgeLink(selectedKnowledge.value.id, {
+      link_type: kdNewLink.type, target_id: kdNewLink.targetId, target_title: kdNewLink.title,
+    })
+    kdNewLink.targetId = ''; kdNewLink.title = ''
+    kdLinks.value = (await yixiuApi.knowledgeLinks(selectedKnowledge.value.id)).links || []
+    toast('关联已添加')
+  } catch (e) { toast('关联失败：' + (e.message || '')) }
+}
+const removeKdLink = async (linkId) => {
+  if (!window.confirm('移除此关联？')) return
+  try {
+    await yixiuApi.removeKnowledgeLink(selectedKnowledge.value.id, linkId)
+    kdLinks.value = kdLinks.value.filter(l => l.id !== linkId)
+    toast('已移除')
+  } catch (e) { toast('移除失败') }
+}
+const restoreKdVersion = async (ver) => {
+  if (!window.confirm(`恢复到 v${ver.version}？当前内容将被替换并生成新版本。`)) return
+  try {
+    const result = await yixiuApi.restoreKnowledgeVersion(selectedKnowledge.value.id, ver.id)
+    if (selectedKnowledge.value) {
+      selectedKnowledge.value.content = ver.content_snapshot
+      selectedKnowledge.value.title = ver.title_snapshot || selectedKnowledge.value.title
+    }
+    kdVersions.value = (await yixiuApi.knowledgeVersions(selectedKnowledge.value.id)).versions || []
+    toast(`已恢复到 v${ver.version}，当前版本 v${result.new_version}`)
+  } catch (e) { toast('恢复失败') }
+}
+const inviteCollaborator = async () => {
+  const name = window.prompt('邀请协作成员，输入姓名或工号：')
+  if (!name) return
+  const role = window.prompt('设置角色（owner / editor / viewer）', 'editor') || 'editor'
+  try {
+    await yixiuApi.addKnowledgeCollaborator(selectedKnowledge.value.id, { name, role, status: 'online' })
+    kdCollaborators.value = await yixiuApi.knowledgeCollaborators(selectedKnowledge.value.id).then(r => r.collaborators || [])
+  } catch {
+    kdCollaborators.value.push({ name, role, status: 'online' })
+  }
+  toast(`已邀请 ${name} 加入协作`)
+}
+const submitKnowledgeReview = async () => {
+  const k = selectedKnowledge.value || {}
+  try {
+    await yixiuApi.updateKnowledge({
+      title: k.title, summary: knowledgeFullLines(k)[0] || '',
+      content: flattenKnowledgeText(k.content).join('\n') || String(k.content || ''),
+      equipment: k.equipment, model: k.model, tags: k.tags || [], source: k.source || '技术资料库编辑提交',
+    })
+    toast('已提交到知识审核队列')
+  } catch (e) { toast('提交失败：' + (e.message || '')) }
+}
+const openTaskById = (taskId) => {
+  if (!overview.value?.tasks) { toast('任务数据未加载'); return }
+  const task = overview.value.tasks.find(t => String(t.id) === String(taskId))
+  if (task) {
+    selectedKnowledge.value = null
+    selectedTask.value = task
+    activePage.value = 'tasks'
+  } else {
+    toast('未找到该任务')
+  }
 }
 const selectGraphNode = (node) => {
   selectedGraphNode.value = node
+  if (node) {
+    graphCenterNode.value = node
+    tryInitGraphChart()
+  }
 }
 const previewFile = (file) => {
   if (!file) return toast('暂无可预览文件')
@@ -2448,10 +3283,6 @@ const removeAssistantFile = (localId) => {
   releaseFileUrl(assistantFiles.value.find((file) => file.localId === localId))
   assistantFiles.value = assistantFiles.value.filter((file) => file.localId !== localId)
 }
-const resizeOperator = (delta) => {
-  operatorWidth.value = Math.min(520, Math.max(300, operatorWidth.value + delta))
-  localStorage.setItem('yixiu-operator-width', String(operatorWidth.value))
-}
 const startOperatorResize = (event) => {
   event.preventDefault()
   const startX = event.clientX
@@ -2604,6 +3435,7 @@ const saveRecheck = async (task) => {
 }
 const loadKnowledge = async () => {
   knowledge.value = await yixiuApi.knowledge(knowledgeKeyword.value)
+  loadKnowledgeDocs()
 }
 const saveKnowledge = async () => {
   try {
@@ -2736,6 +3568,72 @@ const sendOperatorPrompt = async (prompt) => {
     return
   }
   try {
+    if (operatorProfile.value.id === 'tiangong') {
+      const loadingMsg = { id: `loading-${Date.now()}`, page: sourcePage, role: 'assistant', text: '天工正在感知系统状态…', loading: true }
+      operatorMessages.value.push(loadingMsg)
+      const host = `http://${window.location.hostname || '127.0.0.1'}:5000`
+      
+      // 只调用 /miniclaw/chat，让天工在 ReAct 循环中自主决定：
+      // 1. 先调什么工具了解系统（system_overview / maintenance_task / knowledge_search 等）
+      // 2. 基于了解到的真实数据，决定是否输出 [UI_PLAN] 遥控界面
+      const chatPayload = await fetch(`${host}/miniclaw/chat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: value, conversation_id: `tiangong-${sourcePage}` })
+      }).then(r => r.json().catch(() => ({})))
+      
+      const data = chatPayload.data || chatPayload || {}
+      const reply = data.reply || '天工暂无回复'
+      const toolCalls = data.tool_calls || 0
+      const steps = Array.isArray(data.steps) ? data.steps : []
+      
+      // 从天工回复中解析 [UI_PLAN]（天工自己决定是否需要）
+      let uiPlan = null
+      const planMatch = reply.match(/\[UI_PLAN\]([\s\S]*?)\[\/UI_PLAN\]/)
+      if (planMatch) {
+        const raw = planMatch[1].trim()
+        const fb = raw.indexOf('['), lb = raw.lastIndexOf(']')
+        if (fb >= 0 && lb > fb) {
+          try { uiPlan = JSON.parse(raw.slice(fb, lb + 1)) } catch (e) { uiPlan = null }
+        }
+      }
+      
+      // 去掉 [UI_PLAN] 标记后的纯文本回复
+      const cleanReply = reply.replace(/\[UI_PLAN\][\s\S]*?\[\/UI_PLAN\]/, '').trim()
+      
+      const uiCount = Array.isArray(uiPlan) && uiPlan.length ? uiPlan.filter((s) => s.action !== 'done').length : 0
+      // 合并工具调用步骤和 UI 操作步骤
+      const uiSteps = Array.isArray(uiPlan) && uiPlan.length
+        ? uiPlan.filter((s) => s.action !== 'done').map((s) => ({ type: 'tool_call', tool: s.action, args: s, content: s.action === 'navigate' ? `→ ${TG_AGENT_NAMES[s.agent] || s.agent}` : (s.text || '') }))
+        : steps
+      
+      // 替换 loading 消息为真实回复
+      const loadIdx = operatorMessages.value.findIndex((m) => m.id === loadingMsg.id)
+      const finalMsg = {
+        id: loadIdx >= 0 ? loadingMsg.id : `assistant-${Date.now()}`,
+        page: sourcePage,
+        role: 'assistant',
+        text: cleanReply,
+        steps: uiSteps,
+        toolCalls: uiCount || toolCalls
+      }
+      if (loadIdx >= 0) operatorMessages.value.splice(loadIdx, 1, finalMsg)
+      else operatorMessages.value.push(finalMsg)
+      
+      if (uiPlan && uiPlan.length) {
+        toast(`天工自主探索后规划了 ${uiCount} 步操作，正在执行…`)
+      } else {
+        toast(`天工完成 ${toolCalls} 次工具调用`)
+      }
+      
+      if (Array.isArray(uiPlan) && uiPlan.length && !tgRunning.value) {
+        await executeUIPlan(uiPlan)
+        toast('操作完成，3秒后返回首页…')
+        await tgSleep(3000)
+        activePage.value = 'home'
+      }
+      return
+    }
     const response = await yixiuApi.assistantChat({ message: value, fileIds: [], agent: operatorProfile.value.name, page: sourcePage })
     operatorMessages.value.push({ id: `assistant-${Date.now()}`, page: sourcePage, role: 'assistant', text: response.response })
     toast(`${operatorProfile.value.name}已结合当前数据给出建议`)
@@ -2744,7 +3642,211 @@ const sendOperatorPrompt = async (prompt) => {
   }
 }
 
+const stepLabel = (type) => ({ thought: '思考', action: '行动', tool_call: '工具', observation: '观察' }[type] || type)
+const traceResult = (step) => {
+  const r = step.tool_result
+  if (!r) return ''
+  return r.success ? `结果：${r.output}` : `失败：${r.error}`
+}
+
+// ===== 天工 UI 遥控 =====
+const TG_PAGE_MAP = {
+  tiangong: { page: 'home' },
+  guanwei: { page: 'search' },
+  zhiju: { page: 'tasks', panel: 'manage' },
+  heming: { page: 'tasks', panel: 'contacts' },
+  mingjian: { page: 'tasks', panel: 'recheck' },
+  bowen: { page: 'knowledge' }
+}
+const TG_AGENT_NAMES = { tiangong: '天工', guanwei: '观微', zhiju: '执矩', heming: '和鸣', mingjian: '明鉴', bowen: '博闻' }
+const tgCursor = ref({ x: 0, y: 0, visible: false, label: '' })
+const tgRunning = ref(false)
+const tgSleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
+
+function tgAnimate(fromX, fromY, toX, toY, duration = 400) {
+  return new Promise((resolve) => {
+    const start = performance.now()
+    function step(now) {
+      const elapsed = now - start
+      const t = Math.min(elapsed / duration, 1)
+      const ease = t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t
+      const x = fromX + (toX - fromX) * ease
+      const y = fromY + (toY - fromY) * ease
+      tgCursor.value.x = x
+      tgCursor.value.y = y
+      if (t < 1) requestAnimationFrame(step)
+      else resolve()
+    }
+    requestAnimationFrame(step)
+  })
+}
+
+async function tgMoveTo(el, label = '') {
+  if (!el) return
+  const rect = el.getBoundingClientRect()
+  const targetX = rect.left + rect.width / 2
+  const targetY = rect.top + rect.height / 2
+  const startX = tgCursor.value.x || targetX
+  const startY = tgCursor.value.y || targetY
+  tgCursor.value.visible = true
+  tgCursor.value.label = label
+  await nextTick()
+  if (startX !== targetX || startY !== targetY) {
+    await tgAnimate(startX, startY, targetX, targetY, 450)
+  } else {
+    tgCursor.value.x = targetX
+    tgCursor.value.y = targetY
+    await nextTick()
+  }
+  await tgSleep(400)
+}
+
+async function tgNavigate(agent) {
+  const target = TG_PAGE_MAP[agent]
+  if (!target) return
+  const navTargetX = 90
+  const navTargetY = 240
+  const startX = tgCursor.value.x || navTargetX
+  const startY = tgCursor.value.y || navTargetY
+  tgCursor.value.visible = true
+  tgCursor.value.label = `→ ${TG_AGENT_NAMES[agent] || agent}`
+  await nextTick()
+  if (startX !== navTargetX || startY !== navTargetY) {
+    await tgAnimate(startX, startY, navTargetX, navTargetY, 400)
+  }
+  await tgSleep(500)
+  activePage.value = target.page
+  if (target.panel) taskPanel.value = target.panel
+  await nextTick()
+  await tgSleep(1200)
+}
+
+async function tgType(text) {
+  console.log('[天工遥控] tgType 开始, 文本长度:', text.length, '内容:', text.substring(0, 30))
+  let inputEl = null
+  for (let i = 0; i < 10; i++) {
+    inputEl = document.querySelector('.ask-box input')
+    if (inputEl) break
+    await tgSleep(300)
+  }
+  if (!inputEl) {
+    console.warn('[天工遥控] 未找到输入框')
+    return
+  }
+  console.log('[天工遥控] tgMoveTo 开始')
+  await tgMoveTo(inputEl, '输入')
+  console.log('[天工遥控] tgMoveTo 完成, 当前input值:', inputEl.value)
+  inputEl.focus()
+  // 清空输入框
+  inputEl.value = ''
+  // 不立即同步 operatorInput，避免触发 Vue 重新渲染
+  console.log('[天工遥控] 清空后 input值:', inputEl.value)
+  await nextTick()
+  await tgSleep(200)
+  // 逐字打字，每次都重新获取最新的 input 元素
+  for (let i = 0; i < text.length; i++) {
+    const char = text[i]
+    // 每3个字重新获取一次元素，避免 DOM 被替换
+    if (i % 3 === 0) {
+      inputEl = document.querySelector('.ask-box input')
+      if (!inputEl) { console.warn('[天工遥控] 第' + (i+1) + '字时丢失输入框'); break }
+      inputEl.focus()
+    }
+    inputEl.value += char
+    // 只在最后同步 Vue ref，避免频繁触发重新渲染
+    if (i === text.length - 1 || i % 5 === 4) {
+      operatorInput.value = inputEl.value
+    }
+    if (i < 3 || i === text.length - 1) {
+      console.log(`[天工遥控] 打字第${i+1}字: "${char}", input值: "${inputEl.value}"`)
+    }
+    await tgSleep(55)
+  }
+  // 最终同步
+  inputEl = document.querySelector('.ask-box input')
+  if (inputEl) {
+    console.log('[天工遥控] 打字完成, input值:', inputEl.value)
+    operatorInput.value = inputEl.value
+    // 触发一次 input 事件确保框架更新
+    inputEl.dispatchEvent(new Event('input', { bubbles: true }))
+    console.log('[天工遥控] 触发input事件后, operatorInput:', operatorInput.value)
+  }
+  await tgSleep(300)
+}
+
+async function sendRemotePrompt(value) {
+  const sourcePage = activePage.value
+  operatorMessages.value.push({ id: `user-${Date.now()}`, page: sourcePage, role: 'user', text: value })
+  operatorInput.value = ''
+  try {
+    const response = await yixiuApi.assistantChat({ message: value, fileIds: [], agent: operatorProfile.value.name, page: sourcePage })
+    operatorMessages.value.push({ id: `assistant-${Date.now()}`, page: sourcePage, role: 'assistant', text: response.response })
+  } catch (error) {
+    operatorMessages.value.push({ id: `assistant-${Date.now()}`, page: sourcePage, role: 'assistant', text: `（${operatorProfile.value.name}暂未响应：${error.message || ''}）` })
+  }
+}
+
+async function tgClickSend() {
+  const btn = document.querySelector('.ask-box button[type="submit"]')
+  const inputEl = document.querySelector('.ask-box input')
+  if (btn) await tgMoveTo(btn, '发送')
+  // 优先从 DOM 获取最新值
+  const value = inputEl ? inputEl.value : operatorInput.value
+  operatorInput.value = ''
+  if (inputEl) {
+    inputEl.value = ''
+    inputEl.dispatchEvent(new Event('input', { bubbles: true }))
+  }
+  await sendRemotePrompt(value)
+}
+
+async function executeUIPlan(steps) {
+  console.log('[天工遥控] executeUIPlan 开始, 步骤数:', steps.length)
+  tgRunning.value = true
+  const totalSteps = steps.filter((s) => s.action !== 'done').length
+  let stepIndex = 0
+  try {
+    for (const step of steps) {
+      if (!tgRunning.value) { console.log('[天工遥控] tgRunning 为 false, 循环终止'); break }
+      const a = step.action
+      stepIndex++
+      const progressText = `步骤 ${stepIndex}/${totalSteps}`
+      console.log(`[天工遥控] 执行 ${progressText}: ${a}`, step)
+      try {
+        if (a === 'navigate') {
+          toast(`${progressText}：切换到「${TG_AGENT_NAMES[step.agent] || step.agent}」`)
+          await tgNavigate(step.agent)
+          await tgSleep(800)
+        } else if (a === 'type') {
+          toast(`${progressText}：输入指令`)
+          await tgType(step.text || '')
+          await tgSleep(500)
+        } else if (a === 'click_send') {
+          toast(`${progressText}：发送指令`)
+          await tgClickSend()
+        } else if (a === 'wait') {
+          toast(`${progressText}：等待响应 ${step.seconds || 2}s`)
+          await tgSleep((step.seconds || 2) * 1000)
+        } else if (a === 'done') {
+          toast('操作完成')
+          break
+        }
+      } catch (err) {
+        console.warn('[天工遥控] 步骤失败:', a, err)
+        toast(`步骤「${a}」失败，继续下一步`)
+      }
+    }
+  } finally {
+    await tgSleep(1500)
+    tgCursor.value = { ...tgCursor.value, visible: false }
+    tgRunning.value = false
+  }
+}
+
 const playBootAnimation = async () => {
+  // 安全网：3.5秒后强制关闭启动画面，防止动画卡住
+  const forceClose = window.setTimeout(() => { showSplash.value = false }, 3500)
+  
   await nextTick()
   await new Promise((resolve) => window.requestAnimationFrame(resolve))
   const screen = bootScreenRef.value
@@ -2752,6 +3854,7 @@ const playBootAnimation = async () => {
   const bootLogo = bootLogoRef.value
   const brandLogo = brandLogoRef.value
   if (!screen || !mark || !bootLogo || !brandLogo || !mark.animate || !screen.animate) {
+    window.clearTimeout(forceClose)
     window.setTimeout(() => { showSplash.value = false }, 1400)
     return
   }
@@ -2789,6 +3892,7 @@ const playBootAnimation = async () => {
   })
 
   await Promise.allSettled([markMotion.finished, screenFade.finished])
+  window.clearTimeout(forceClose)
   showSplash.value = false
 }
 
@@ -2799,8 +3903,11 @@ onMounted(async () => {
     else {
       applyAccountProfile(account)
       await startWorkspace()
+      loadTemplates()
+      loadKnowledgeDocs()
     }
   } else showSplash.value = false
+  nextTick(() => { tryInitGraphChart() })
 })
 onBeforeUnmount(() => {
   if (clockTimer) window.clearInterval(clockTimer)
@@ -2812,6 +3919,9 @@ onBeforeUnmount(() => {
   if (chatRecorder?.state === 'recording') chatRecorder.stop()
   chatRecordStream?.getTracks().forEach((track) => track.stop())
   chatObjectUrls.forEach((url) => URL.revokeObjectURL(url))
+  if (graphChartInitTimer) { clearTimeout(graphChartInitTimer); graphChartInitTimer = null }
+  if (graphChartInstance) { graphChartInstance.dispose(); graphChartInstance = null }
+  window.removeEventListener('resize', handleGraphResize)
   releaseFileUrls(searchFiles.value)
   releaseFileUrls(assistantFiles.value)
 })
@@ -2838,18 +3948,16 @@ button { cursor: pointer; }
 .boot-mark img { position: relative; z-index: 2; width: 300px; height: 126px; object-fit: contain; border-radius: 12px; opacity: 0; animation: bootLogoIn .72s ease .18s forwards; will-change: opacity, transform; }
 @keyframes bootLogoIn { from { opacity: 0; transform: scale(.985); } to { opacity: 1; transform: scale(1); } }
 @keyframes bootFlow { 0% { opacity: 0; transform: translate3d(-16vw,0,0); } 18% { opacity: .55; } 100% { opacity: 0; transform: translate3d(16vw,0,0); } }.side-nav { display: flex; flex-direction: column; gap: 18px; padding: 18px 14px; border-right: 1px solid #ddd8d3; background: linear-gradient(180deg, #fbfaf8, #f4f2ef); }
-.brand, .side-nav nav button, .collapse-btn { width: 100%; border: 0; border-radius: 12px; background: transparent; color: #484336; }
-.brand { display: grid; place-items: center; min-height: 88px; padding: 6px 4px; overflow: visible; }
-.brand img { display: block; width: 176px; height: 74px; object-fit: contain; border-radius: 12px; background: transparent; filter: drop-shadow(0 8px 12px rgba(17,17,16,.05)); }
-.app-shell.collapsed .brand { width: 54px; min-height: 76px; padding: 6px 0; justify-self: center; }
-.app-shell.collapsed .brand img { width: 50px; height: 50px; object-fit: contain; object-position: center; transform: none; }
+.side-nav nav button, .collapse-btn { width: 100%; border: 0; border-radius: 12px; background: transparent; color: #484336; }
+.brand { display: block; width: 176px; height: 74px; object-fit: contain; cursor: pointer; background: transparent; filter: drop-shadow(0 8px 12px rgba(17,17,16,.05)); }
+.app-shell.collapsed .brand { width: 50px; height: 50px; object-fit: contain; object-position: center; transform: none; justify-self: center; }
 .side-nav nav b { display: block; }
 .side-nav nav { display: grid; gap: 8px; }
 .side-nav nav button { display: flex; align-items: center; gap: 12px; min-height: 42px; padding: 0 12px; font-weight: 800; }
 .nav-icon { width: 26px; height: 26px; display: grid; place-items: center; flex-shrink: 0; border-radius: 9px; background: rgba(17,17,16,.05); color: #484336; }
-.side-nav nav button.active, .side-nav nav button:hover { background: #111110; color: #EEECEA; }
-.side-nav nav button.active .nav-icon, .side-nav nav button:hover .nav-icon { background: rgba(238,236,234,.12); color: #EEECEA; }
-.collapse-btn { margin-top: auto; min-height: 38px; background: #EEECEA; }
+.side-nav nav button.active, .side-nav nav button:hover { background: var(--teal-dark); color: #fff; }
+.side-nav nav button.active .nav-icon, .side-nav nav button:hover .nav-icon { background: rgba(255,255,255,.18); color: #fff; }
+.collapse-btn { margin-top: auto; min-height: 38px; background: var(--surface-soft); color: var(--ink); }
 .workspace { min-width: 0; display: flex; flex-direction: column; }
 .topbar { height: 72px; display: grid; grid-template-columns: minmax(190px, 1fr) 360px auto 38px auto auto; align-items: center; gap: 14px; padding: 0 22px; border-bottom: 1px solid #ddd8d3; background: linear-gradient(180deg, #fbfaf8, #f4f2ef); }
 .content-shell { height: calc(100vh - 72px); min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr) 360px; }
@@ -2997,44 +4105,45 @@ button:disabled { opacity: .55; cursor: not-allowed; }
 .graph-controls { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
 .graph-controls select, .graph-controls button { height: 38px; border: 1px solid #ddd8d3; border-radius: 999px; background: #fffdfa; color: #111110; padding: 0 10px; }
 .knowledge-map { display: grid; grid-template-columns: minmax(0, 1fr) 310px; gap: 14px; }
-.map-canvas { position: relative; min-height: 620px; border-radius: 18px; overflow: hidden; background:
+.map-sidebar { display: grid; align-content: start; gap: 12px; }
+.map-canvas-wrap { position: relative; border-radius: 18px; overflow: hidden; box-shadow: inset 0 0 0 1px #dde5e8; }
+.map-canvas { position: relative; min-height: 520px; border-radius: 0; overflow: hidden; background:
   radial-gradient(circle at 50% 50%, rgba(78,125,151,.12), transparent 30%),
   linear-gradient(90deg, rgba(84,98,112,.08) 1px, transparent 1px),
   linear-gradient(0deg, rgba(84,98,112,.07) 1px, transparent 1px),
-  #f8fbfc; background-size: auto, 28px 28px, 28px 28px, auto; box-shadow: inset 0 0 0 1px #dde5e8; }
-.graph-stage { position: absolute; inset: 0; transform-origin: center; transition: transform .24s ease; }
-.graph-legend { position: absolute; left: 14px; top: 14px; z-index: 4; display: flex; flex-wrap: wrap; max-width: 72%; gap: 7px; }
-.graph-legend span { display: inline-flex; align-items: center; gap: 5px; padding: 5px 8px; border: 1px solid #dbe3e6; border-radius: 999px; background: rgba(255,255,255,.82); color: #52616b; font-size: 11px; font-weight: 800; }
-.graph-legend i { width: 9px; height: 9px; border-radius: 50%; }
-.graph-zoom { position: absolute; right: 14px; top: 14px; z-index: 4; display: flex; align-items: center; gap: 6px; padding: 6px; border: 1px solid #dbe3e6; border-radius: 999px; background: rgba(255,255,255,.88); }
-.graph-zoom button { width: 28px; height: 28px; padding: 0; border-radius: 50%; }
-.graph-zoom input { width: 90px; }
-.map-lines { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 1; }
-.map-lines line { stroke: rgba(93,128,148,.42); stroke-width: 1.2; transition: opacity .18s ease, stroke .18s ease; }
-.map-lines line.faint { stroke: rgba(122,137,146,.2); stroke-width: .8; }
-.map-lines text { fill: #748991; font-size: 10px; paint-order: stroke; stroke: rgba(248,251,252,.9); stroke-width: 4px; stroke-linejoin: round; pointer-events: none; }
-.graph-node { position: absolute; z-index: 2; transform: translate(-50%, -50%); width: 34px; height: 34px; display: grid; place-items: center; padding: 0; border: 0; border-radius: 50%; background: transparent; text-align: center; }
-.graph-node span { width: 18px; height: 18px; display: block; border: 3px solid rgba(255,255,255,.9); border-radius: 50%; background: #7d95a8; box-shadow: 0 6px 14px rgba(79,95,107,.16); transition: transform .18s ease, box-shadow .18s ease, outline .18s ease; }
-.graph-node.important span { width: 18px; height: 18px; }
-.graph-node b { position: absolute; left: 50%; top: calc(100% + 4px); transform: translateX(-50%); max-width: 112px; padding: 3px 7px; border-radius: 999px; background: rgba(255,255,255,.9); color: #29333a; box-shadow: 0 6px 16px rgba(79,95,107,.1); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 11px; opacity: 0; pointer-events: none; transition: opacity .16s ease; }
-.graph-node.showLabel b, .graph-node:hover b, .graph-node.active b, .graph-node.matched b { opacity: 1; }
-.graph-node.center { left: 50%; top: 50%; width: 76px; height: 76px; z-index: 3; }
-.graph-node.center span { width: 52px; height: 52px; background: #2f5f88; border-width: 5px; box-shadow: 0 0 0 10px rgba(47,95,136,.1), 0 14px 28px rgba(47,95,136,.18); }
-.graph-node.center b { opacity: 1; top: 100%; font-size: 12px; }
-.graph-node.active span, .graph-node:hover span, .graph-node.matched span { transform: scale(1.35); outline: 7px solid rgba(184,138,68,.16); box-shadow: 0 12px 26px rgba(184,138,68,.24); }
-.graph-node.equipment span, .graph-legend i.equipment { background: #3f7fa7; }
-.graph-node.model span, .graph-legend i.model { background: #8fc0d6; }
-.graph-node.part span, .graph-legend i.part { background: #45aeb0; }
-.graph-node.fault span, .graph-legend i.fault { background: #d79542; }
-.graph-node.cause span, .graph-legend i.cause { background: #cf6d45; }
-.graph-node.method span, .graph-legend i.method { background: #8b879f; }
-.graph-node.solution span, .graph-legend i.solution { background: #6c9b72; }
-.graph-node.sop span, .graph-legend i.sop { background: #2f5f88; }
-.graph-node.risk span, .graph-legend i.risk { background: #c95f5a; }
-.graph-node.case span, .graph-legend i.case { background: #9a7858; }
-.graph-node.doc span, .graph-legend i.doc { background: #7d95a8; }
+  #f8fbfc; background-size: auto, 28px 28px, 28px 28px, auto; }
+.echarts-canvas { width: 100%; height: 520px; }
+.graph-legend-panel { position: absolute; left: 12px; top: 12px; z-index: 10; pointer-events: none; }
+.legend-body { display: flex; flex-direction: column; gap: 5px; padding: 8px 10px; border: 1px solid rgba(219,227,230,.6); border-radius: 10px; background: rgba(255,255,255,.78); box-shadow: 0 2px 10px rgba(0,0,0,.04); backdrop-filter: blur(6px); pointer-events: auto; }
+.legend-body span { display: inline-flex; align-items: center; gap: 5px; padding: 5px 8px; border: 1px solid #dbe3e6; border-radius: 999px; background: rgba(255,255,255,.82); color: #52616b; font-size: 11px; font-weight: 800; cursor: pointer; user-select: none; transition: opacity .18s ease, transform .18s ease; }
+.legend-body span:hover { transform: translateY(-1px); box-shadow: 0 4px 10px rgba(0,0,0,.06); }
+.legend-body span.dimmed { opacity: .35; }
+.legend-body i { width: 9px; height: 9px; border-radius: 50%; }
+.legend-body i.equipment { background: #3f7fa7; }
+.legend-body i.model { background: #8fc0d6; }
+.legend-body i.part { background: #45aeb0; }
+.legend-body i.fault { background: #d79542; }
+.legend-body i.cause { background: #cf6d45; }
+.legend-body i.method { background: #8b879f; }
+.legend-body i.solution { background: #6c9b72; }
+.legend-body i.sop { background: #2f5f88; }
+.legend-body i.risk { background: #c95f5a; }
+.legend-body i.case { background: #9a7858; }
+.legend-body i.doc { background: #7d95a8; }
 .map-inspector { display: grid; align-content: start; gap: 12px; padding: 16px; border: 1px solid #ddd8d3; border-radius: 16px; background: linear-gradient(180deg, #fffdfa, #f4f2ef); }
 .map-inspector p { color: #484336; line-height: 1.65; }
+.tg-suggestion-card { display: grid; align-content: start; gap: 12px; padding: 16px; border: 1px solid #ddd8d3; border-radius: 16px; background: linear-gradient(180deg, #fff8f6, #fdf2ee); }
+.tg-card-head { display: grid; grid-template-columns: 40px minmax(0, 1fr) auto; gap: 10px; align-items: center; }
+.tg-card-head img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; }
+.tg-card-head h4 { font-size: 14px; font-weight: 900; color: #484336; margin: 2px 0 0; }
+.tg-card-head .eyebrow { margin: 0; }
+.tg-badge { padding: 4px 10px; border-radius: 999px; background: #c95f5a; color: #fff; font-size: 11px; font-weight: 900; white-space: nowrap; }
+.tg-card-body { color: #484336; line-height: 1.65; font-size: 13px; margin: 0; }
+.tg-card-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+.tg-card-tags span { padding: 4px 8px; border-radius: 999px; background: #f4dfda; color: #8f3f2d; font-size: 11px; font-weight: 800; }
+.tg-card-actions { display: flex; gap: 8px; }
+.tg-card-actions button { flex: 1; min-height: 34px; border-radius: 10px; font-size: 12px; font-weight: 800; }
+.tg-card-actions .primary { background: #c95f5a; border-color: #c95f5a; color: #fff; }
 .file-manager input[type=file] { display: none; }
 .file-toolbar { grid-template-columns: minmax(0, 1fr) 1px auto; }
 .file-actions { display: flex; justify-content: flex-end; gap: 8px; }
@@ -3069,20 +4178,23 @@ button:disabled { opacity: .55; cursor: not-allowed; }
 .graph .doc, .graph .sop { background: #fff; }
 .empty { padding: 28px; border-radius: 12px; background: #f4f2ef; color: #706D6D; text-align: center; }
 .profile-card { display: grid; place-items: start; gap: 12px; }
-.profile-hero { display: grid; grid-template-columns: 88px minmax(0, 1fr) auto; align-items: center; gap: 18px; padding: 20px; border: 1px solid #ddd8d3; border-radius: 16px; background: linear-gradient(180deg, #fffdfa, #f4f2ef); box-shadow: 0 14px 30px rgba(17,17,16,.04); }
-.profile-hero img { width: 88px; height: 88px; border-radius: 50%; object-fit: cover; }
-.profile-hero h2 { margin: 4px 0; font-size: 28px; }
-.profile-section { display: grid; gap: 14px; padding: 16px; border: 1px solid #ddd8d3; border-radius: 14px; background: #fbfaf8; box-shadow: 0 14px 30px rgba(17,17,16,.04); }
-.profile-metrics { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
-.profile-metrics span { display: grid; gap: 4px; padding: 10px; border-radius: 10px; background: #f4f2ef; color: #706D6D; font-size: 12px; }
-.profile-metrics b { color: #111110; font-size: 22px; }
-.profile-list { display: grid; gap: 8px; }
-.profile-list button { min-height: 48px; display: grid; gap: 4px; text-align: left; background: #fffdfa; }
-.profile-list small { color: #706D6D; }
-.agent-history { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
-.agent-history article { display: grid; grid-template-columns: 48px minmax(0, 1fr) auto; align-items: center; gap: 10px; padding: 12px; border: 1px solid #ddd8d3; border-radius: 12px; background: #fffdfa; }
-.agent-history img { width: 48px; height: 48px; border-radius: 50%; object-fit: cover; }
-.agent-history small { display: block; margin-top: 4px; color: #706D6D; }
+.profile-hero { display: grid; grid-template-columns: 64px minmax(0, 1fr) auto; align-items: center; gap: 14px; padding: 14px 16px; border: 1px solid #ddd8d3; border-radius: 14px; background: linear-gradient(180deg, #fffdfa, #f4f2ef); box-shadow: 0 14px 30px rgba(17,17,16,.04); }
+.profile-hero img { width: 64px; height: 64px; border-radius: 50%; object-fit: cover; }
+.profile-hero h2 { margin: 3px 0; font-size: 22px; }
+.profile-hero .eyebrow { font-size: 10px; }
+.profile-hero p { font-size: 12px; }
+.profile-section { display: grid; gap: 10px; padding: 13px 14px; border: 1px solid #ddd8d3; border-radius: 12px; background: #fbfaf8; box-shadow: 0 14px 30px rgba(17,17,16,.04); }
+.profile-metrics { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 7px; }
+.profile-metrics span { display: grid; gap: 3px; padding: 8px; border-radius: 9px; background: #f4f2ef; color: #706D6D; font-size: 11px; }
+.profile-metrics b { color: #111110; font-size: 18px; }
+.profile-list { display: grid; gap: 7px; }
+.profile-list button { min-height: 44px; display: grid; gap: 3px; padding: 8px 10px; text-align: left; background: #fffdfa; }
+.profile-list small { color: #706D6D; font-size: 11px; }
+.profile-list b { font-size: 13px; }
+.agent-history { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 9px; }
+.agent-history article { display: grid; grid-template-columns: 40px minmax(0, 1fr) auto; align-items: center; gap: 9px; padding: 10px; border: 1px solid #ddd8d3; border-radius: 11px; background: #fffdfa; }
+.agent-history img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; }
+.agent-history small { display: block; margin-top: 3px; color: #706D6D; font-size: 11px; }
 pre { white-space: pre-wrap; padding: 12px; border-radius: 12px; background: #111110; color: #EEECEA; }
 .modal { position: fixed; inset: 0; display: grid; place-items: center; padding: 24px; background: rgba(17,17,16,.42); z-index: 20; }
 .modal-card { position: relative; width: min(760px, 96vw); max-height: 88vh; overflow: auto; display: grid; gap: 14px; padding: 22px; border-radius: 16px; background: #fbfaf8; }
@@ -3149,16 +4261,15 @@ pre { white-space: pre-wrap; padding: 12px; border-radius: 12px; background: #11
 :global(body) { background: radial-gradient(circle at 82% 6%, rgba(75,137,181,.08), transparent 30%), var(--canvas); color: var(--ink); font-family: "Segoe UI", "Microsoft YaHei", "PingFang SC", system-ui, sans-serif; }
 .app-shell { grid-template-columns: 220px minmax(0, 1fr); background: var(--canvas); }
 .app-shell.collapsed { grid-template-columns: 76px minmax(0, 1fr); }
-.side-nav { gap: 22px; padding: 18px 12px; border-right: 0; background: #15262d; box-shadow: 8px 0 30px rgba(20, 38, 45, .08); }
-.brand { min-height: 78px; border: 1px solid rgba(255,255,255,.08); background: rgba(255,255,255,.96); }
-.brand img { width: 160px; height: 64px; filter: none; }
+.side-nav { gap: 22px; padding: 18px 12px; border-right: 1px solid #cdd5d7; background: linear-gradient(180deg, #f4f7f7 0%, #e8eeef 100%); box-shadow: 0 0 0 rgba(0,0,0,0); }
+.brand { border: 0; background: transparent; width: 160px; height: 64px; filter: none; object-fit: contain; }
 .side-nav nav { gap: 6px; }
-.side-nav nav button { min-height: 44px; border-radius: 9px; color: #c8d3d6; font-weight: 700; letter-spacing: .02em; }
-.nav-icon { background: rgba(255,255,255,.07); color: #aac0c4; }
-.side-nav nav button.active { background: #f7faf9; color: #153a3c; box-shadow: 0 8px 18px rgba(0,0,0,.16); }
-.side-nav nav button:hover:not(.active) { background: rgba(255,255,255,.08); color: #fff; }
-.side-nav nav button.active .nav-icon { background: #dcefed; color: var(--teal); }
-.collapse-btn { background: rgba(255,255,255,.07); color: #c8d3d6; }
+.side-nav nav button { min-height: 44px; border-radius: 9px; color: var(--ink); font-weight: 700; letter-spacing: .02em; }
+.nav-icon { background: var(--surface-soft); color: var(--teal); }
+.side-nav nav button.active { background: var(--teal); color: #fff; box-shadow: 0 8px 18px rgba(0,0,0,.12); }
+.side-nav nav button:hover:not(.active) { background: var(--surface-soft); color: var(--ink); }
+.side-nav nav button.active .nav-icon { background: rgba(255,255,255,.2); color: #fff; }
+.collapse-btn { background: var(--surface-soft); color: var(--ink); }
 .topbar { height: 76px; grid-template-columns: minmax(180px, 1fr) minmax(280px, 410px) auto 38px auto auto; border-bottom-color: var(--line); background: rgba(255,255,255,.96); }
 .page-title-block { --title-accent: var(--teal); position: relative; align-self: center; min-width: 230px; max-width: 420px; padding: 8px 15px 8px 18px; overflow: hidden; border: 1px solid color-mix(in srgb, var(--title-accent) 22%, #dfe8e8); border-radius: 11px; background: linear-gradient(105deg, color-mix(in srgb, var(--title-accent) 10%, #fff), rgba(255,255,255,.94) 72%); box-shadow: 0 5px 14px rgba(31,55,63,.045); }
 .page-title-block::before { content: ""; position: absolute; inset: 0 auto 0 0; width: 5px; background: var(--title-accent); }
@@ -3171,18 +4282,37 @@ pre { white-space: pre-wrap; padding: 12px; border-radius: 12px; background: #11
 .page-title-block .breadcrumb { position: relative; z-index: 1; color: color-mix(in srgb, var(--title-accent) 82%, #33494e); font-size: 10px; }
 .page-title-block h1 { position: relative; z-index: 1; margin-top: 2px; font-size: 19px; }
 .content-shell { height: calc(100vh - 76px); grid-template-columns: minmax(0, 1fr) 320px; }
-.breadcrumb, .eyebrow { color: var(--teal); letter-spacing: .08em; }
+.breadcrumb, .eyebrow { color: var(--page-accent, var(--teal)); letter-spacing: .08em; }
 h1 { color: var(--ink); font-size: 21px; letter-spacing: .02em; }
 .global-search { border-color: var(--line); border-radius: 10px; background: var(--surface-soft); transition: border-color .18s, box-shadow .18s; }
 .global-search:focus-within { border-color: #82aaa7; box-shadow: 0 0 0 3px rgba(22,118,111,.1); }
-.global-search button { min-height: 28px; padding: 4px 10px; border: 0; border-radius: 7px; background: var(--teal); color: #fff; font-size: 12px; }
+.global-search button { min-height: 28px; padding: 4px 10px; border: 0; border-radius: 7px; background: var(--page-accent, var(--teal)); color: #fff; font-size: 12px; }
 .global-search button { min-width: 46px; white-space: nowrap; }
 .work-strip span, .badge, .tag-line span { background: #e9eff0; color: #41545a; }
 .icon-button, .user-chip { border-color: var(--line); background: var(--surface); }
 .page-scroll { padding: 20px; }
 .page-grid { gap: 14px; }
+.page-theme-home { --page-accent: var(--teal); --page-accent-soft: rgba(22,118,111,.06); --page-accent-tint: linear-gradient(120deg, #fff 0%, #f0f8f7 100%); }
+.page-theme-search { --page-accent: var(--blue); --page-accent-soft: rgba(57,121,184,.06); --page-accent-tint: linear-gradient(120deg, #fff 0%, #f0f6fc 100%); }
+.page-theme-tasks { --page-accent: var(--amber); --page-accent-soft: rgba(200,135,46,.06); --page-accent-tint: linear-gradient(120deg, #fff 0%, #fdf8f0 100%); }
+.page-theme-knowledge { --page-accent: var(--violet); --page-accent-soft: rgba(128,98,181,.06); --page-accent-tint: linear-gradient(120deg, #fff 0%, #f7f4fc 100%); }
+.page-theme-profile { --page-accent: var(--coral); --page-accent-soft: rgba(216,102,87,.06); --page-accent-tint: linear-gradient(120deg, #fff 0%, #fdf5f3 100%); }
+.page-theme-home .breadcrumb, .page-theme-home .eyebrow { color: var(--teal); }
+.page-theme-search .breadcrumb, .page-theme-search .eyebrow { color: var(--blue); }
+.page-theme-tasks .breadcrumb, .page-theme-tasks .eyebrow { color: var(--amber); }
+.page-theme-knowledge .breadcrumb, .page-theme-knowledge .eyebrow { color: var(--violet); }
+.page-theme-profile .breadcrumb, .page-theme-profile .eyebrow { color: var(--coral); }
+.page-theme-home .welcome-card { border-top-color: var(--teal); }
+.page-theme-search .search-input-panel::before { background: linear-gradient(90deg, var(--blue), #5b9bdb 58%, #82b8e0); }
+.page-theme-tasks .task-nav-panel { border-top-color: var(--amber) !important; background: linear-gradient(120deg, #fff, #fdf8f0) !important; }
+.page-theme-tasks .task-nav-panel::after { color: rgba(200,135,46,.055); }
+.page-theme-tasks .task-nav-panel .tabs button.active { background: var(--amber); box-shadow: 0 6px 14px rgba(200,135,46,.18); }
+.page-theme-knowledge .knowledge-nav-panel { border-top-color: var(--violet) !important; background: linear-gradient(120deg, #fff 0%, #f7f4fc 70%, #efe8f8 100%) !important; }
+.page-theme-knowledge .knowledge-nav-panel::after { color: rgba(128,98,181,.055); }
+.page-theme-knowledge .knowledge-nav-panel .tabs button.active { background: var(--violet); box-shadow: 0 6px 13px rgba(128,98,181,.17); }
+.page-theme-profile .profile-hero { border-color: #ddd8d3; background: linear-gradient(180deg, #fffdfa, #fdf5f3); }
 .panel, .welcome-card, .agent-card, .stat-card, .profile-card { border-color: var(--line); border-radius: 12px; background: var(--surface); box-shadow: 0 8px 24px rgba(31, 55, 63, .055); }
-.welcome-card { position: relative; overflow: hidden; border-top: 3px solid var(--teal); }
+.welcome-card { position: relative; overflow: hidden; border-top: 3px solid var(--page-accent, var(--teal)); }
 .welcome-brand { grid-template-columns: 220px minmax(0, 1fr); gap: 20px; }
 .welcome-brand img { width: 220px; height: 112px; filter: none; }
 .welcome-card h2 { color: var(--ink); font-size: 25px; line-height: 1.35; }
@@ -3330,6 +4460,14 @@ button { transition: background-color .18s, border-color .18s, color .18s, trans
 .chart-grid-line { stroke: #dfe8ea; stroke-width: 1; stroke-dasharray: 4 6; }
 .chart-label { fill: #75858a; font-size: 11px; }
 .trend-dot { fill: #fff; stroke: var(--teal); stroke-width: 3px; }
+/* ECharts 图表容器美化 */
+.chart-canvas { width: 100%; min-height: 0; }
+.chart-canvas.echart-root { display: block; }
+.analytics-panel .chart-wrap .chart-canvas:first-child { border: 1px solid #e4ebec; border-radius: 12px; background: linear-gradient(180deg, #fbfdfe, #f7fafb); padding: 4px 6px 0; box-sizing: border-box; }
+.analytics-panel .distribution { display: grid; align-content: center; gap: 10px; }
+.chart-section { display: grid; align-content: start; gap: 6px; }
+.chart-hint { margin: 0; color: var(--muted); font-size: 10px; text-align: center; letter-spacing: .02em; }
+.task-analytics .task-trend-echart { height: 166px; }
 .distribution { align-content: center; gap: 15px; }
 .distribution-head { display: flex; justify-content: space-between; align-items: baseline; padding-bottom: 4px; border-bottom: 1px solid #e6ecee; }
 .distribution-head b { height: auto; background: transparent; color: var(--ink); font-size: 14px; }
@@ -3551,12 +4689,12 @@ button { transition: background-color .18s, border-color .18s, color .18s, trans
 .graph-controls select, .graph-controls button { width: 100%; height: 38px; border-color: #d2dfe0; border-radius: 9px; background: #fff; color: #3c5358; font-size: 11px; font-weight: 700; }
 .graph-controls select:hover, .graph-controls button:hover { border-color: #8fb4b1; background: #edf6f5; }
 .knowledge-map { gap: 18px; }
-.map-canvas { border: 1px solid #dce7e8; box-shadow: inset 0 0 40px rgba(49,91,105,.035); }
+.map-canvas { box-shadow: inset 0 0 40px rgba(49,91,105,.035); }
 
 /* 个人中心：按信息类型分色，并把设置项横向展开，消除底部大块空白。 */
 .profile-page { align-items: start; }
-.profile-section { --profile-accent: var(--teal); position: relative; align-content: start; overflow: hidden; padding: 20px; border-color: #dce5e6; background: linear-gradient(155deg, #fff 0%, #fbfcfc 100%); box-shadow: 0 9px 24px rgba(31,55,63,.06); }
-.profile-section::before { content: ""; position: absolute; inset: 0 0 auto; height: 4px; background: var(--profile-accent); }
+.profile-section { --profile-accent: var(--teal); position: relative; align-content: start; overflow: hidden; padding: 13px 14px; border-color: #dce5e6; background: linear-gradient(155deg, #fff 0%, #fbfcfc 100%); box-shadow: 0 9px 24px rgba(31,55,63,.06); }
+.profile-section::before { content: ""; position: absolute; inset: 0 0 auto; height: 3px; background: var(--profile-accent); }
 .profile-archive { --profile-accent: var(--blue); }
 .profile-files { --profile-accent: var(--violet); }
 .profile-contribution { --profile-accent: var(--amber); }
@@ -3564,21 +4702,22 @@ button { transition: background-color .18s, border-color .18s, color .18s, trans
 .profile-messages { --profile-accent: #d16a62; }
 .profile-growth { --profile-accent: #6f7eb8; }
 .profile-settings { --profile-accent: #65777c; grid-column: 1 / -1; }
-.profile-section .panel-head { align-items: flex-start; }
-.profile-section .panel-head h3 { margin-top: 5px; color: var(--ink); font-size: 18px; line-height: 1.35; }
-.profile-section .panel-head > button { border-color: color-mix(in srgb, var(--profile-accent) 32%, #dce5e6); background: color-mix(in srgb, var(--profile-accent) 8%, #fff); color: var(--profile-accent); font-size: 11px; font-weight: 800; }
-.profile-metrics { gap: 10px; }
-.profile-metrics span { min-height: 76px; align-content: center; padding: 12px; border: 1px solid color-mix(in srgb, var(--profile-accent) 16%, #e6ecec); background: color-mix(in srgb, var(--profile-accent) 7%, #fff); color: #6c7b80; }
-.profile-metrics b { color: var(--profile-accent); font-size: 25px; }
-.profile-list { gap: 9px; }
-.profile-list button { position: relative; min-height: 72px; padding: 12px 13px 12px 18px; border-color: #e0e7e8; background: rgba(255,255,255,.9); }
-.profile-list button::before { content: ""; position: absolute; left: 0; top: 12px; bottom: 12px; width: 3px; border-radius: 0 3px 3px 0; background: color-mix(in srgb, var(--profile-accent) 72%, #fff); }
-.profile-list button::after { content: "→"; position: absolute; right: 13px; top: 50%; color: #9aa7ab; font-size: 13px; transform: translateY(-50%); }
+.profile-section .panel-head { align-items: flex-start; gap: 8px; }
+.profile-section .panel-head h3 { margin-top: 3px; color: var(--ink); font-size: 15px; line-height: 1.3; }
+.profile-section .panel-head .eyebrow { font-size: 10px; }
+.profile-section .panel-head > button { border-color: color-mix(in srgb, var(--profile-accent) 32%, #dce5e6); background: color-mix(in srgb, var(--profile-accent) 8%, #fff); color: var(--profile-accent); font-size: 10px; font-weight: 800; min-height: 28px; padding: 4px 9px; }
+.profile-metrics { gap: 7px; }
+.profile-metrics span { min-height: 52px; align-content: center; padding: 8px 9px; border: 1px solid color-mix(in srgb, var(--profile-accent) 16%, #e6ecec); background: color-mix(in srgb, var(--profile-accent) 7%, #fff); color: #6c7b80; }
+.profile-metrics b { color: var(--profile-accent); font-size: 19px; }
+.profile-list { gap: 7px; }
+.profile-list button { position: relative; min-height: 50px; padding: 8px 22px 8px 14px; border-color: #e0e7e8; background: rgba(255,255,255,.9); }
+.profile-list button::before { content: ""; position: absolute; left: 0; top: 9px; bottom: 9px; width: 3px; border-radius: 0 3px 3px 0; background: color-mix(in srgb, var(--profile-accent) 72%, #fff); }
+.profile-list button::after { content: "→"; position: absolute; right: 10px; top: 50%; color: #9aa7ab; font-size: 12px; transform: translateY(-50%); }
 .profile-list button:hover { transform: translateY(-2px); border-color: color-mix(in srgb, var(--profile-accent) 35%, #dce5e6); background: color-mix(in srgb, var(--profile-accent) 4%, #fff); box-shadow: 0 8px 16px rgba(31,55,63,.06); }
-.profile-list b { padding-right: 24px; color: #273d42; font-size: 14px; }
-.profile-list small { padding-right: 24px; color: #7a898e; font-size: 11px; }
+.profile-list b { padding-right: 14px; color: #273d42; font-size: 13px; }
+.profile-list small { padding-right: 14px; color: #7a898e; font-size: 10.5px; }
 .profile-settings .profile-list { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-.profile-settings .profile-list button { min-height: 82px; }
+.profile-settings .profile-list button { min-height: 60px; }
 
 /* 智能检索：把表单、证据和研判组织成一套清晰的检修工作台。 */
 .search-workbench { grid-template-columns: minmax(580px, 1.35fr) minmax(390px, .9fr); gap: 18px; align-items: start; }
@@ -3654,12 +4793,33 @@ button { transition: background-color .18s, border-color .18s, color .18s, trans
 .panel-resizer span { position: absolute; left: 3px; top: 50%; width: 4px; height: 54px; border-radius: 999px; background: #9bb1b5; transform: translateY(-50%); transition: height .18s, background .18s; }
 .panel-resizer:hover span, :global(body.resizing-panel) .panel-resizer span { height: 90px; background: var(--teal); }
 :global(body.resizing-panel) { cursor: col-resize; user-select: none; }
-.operator-panel { min-width: 300px; max-width: 520px; overflow: hidden; background: linear-gradient(180deg, #f4f8f8 0%, #edf3f3 100%); }
+.operator-panel { min-width: 300px; max-width: 520px; overflow: hidden; background: linear-gradient(180deg, #f4f8f8 0%, #edf3f3 100%); --op-accent: var(--teal); --op-accent-dark: var(--teal-dark); --op-soft: #eef6f5; --op-tint: linear-gradient(180deg, #f4f8f8 0%, #edf3f3 100%); }
+
+/* 每个 agent aside 背景与其头像主色调匹配，形成独立视觉风格。 */
+.operator-panel.op-theme-tiangong { --op-accent: #3B82F6; --op-accent-dark: #1d4ed8; --op-soft: #fbfcfe; --op-tint: linear-gradient(178deg, #fdfeff 0%, #fafcff 50%, #f6f9fe 100%); }
+.operator-panel.op-theme-guanwei { --op-accent: #6B8E23; --op-accent-dark: #4f6b1a; --op-soft: #fcfcf7; --op-tint: linear-gradient(178deg, #fdfdf8 0%, #fbfcf4 50%, #f7f9ef 100%); }
+.operator-panel.op-theme-zhiju { --op-accent: #FF6B35; --op-accent-dark: #c84d1f; --op-soft: #fffaf8; --op-tint: linear-gradient(178deg, #fffcfa 0%, #fffbf5 50%, #fff6ef 100%); }
+.operator-panel.op-theme-bowen { --op-accent: #80B918; --op-accent-dark: #5c8a0e; --op-soft: #fbfcf6; --op-tint: linear-gradient(178deg, #fdfdf7 0%, #fbfdf2 50%, #f7f9e9 100%); }
+.operator-panel.op-theme-heming { --op-accent: #4DB8A1; --op-accent-dark: #2f8a76; --op-soft: #f8fcfa; --op-tint: linear-gradient(178deg, #fcfdfb 0%, #fafcf9 50%, #f4f8f4 100%); }
+.operator-panel.op-theme-mingjian { --op-accent: #2563EB; --op-accent-dark: #1a4cc0; --op-soft: #fafbfd; --op-tint: linear-gradient(178deg, #fcfdfe 0%, #f8fafe 50%, #f2f5fc 100%); }
+
+.operator-panel { background: var(--op-tint); border-left-color: color-mix(in srgb, var(--op-accent) 8%, var(--line)); }
+.operator-panel .operator-avatar { box-shadow: 0 8px 14px color-mix(in srgb, var(--op-accent) 14%, transparent); border: 2px solid #fff; }
+.operator-panel .operator-slogan { border-color: color-mix(in srgb, var(--op-accent) 8%, #d7e5e5); border-left-color: var(--op-accent); background: color-mix(in srgb, var(--op-accent) 3%, #fff); color: color-mix(in srgb, var(--op-accent-dark) 52%, #244146); }
+.operator-panel .operator-role { background: color-mix(in srgb, var(--op-accent) 5%, #fff); color: var(--op-accent-dark); }
+.operator-panel .operator-status { background: color-mix(in srgb, var(--op-accent) 6%, #fff); color: var(--op-accent-dark); }
+.operator-panel .bubble.user { border-color: var(--op-accent-dark); background: var(--op-accent-dark); }
+.operator-panel .quick-card { border-color: color-mix(in srgb, var(--op-accent) 8%, #d7e5e5); background: #fff; }
+.operator-panel .quick-card > span { background: var(--op-accent-dark); color: #fff; }
+.operator-panel .operator-chips button { border-color: color-mix(in srgb, var(--op-accent) 10%, #cedbdc); color: var(--op-accent-dark); }
+.operator-panel .operator-chips button:hover { background: var(--op-soft); border-color: var(--op-accent); }
+.operator-panel .ask-box { border-color: color-mix(in srgb, var(--op-accent) 18%, #97b6b5); }
+.operator-panel .ask-box button { background: var(--op-accent-dark); color: #fff; }
+.operator-panel .ask-box input:focus { outline: 0; }
+.operator-panel .assistant-input-tools button:hover, .operator-panel .assistant-input-tools button.active { border-color: var(--op-accent); background: var(--op-soft); color: var(--op-accent-dark); }
+.operator-panel .bubble.assistant { border-color: color-mix(in srgb, var(--op-accent) 6%, #dce7e8); }
 .operator-head { grid-template-columns: 64px minmax(0, 1fr) auto; align-items: start; }
 .operator-head-actions { display: grid; justify-items: end; gap: 8px; }
-.panel-size-actions { display: flex; gap: 4px; }
-.panel-size-actions button { width: 28px; height: 28px; padding: 0; border: 1px solid #cad8da; border-radius: 8px; background: #fff; color: var(--teal-dark); font-size: 18px; line-height: 1; }
-.panel-size-actions button:hover { border-color: var(--teal); background: #eaf5f4; }
 .operator-duty { color: #3f555a; font-size: 14px; line-height: 1.72; }
 .operator-slogan { border: 1px solid #d7e5e5; border-left: 4px solid var(--teal); color: #244146; font-size: 14px; line-height: 1.55; box-shadow: 0 5px 14px rgba(28, 74, 78, .045); }
 .chat-thread { gap: 13px; padding: 3px 6px 6px 1px; scrollbar-color: #9db0b3 transparent; }
@@ -3733,24 +4893,26 @@ button { transition: background-color .18s, border-color .18s, color .18s, trans
 .profile-editor-actions button { min-width: 104px; }
 
 /* 智能体使用记录：用角色色和信息层级替代重复的平铺框。 */
-.agent-history-panel { position: relative; overflow: hidden; padding: 24px; border-color: #d7e4e4; background: linear-gradient(150deg, #fff 0%, #f8fbfb 100%); }
-.agent-history-panel::before { content: ""; position: absolute; inset: 0 0 auto; height: 4px; background: linear-gradient(90deg, var(--teal), var(--blue), var(--violet), var(--amber)); }
-.agent-history-panel .panel-head h3 { margin-top: 5px; color: #203c41; font-size: 21px; }
-.agent-history { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin-top: 6px; }
-.agent-history article { --agent-color: #16766f; position: relative; min-height: 142px; grid-template-columns: 58px minmax(0, 1fr); grid-template-rows: 1fr auto; align-items: start; gap: 12px 14px; padding: 18px; overflow: hidden; border-color: color-mix(in srgb, var(--agent-color) 22%, #dce5e6); border-radius: 16px; background: linear-gradient(145deg, color-mix(in srgb, var(--agent-color) 7%, #fff), #fff 72%); box-shadow: 0 8px 20px rgba(31,55,63,.055); }
+.agent-history-panel { position: relative; overflow: hidden; padding: 14px 16px; border-color: #d7e4e4; background: linear-gradient(150deg, #fff 0%, #f8fbfb 100%); }
+.agent-history-panel::before { content: ""; position: absolute; inset: 0 0 auto; height: 3px; background: linear-gradient(90deg, var(--teal), var(--blue), var(--violet), var(--amber)); }
+.agent-history-panel .panel-head h3 { margin-top: 3px; color: #203c41; font-size: 16px; }
+.agent-history-panel .panel-head .eyebrow { font-size: 10px; }
+.agent-history-panel .panel-head > button { min-height: 28px; padding: 4px 9px; font-size: 10px; }
+.agent-history { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 9px; margin-top: 4px; }
+.agent-history article { --agent-color: #16766f; position: relative; min-height: 96px; grid-template-columns: 42px minmax(0, 1fr); grid-template-rows: 1fr auto; align-items: start; gap: 8px 10px; padding: 11px; overflow: hidden; border-color: color-mix(in srgb, var(--agent-color) 22%, #dce5e6); border-radius: 12px; background: linear-gradient(145deg, color-mix(in srgb, var(--agent-color) 7%, #fff), #fff 72%); box-shadow: 0 8px 20px rgba(31,55,63,.055); }
 .agent-history article:nth-child(2), .agent-history article:nth-child(5) { --agent-color: #387bb4; }
 .agent-history article:nth-child(3), .agent-history article:nth-child(6) { --agent-color: #8a66b4; }
 .agent-history article:nth-child(4) { --agent-color: #c27c2e; }
-.agent-history article::after { content: counter(agent-card, decimal-leading-zero); counter-increment: agent-card; position: absolute; right: 14px; top: 12px; color: color-mix(in srgb, var(--agent-color) 18%, transparent); font-size: 30px; font-weight: 900; }
+.agent-history article::after { content: counter(agent-card, decimal-leading-zero); counter-increment: agent-card; position: absolute; right: 10px; top: 8px; color: color-mix(in srgb, var(--agent-color) 18%, transparent); font-size: 22px; font-weight: 900; }
 .agent-history { counter-reset: agent-card; }
 .agent-history-avatar { position: relative; grid-row: 1 / span 2; }
-.agent-history-avatar img { width: 58px; height: 58px; border: 3px solid #fff; box-shadow: 0 7px 16px rgba(31,55,63,.12); }
-.agent-history-avatar i { position: absolute; right: 1px; bottom: 2px; width: 12px; height: 12px; border: 2px solid #fff; border-radius: 50%; background: #35a772; }
-.agent-history-copy { min-width: 0; display: grid; gap: 4px; padding-right: 22px; }
-.agent-history-copy > span { color: var(--agent-color); font-size: 10px; font-weight: 900; letter-spacing: .08em; }
-.agent-history-copy b { color: #20373c; font-size: 15px; line-height: 1.35; }
-.agent-history-copy small { margin: 2px 0 0; overflow: visible; color: #6e8085; font-size: 11px; line-height: 1.55; }
-.agent-history article > button { grid-column: 2; display: flex; align-items: center; justify-content: space-between; min-height: 34px; padding: 7px 10px; border-color: color-mix(in srgb, var(--agent-color) 25%, #dce5e6); background: #fff; color: var(--agent-color); font-size: 11px; font-weight: 800; }
+.agent-history-avatar img { width: 42px; height: 42px; border: 2px solid #fff; box-shadow: 0 6px 12px rgba(31,55,63,.12); }
+.agent-history-avatar i { position: absolute; right: 1px; bottom: 2px; width: 10px; height: 10px; border: 2px solid #fff; border-radius: 50%; background: #35a772; }
+.agent-history-copy { min-width: 0; display: grid; gap: 2px; padding-right: 18px; }
+.agent-history-copy > span { color: var(--agent-color); font-size: 9px; font-weight: 900; letter-spacing: .08em; }
+.agent-history-copy b { color: #20373c; font-size: 13px; line-height: 1.3; }
+.agent-history-copy small { margin: 1px 0 0; overflow: visible; color: #6e8085; font-size: 10px; line-height: 1.45; }
+.agent-history article > button { grid-column: 2; display: flex; align-items: center; justify-content: space-between; min-height: 26px; padding: 4px 8px; border-color: color-mix(in srgb, var(--agent-color) 25%, #dce5e6); background: #fff; color: var(--agent-color); font-size: 10px; font-weight: 800; }
 .agent-history article > button i { font-style: normal; }
 .agent-history article:hover { transform: translateY(-2px); box-shadow: 0 13px 25px rgba(31,55,63,.09); }
 
@@ -3795,6 +4957,97 @@ button { transition: background-color .18s, border-color .18s, color .18s, trans
 .library-empty b { color: #2d484d; font-size: 17px; }
 .library-empty span { font-size: 12px; }
 
+/* KB Hero & Cards (template-style library) */
+.kb-hero { position: relative; z-index: 1; display: flex; align-items: center; justify-content: space-between; gap: 20px; margin-bottom: 20px; padding: 20px 24px; border-radius: 14px; background: #fff; border: 1px solid #e5ebec; }
+.kb-hero h3 { color: #1d373c; font-size: 20px; margin: 0; }
+.kb-hero-left span { color: #708287; font-size: 13px; }
+.kb-hero-right { display: flex; gap: 10px; }
+.kb-cta { display: flex; align-items: center; gap: 8px; padding: 9px 16px; border-radius: 8px; border: 1px solid #d7e2e3; background: #fff; color: #36575b; cursor: pointer; transition: all .15s; font-family: inherit; font-size: 13px; font-weight: 600; }
+.kb-cta .ui-icon { width: 16px; height: 16px; }
+.kb-cta:hover { border-color: #176f69; color: #176f69; background: #f4fbfa; }
+.kb-cta-new { background: #176f69; color: #fff; border-color: #176f69; }
+.kb-cta-new:hover { background: #135a55; color: #fff; border-color: #135a55; }
+
+.kb-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 16px; flex-wrap: wrap; }
+.kb-toolbar-left { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+.kb-toolbar-left h4 { font-size: 15px; color: #21393e; }
+.kb-toolbar-left h4 small { color: #849297; font-weight: 400; margin-left: 4px; }
+.kb-filter { display: flex; gap: 4px; }
+.kb-filter button { padding: 5px 12px; border: 1px solid #dde6e7; border-radius: 6px; background: #fff; color: #566a6f; font-size: 12px; cursor: pointer; transition: all .15s; font-family: inherit; }
+.kb-filter button.active { background: #176f69; color: #fff; border-color: #176f69; }
+.kb-filter button:hover:not(.active) { border-color: #176f69; color: #176f69; }
+.kb-search { position: relative; flex: 1; max-width: 300px; }
+.kb-search .ui-icon { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); width: 15px; height: 15px; color: #849297; }
+.kb-search input { width: 100%; height: 34px; padding: 0 12px 0 34px; border: 1px solid #dde6e7; border-radius: 8px; background: #fff; font-size: 13px; outline: 0; transition: border-color .15s; box-sizing: border-box; font-family: inherit; }
+.kb-search input:focus { border-color: #176f69; }
+
+.kb-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; }
+.kb-doc-card { background: #fff; border: 1px solid #e5ebec; border-radius: 12px; padding: 16px; cursor: pointer; transition: transform .15s, box-shadow .15s, border-color .15s; display: grid; grid-template-rows: auto auto 1fr auto auto; gap: 8px; min-height: 190px; }
+.kb-doc-card:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(31,55,63,.08); border-color: #b5c9ca; }
+.kb-doc-card.starred { border-left: 3px solid #d4a017; }
+.kb-doc-head { display: flex; align-items: center; justify-content: space-between; }
+.kb-doc-type { padding: 2px 8px; border-radius: 4px; background: #f0f4f4; color: #556a6f; font-size: 11px; font-weight: 600; }
+.kb-doc-type.检修流程 { background: #e3f2f1; color: #176f69; }
+.kb-doc-type.故障分析 { background: #fef3e8; color: #96601c; }
+.kb-doc-type.协作沟通 { background: #eef2fc; color: #3b5998; }
+.kb-doc-type.安全规范 { background: #fdeaea; color: #b3443d; }
+.kb-doc-type.通用 { background: #f0f4f4; color: #556a6f; }
+.kb-star-icon { width: 15px; height: 15px; color: #d4a017; }
+.kb-doc-title { font-size: 15px; color: #1d373c; line-height: 1.4; font-weight: 700; margin: 0; }
+.kb-doc-summary { color: #566a6f; font-size: 12px; line-height: 1.55; margin: 0; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.kb-doc-tags { display: flex; flex-wrap: wrap; gap: 4px; }
+.kb-tag { padding: 2px 7px; border-radius: 4px; background: #f1f5f4; color: #5a7075; font-size: 11px; }
+.kb-doc-foot { display: flex; align-items: center; justify-content: space-between; padding-top: 8px; border-top: 1px solid #eef2f2; }
+.kb-collab { display: flex; align-items: center; gap: 6px; }
+.kb-collab-count { font-size: 11px; color: #708287; }
+.kb-avatars { display: flex; }
+.kb-avatar { width: 22px; height: 22px; border-radius: 50%; color: #fff; font-size: 10px; display: grid; place-items: center; margin-left: -5px; border: 2px solid #fff; font-weight: 700; }
+.kb-avatars .kb-avatar:first-child { margin-left: 0; }
+.kb-more { width: 22px; height: 22px; border-radius: 50%; background: #b5c9ca; color: #fff; font-size: 9px; display: grid; place-items: center; margin-left: -5px; border: 2px solid #fff; }
+.kb-no-collab { font-size: 11px; color: #849297; }
+.kb-time { font-size: 11px; color: #849297; }
+
+.kb-empty-state { grid-column: 1 / -1; padding: 50px 20px; text-align: center; color: #708287; }
+.kb-empty-state h4 { color: #2d484d; font-size: 16px; margin: 0 0 6px; }
+.kb-empty-state p { margin: 0 0 14px; font-size: 13px; }
+.kb-empty-btn { padding: 8px 20px; border-radius: 8px; border: 0; cursor: pointer; font-family: inherit; font-weight: 700; font-size: 13px; }
+
+/* Template modals */
+.kb-template-modal, .kb-template-lib-modal { max-width: 760px; }
+.kb-template-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 14px; margin-top: 16px; }
+.kb-template-card { display: grid; grid-template-columns: 44px 1fr auto; gap: 12px; align-items: center; padding: 14px; border: 1px solid #e5ebec; border-radius: 10px; cursor: pointer; transition: all .15s; background: #fff; }
+.kb-template-card:hover { border-color: #176f69; box-shadow: 0 4px 14px rgba(23,111,105,.1); }
+.kb-template-icon { width: 44px; height: 44px; border-radius: 10px; background: #f0f4f4; display: grid; place-items: center; font-size: 22px; }
+.kb-template-info { display: grid; gap: 2px; min-width: 0; }
+.kb-template-info h4 { font-size: 14px; color: #1d373c; margin: 0; }
+.kb-template-info > span { color: #176f69; font-size: 11px; font-weight: 600; }
+.kb-template-info p { color: #708287; font-size: 12px; margin: 2px 0 0; }
+.kb-template-use { padding: 6px 12px; border: 0; border-radius: 6px; background: #176f69; color: #fff; font-size: 12px; font-weight: 600; cursor: pointer; transition: background .15s; font-family: inherit; white-space: nowrap; }
+.kb-template-use:hover { background: #135a55; }
+
+/* Knowledge detail collab section */
+.kd-collab-section { margin-top: 20px; padding: 16px; border: 1px solid #e5ebec; border-radius: 12px; background: #fafcfa; }
+.kd-collab-list { display: grid; gap: 8px; margin-top: 12px; }
+.kd-collab-item { display: flex; align-items: center; gap: 12px; padding: 10px 14px; background: #fff; border-radius: 10px; border: 1px solid #eef2f2; }
+.kd-collab-avatar { width: 36px; height: 36px; border-radius: 50%; color: #fff; display: grid; place-items: center; font-weight: 700; }
+.kd-collab-item > div { flex: 1; display: grid; gap: 2px; }
+.kd-collab-item b { color: #1d373c; font-size: 14px; }
+.kd-collab-item small { color: #708287; font-size: 12px; }
+.kd-collab-status { font-size: 12px; font-weight: 600; }
+.kd-collab-status.offline { color: #849297; }
+.kd-collab-status.online { color: #059669; }
+.kd-invite-btn { padding: 6px 12px; border: 1px solid #176f69; background: transparent; color: #176f69; border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: 700; font-family: inherit; }
+.kd-invite-btn:hover { background: #176f69; color: #fff; }
+.collab-panel { margin-top: 16px; }
+.collab-panel .collab-list { display: grid; gap: 8px; }
+.collab-panel .collab-item { display: flex; align-items: center; gap: 10px; padding: 8px 12px; background: #fff; border-radius: 8px; }
+.collab-panel .collab-avatar { width: 32px; height: 32px; border-radius: 50%; color: #fff; display: grid; place-items: center; font-weight: 700; }
+.collab-panel .collab-item > div { flex: 1; }
+.collab-panel .collab-item b { color: #21393e; font-size: 13px; }
+.collab-panel .collab-item small { color: #708287; font-size: 11px; }
+.collab-invite { width: 100%; margin-top: 8px; padding: 8px; border: 1px dashed #176f69; background: transparent; color: #176f69; border-radius: 8px; cursor: pointer; font-weight: 700; font-family: inherit; font-size: 12px; }
+.collab-invite:hover { background: #e3f2f1; }
+
 /* 任务操作：用轻量双层信息按钮替代突兀的竖排文字。 */
 .task-row-actions { justify-content: flex-start; gap: 7px; }
 .task-row-action { min-width: 58px; min-height: 48px; display: grid; place-content: center; gap: 1px; padding: 6px 10px; border: 1px solid #d5e2e1; border-radius: 11px; background: #fff; color: #466065; box-shadow: 0 4px 12px rgba(31,69,75,.04); line-height: 1.05; transition: transform .18s, border-color .18s, box-shadow .18s; }
@@ -3834,17 +5087,340 @@ button { transition: background-color .18s, border-color .18s, color .18s, trans
 .task-report-card li { display: flex; justify-content: space-between; gap: 15px; padding: 9px 11px; border-radius: 8px; background: #f6f8f8; }
 .task-report-card li span { color: #6c7d80; }
 
-.knowledge-detail-card { width: min(760px, 94vw); gap: 16px; }
+.knowledge-detail-card { 
+  width: min(1100px, 94vw); 
+  max-height: 90vh;
+  display: grid;
+  grid-template-columns: 1fr 280px;
+  gap: 0;
+  overflow: hidden;
+}
 .knowledge-detail-card > header { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; padding-right: 40px; }
 .knowledge-detail-card > header > span { padding: 6px 10px; border-radius: 999px; background: #eee8f6; color: #72539a; font-size: 11px; font-weight: 900; }
 .knowledge-detail-card section { padding: 16px 18px; border-left: 4px solid var(--violet); border-radius: 11px; background: #f7f7fa; }
 .knowledge-detail-card section h3 { margin-bottom: 9px; }
 .knowledge-detail-card section ul { display: grid; gap: 7px; padding-left: 18px; color: #40565a; line-height: 1.7; }
 
-/* 图谱降噪：保留可拖拽与筛选，但减少重复节点和标签碰撞。 */
+/* 知识详情编辑扩展样式 - Notion风格大编辑器 */
+.knowledge-detail-card.editing { 
+  width: min(1200px, 95vw); 
+  max-height: 92vh;
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  gap: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+.knowledge-detail-card.editing .close { top: 12px; right: 16px; z-index: 10; }
+
+/* 左侧目录树 */
+.kd-sidebar-left {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px 12px;
+  background: #f7f8fa;
+  border-right: 1px solid #e5ebec;
+  overflow-y: auto;
+  min-height: 600px;
+}
+.kd-sidebar-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #e5ebec;
+}
+.kd-sidebar-icon { font-size: 18px; }
+.kd-sidebar-title { font-size: 14px; font-weight: 700; color: #1d373c; }
+.kd-sidebar-breadcrumb {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px 10px;
+  background: #fff;
+  border-radius: 8px;
+  border: 1px solid #e5ebec;
+  font-size: 12px;
+  color: #566a6f;
+}
+.kd-sidebar-breadcrumb .kd-arrow { color: #849297; font-weight: 700; }
+.kd-current-doc { color: #176f69; font-weight: 600; }
+.kd-outline { display: flex; flex-direction: column; gap: 6px; }
+.kd-outline-title { font-size: 12px; font-weight: 700; color: #708287; text-transform: uppercase; letter-spacing: 0.5px; }
+.kd-outline-list { display: flex; flex-direction: column; gap: 2px; }
+.kd-outline-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 8px;
+  border-radius: 6px;
+  font-size: 12px;
+  color: #43585d;
+  cursor: pointer;
+  transition: background 0.15s;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.kd-outline-item:hover { background: #e8f4f2; }
+.kd-outline-item.level-1 { padding-left: 8px; font-weight: 600; }
+.kd-outline-item.level-2 { padding-left: 20px; }
+.kd-outline-item.level-3 { padding-left: 32px; font-size: 11px; color: #708287; }
+.kd-outline-item.level-4 { padding-left: 44px; font-size: 11px; color: #849297; }
+.kd-outline-dot { color: #176f69; font-size: 8px; }
+.kd-outline-empty { padding: 10px; font-size: 11px; color: #849297; text-align: center; }
+.kd-sidebar-footer {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-top: 10px;
+  border-top: 1px solid #e5ebec;
+  font-size: 11px;
+  color: #708287;
+}
+
+/* 主编辑区 */
+.kd-main-area {
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  overflow-y: auto;
+  background: #fff;
+  min-height: 0;
+}
+.knowledge-detail-card:not(.editing) .kd-main-area {
+  max-height: 90vh;
+}
+
+.knowledge-detail-card .kd-header { 
+  display: flex; 
+  align-items: flex-start; 
+  justify-content: space-between; 
+  gap: 18px; 
+  padding: 24px 40px 16px;
+  border-bottom: 1px solid #eef2f2;
+}
+.knowledge-detail-card .kd-header > .kd-header-left { flex: 1; min-width: 0; }
+.kd-header-right { display: flex; align-items: center; gap: 10px; }
+
+/* 编辑模式顶栏 */
+.kd-top-bar { display: flex; align-items: center; gap: 10px; }
+.kd-doc-icon { font-size: 20px; }
+.kd-title-input { 
+  width: 100%; 
+  font-size: 28px; 
+  font-weight: 800; 
+  color: #0f172a; 
+  border: none; 
+  border-bottom: 2px solid transparent;
+  border-radius: 0; 
+  padding: 8px 0; 
+  margin: 0; 
+  box-sizing: border-box;
+  background: transparent;
+  transition: border-color 0.2s;
+}
+.kd-title-input:focus { border-bottom-color: #176f69; outline: none; }
+
+/* 编辑按钮组 */
+.kd-edit-actions { display: flex; align-items: center; gap: 8px; }
+.btn-edit-cancel {
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: 1px solid #d5dde0;
+  background: #fff;
+  color: #566a6f;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 13px;
+  font-family: inherit;
+  transition: all 0.15s;
+}
+.btn-edit-cancel:hover { background: #f0f3f4; color: #36575b; }
+.btn-edit-save {
+  padding: 8px 20px;
+  border-radius: 8px;
+  border: none;
+  background: #176f69;
+  color: #fff;
+  font-weight: 700;
+  cursor: pointer;
+  font-size: 13px;
+  font-family: inherit;
+  transition: all 0.15s;
+}
+.btn-edit-save:hover { background: #135a55; }
+
+.kd-type { padding: 6px 10px; border-radius: 999px; background: #eee8f6; color: #72539a; font-size: 11px; font-weight: 900; }
+.btn-edit { padding: 8px 14px; border-radius: 9px; border: none; background: linear-gradient(135deg, #2563EB, #1E3A5F); color: #fff; font-weight: 700; cursor: pointer; font-size: 13px; }
+.btn-edit:hover { filter: brightness(1.05); }
+.kd-save-status { display: block; margin-top: 8px; font-size: 12px; font-weight: 600; }
+.kd-save-status.unsaved { color: #94a3b8; }
+.kd-save-status.editing { color: #f59e0b; }
+.kd-save-status.saving { color: #2563eb; }
+.kd-save-status.saved { color: #16a34a; }
+.kd-save-status.error { color: #ef4444; }
+
+/* 编辑器工具栏 */
+.kd-editor-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 10px 40px;
+  background: #fafbfc;
+  border-bottom: 1px solid #eef2f2;
+  position: sticky;
+  top: 0;
+  z-index: 5;
+}
+.kd-editor-toolbar button {
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  background: transparent;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 13px;
+  color: #43585d;
+  font-family: inherit;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.kd-editor-toolbar button:hover { background: #e8f4f2; color: #176f69; border-color: #d5e2e1; }
+.kd-toolbar-divider { width: 1px; height: 20px; background: #e5ebec; margin: 0 4px; }
+.kd-toolbar-spacer { flex: 1; }
+.kd-toolbar-hint { font-size: 11px; color: #849297; }
+
+/* 元信息栏 */
+.kd-meta-bar {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  padding: 16px 40px;
+  background: #fafbfc;
+  border-bottom: 1px solid #eef2f2;
+}
+.kd-meta-bar.editing { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.kd-meta-bar > span { display: grid; gap: 4px; padding: 10px 12px; border-radius: 8px; background: #fff; border: 1px solid #eef2f2; }
+.kd-meta-bar small { color: #708287; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px; }
+.kd-meta-bar b { color: #1d373c; font-size: 13px; font-weight: 600; }
+.kd-meta-input { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.kd-meta-input small { color: #708287; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px; }
+.kd-meta-input input { 
+  width: 100%; 
+  border: 1px solid #dde5e7; 
+  border-radius: 6px; 
+  padding: 8px 10px; 
+  font-size: 13px; 
+  box-sizing: border-box;
+  font-family: inherit;
+  transition: border-color 0.15s;
+}
+.kd-meta-input input:focus { border-color: #176f69; outline: none; }
+
+/* 内容编辑区 */
+.kd-content-section { 
+  padding: 32px 40px; 
+  background: #fff;
+  flex: 1;
+}
+.kd-content-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+.kd-content-head h3 { margin-bottom: 0; font-size: 16px; color: #1d373c; }
+.kd-editor { 
+  width: 100%; 
+  min-height: 500px; 
+  resize: vertical; 
+  border: 1px solid #dde5e7; 
+  border-radius: 8px; 
+  padding: 20px 24px; 
+  font-size: 15px; 
+  line-height: 1.8; 
+  box-sizing: border-box; 
+  font-family: 'SF Mono', 'Consolas', 'Monaco', 'Courier New', monospace;
+  color: #2d484d;
+  background: #fff;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.kd-editor:focus { 
+  border-color: #176f69; 
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(23, 111, 105, 0.1);
+}
+.kd-summary-list { display: grid; gap: 7px; padding-left: 18px; color: #40565a; line-height: 1.8; margin: 0; }
+
+/* 右侧边栏（非编辑模式） */
+.kd-sidebar-right {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 20px;
+  background: #fafbfc;
+  border-left: 1px solid #e5ebec;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.kd-links-section, .kd-versions-section, .kd-collab-section { 
+  padding: 14px 16px; 
+  background: #fff; 
+  border: 1px solid #e5ebec; 
+  border-radius: 10px; 
+}
+.kd-links-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 10px; }
+.kd-links-head h3 { margin-bottom: 0; font-size: 14px; color: #1d373c; }
+.kd-links-head small { font-size: 11px; color: #708287; }
+.kd-link-block { margin-bottom: 12px; }
+.kd-link-label { margin: 0 0 6px 0; font-size: 12px; font-weight: 700; color: #43585d; }
+.kd-link-list { display: grid; gap: 6px; }
+.kd-link-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: #f7f8fa; border: 1px solid #eef2f2; border-radius: 8px; cursor: pointer; }
+.kd-link-item:hover { background: #e8f4f2; }
+.kd-link-del { border: none; background: #fee2e2; color: #dc2626; padding: 3px 9px; border-radius: 6px; cursor: pointer; font-size: 11px; font-weight: 700; }
+.kd-link-add { margin-top: 12px; display: grid; grid-template-columns: 90px 1fr 1fr auto; gap: 6px; }
+.kd-link-add select, .kd-link-add input, .kd-link-add button { padding: 6px 10px; border: 1px solid #dde5e7; border-radius: 6px; font-size: 12px; background: #fff; font-family: inherit; }
+.kd-link-add button { background: #176f69; color: #fff; font-weight: 700; border-color: #176f69; cursor: pointer; }
+.kd-link-add button:hover { background: #135a55; }
+.kd-version-list { display: grid; gap: 8px; max-height: 240px; overflow-y: auto; }
+.kd-version-item { background: #f7f8fa; border: 1px solid #eef2f2; border-radius: 8px; padding: 10px 12px; }
+.kd-version-main { display: flex; align-items: center; gap: 10px; margin-bottom: 5px; }
+.kd-version-main b { color: #176f69; font-weight: 800; font-size: 13px; }
+.kd-version-main small { color: #708287; font-size: 11px; }
+.kd-version-summary { margin: 0; font-size: 12px; color: #475569; padding-left: 4px; border-left: 3px solid #176f69; }
+.kd-version-restore { margin-top: 7px; border: 1px solid #176f69; background: #fff; color: #176f69; font-weight: 700; font-size: 11px; padding: 5px 10px; border-radius: 6px; cursor: pointer; font-family: inherit; }
+.kd-version-restore:hover { background: #e8f4f2; }
+.kd-empty { padding: 14px; text-align: center; font-size: 12px; color: #849297; background: #f7f8fa; border-radius: 8px; }
+.kd-actions { margin-top: 4px; }
+.kd-actions .btn-submit { background: #fef3c7; color: #92400e; border: 1.5px solid #fcd34d; font-weight: 700; }
+
+/* 协作成员 */
+.kd-collab-list { display: grid; gap: 8px; margin-top: 8px; }
+.kd-collab-item { display: flex; align-items: center; gap: 10px; padding: 8px 12px; background: #f7f8fa; border-radius: 8px; border: 1px solid #eef2f2; }
+.kd-collab-avatar { width: 32px; height: 32px; border-radius: 50%; color: #fff; display: grid; place-items: center; font-weight: 700; font-size: 13px; }
+.kd-collab-item > div { flex: 1; display: grid; gap: 2px; }
+.kd-collab-item b { color: #1d373c; font-size: 13px; }
+.kd-collab-item small { color: #708287; font-size: 11px; }
+.kd-collab-status { font-size: 11px; font-weight: 600; }
+.kd-collab-status.offline { color: #849297; }
+.kd-collab-status.online { color: #059669; }
+.kd-invite-btn { padding: 5px 10px; border: 1px solid #176f69; background: transparent; color: #176f69; border-radius: 6px; cursor: pointer; font-size: 11px; font-weight: 700; font-family: inherit; }
+.kd-invite-btn:hover { background: #176f69; color: #fff; }
+
+/* 任务详情中关联知识资料卡片 */
+.task-linked-knowledge { margin-top: 16px; padding: 14px 16px; border-radius: 11px; background: #f0f9ff; border-left: 4px solid #0ea5e9; }
+.task-linked-knowledge h4 { margin: 0 0 10px; font-size: 13px; color: #0c4a6e; }
+.task-linked-knowledge .tl-empty { padding: 10px; text-align: center; font-size: 12px; color: #94a3b8; }
+.task-linked-knowledge .tl-go-kb { margin-left: 8px; color: #2563eb; font-weight: 700; cursor: pointer; }
+.task-linked-list { display: grid; gap: 7px; }
+.task-linked-item { display: flex; justify-content: space-between; align-items: center; padding: 9px 12px; background: #fff; border-radius: 8px; border: 1px solid #bae6fd; cursor: pointer; }
+.task-linked-item:hover { background: #e0f2fe; }
+.task-linked-item .tl-title { font-size: 13px; font-weight: 600; color: #0c4a6e; }
+.task-linked-item .tl-meta { font-size: 11px; color: #64748b; margin-top: 3px; }
+.task-linked-item .tl-arrow { color: #0ea5e9; font-size: 16px; }
+
+/* 图谱降噪：使用 ECharts 渲染，保留可拖拽与筛选。 */
 .map-canvas { background-color: #f8fbfb; background-image: linear-gradient(rgba(91,132,142,.075) 1px, transparent 1px), linear-gradient(90deg, rgba(91,132,142,.075) 1px, transparent 1px), radial-gradient(circle at 50% 50%, rgba(31,120,115,.07), transparent 48%); }
-.graph-node b { max-width: 132px; padding: 4px 8px; border: 1px solid rgba(214,226,226,.8); color: #30464b; font-weight: 800; }
-.graph-node.center b { padding: 5px 12px; color: #174f55; }
 .map-inspector { border-top: 4px solid var(--teal); background: linear-gradient(180deg, #fffdfa, #f8fbfa); }
 
 @media print {
@@ -3887,5 +5463,26 @@ button { transition: background-color .18s, border-color .18s, color .18s, trans
   .library-result-grid { grid-template-columns: 1fr; }
   .recheck-panel .recheck-grid { grid-template-columns: 1fr; }
 }
+.tiangong-trace { margin: 0 0 8px; padding: 8px 10px; background: #f4f8f9; border: 1px dashed #b9d3d6; border-radius: 10px; font-size: 12px; color: #5a6a6e; }
+.tiangong-trace summary { cursor: pointer; font-weight: 600; color: #1e6f6a; user-select: none; margin-bottom: 4px; }
+.trace-step { display: flex; flex-wrap: wrap; gap: 6px; padding: 4px 0; border-top: 1px dotted #d6e3e5; align-items: baseline; }
+.trace-step:first-of-type { border-top: 0; }
+.trace-tag { display: inline-block; padding: 1px 7px; border-radius: 8px; font-size: 11px; font-weight: 600; color: #fff; background: #8aa3a6; min-width: 32px; text-align: center; flex-shrink: 0; }
+.trace-tag.tool_call { background: #1e6f6a; }
+.trace-tag.action { background: #c98a3a; }
+.trace-tag.thought { background: #5b8def; }
+.trace-tag.observation { background: #8a7bb0; }
+.trace-tool { color: #1e6f6a; font-weight: 600; word-break: break-all; }
+.trace-text { flex-basis: 100%; color: #41575b; word-break: break-word; white-space: pre-wrap; }
+.tg-cursor { position: fixed; width: 1px; height: 1px; z-index: 99999; pointer-events: none; transition: none !important; }
+.tg-cursor-dot { position: absolute; left: -10px; top: -10px; width: 20px; height: 20px; border-radius: 50%; background: rgba(30,111,106,.35); border: 2px solid #1e6f6a; box-shadow: 0 0 0 5px rgba(30,111,106,.15), 0 0 20px rgba(30,111,106,.3); animation: tg-pulse 1.5s ease-in-out infinite; }
+@keyframes tg-pulse { 0%,100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.15); opacity: 0.85; } }
+.tg-cursor-dot::after { content: ''; position: absolute; left: 50%; top: 50%; width: 4px; height: 4px; margin: -2px 0 0 -2px; border-radius: 50%; background: #1e6f6a; }
+.tg-cursor-label { position: absolute; left: 18px; top: 14px; white-space: nowrap; background: #1e6f6a; color: #fff; font-size: 12px; padding: 3px 8px; border-radius: 6px; box-shadow: 0 2px 8px rgba(0,0,0,.2); font-weight: 500; }
+.bubble.loading { position: relative; }
+.loading-dots { display: inline-flex; gap: 4px; margin-right: 6px; }
+.loading-dots i { width: 6px; height: 6px; border-radius: 50%; background: #1e6f6a; display: inline-block; animation: tg-bounce 1.2s infinite ease-in-out both; }
+.loading-dots i:nth-child(1) { animation-delay: -.32s; }
+.loading-dots i:nth-child(2) { animation-delay: -.16s; }
+@keyframes tg-bounce { 0%,80%,100% { transform: scale(0); } 40% { transform: scale(1); } }
 </style>
-<style scoped src="./src/styles/yixiu-refinement.css"></style>
