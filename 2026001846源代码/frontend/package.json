@@ -13,6 +13,7 @@
     "build:mp-weixin": "set UNI_INPUT_DIR=.&& uni build -p mp-weixin"
   },
   "dependencies": {
+    "echarts": "^6.1.0",
     "vue": "^3.4.21"
   },
   "devDependencies": {
