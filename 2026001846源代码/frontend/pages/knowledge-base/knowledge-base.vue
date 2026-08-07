@@ -12,7 +12,7 @@
     </view>
 
     <view class="knowledge-grid">
-      <view v-for="item in items" :key="item.id" class="knowledge-card">
+      <view v-for="item in items" :key="item.id" class="knowledge-card" @tap="goDetail(item)">
         <view class="card-top">
           <text class="card-title">{{ item.title }}</text>
           <text class="card-type">{{ item.category || '知识条目' }}</text>
@@ -20,6 +20,10 @@
         <text class="card-desc">{{ getContent(item) }}</text>
         <view class="tag-row">
           <text v-for="tag in getTags(item)" :key="tag" class="tag">{{ tag }}</text>
+        </view>
+        <view v-if="item.updated_at" class="card-footer">
+          <text class="card-time">🕐 {{ item.updated_at }}</text>
+          <text class="card-edit-hint">✏️ 点击编辑</text>
         </view>
       </view>
     </view>
@@ -65,6 +69,11 @@ export default {
     getContent(item) {
       if (Array.isArray(item.content)) return item.content[0] || ''
       return item.content || item.source || item.fault_type || '已纳入一修检修知识库'
+    },
+    goDetail(item) {
+      uni.navigateTo({
+        url: `/pages/knowledge-detail/knowledge-detail?id=${item.id}&title=${encodeURIComponent(item.title || '')}`
+      })
     }
   }
 }
@@ -88,5 +97,10 @@ export default {
 .card-desc { margin-top: 14rpx; color: #475569; font-size: 22rpx; line-height: 1.55; }
 .tag-row { margin-top: 16rpx; display: flex; flex-wrap: wrap; gap: 10rpx; }
 .tag { padding: 7rpx 12rpx; border-radius: 10rpx; background: #f8fafc; color: #334155; font-size: 20rpx; font-weight: 800; }
+.knowledge-card { transition: transform 0.15s, box-shadow 0.15s; }
+.knowledge-card:active { transform: scale(0.97); box-shadow: 0 4rpx 12rpx rgba(15,23,42,0.12); }
+.card-footer { margin-top: 14rpx; display: flex; justify-content: space-between; align-items: center; padding-top: 12rpx; border-top: 1rpx solid #f1f5f9; }
+.card-time { font-size: 19rpx; color: #94a3b8; }
+.card-edit-hint { font-size: 19rpx; color: #0f766e; font-weight: 700; }
 @media screen and (max-width: 720px) { .knowledge-grid { grid-template-columns: 1fr; } }
 </style>

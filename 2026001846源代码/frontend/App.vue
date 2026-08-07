@@ -728,42 +728,124 @@
           </div>
 
           <div v-if="knowledgePanel === 'library'" class="panel span-all knowledge-library-panel">
-            <div class="library-heading">
-              <div>
-                <p class="eyebrow">技术资料库</p>
-                <h3>检索可靠的设备检修知识</h3>
-                <span>覆盖维修手册、历史案例、标准作业流程与安全规范</span>
+            <div class="kb-hero">
+              <div class="kb-hero-left">
+                <h3>技术资料库</h3>
+                <span>模板创建 · 多人协作 · 版本追踪 · 任务联动</span>
               </div>
-              <b>{{ filteredKnowledge.length }} 条资料</b>
+              <div class="kb-hero-right">
+                <button class="kb-cta kb-cta-new" type="button" @click="showTemplatePicker = true">
+                  <svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+                  <span>新建文档</span>
+                </button>
+                <button class="kb-cta kb-cta-tpl" type="button" @click="showTemplateLibrary = true">
+                  <svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+                  <span>模板库</span>
+                </button>
+              </div>
             </div>
-            <div class="filters library-searchbar">
-              <span class="library-search-icon" aria-hidden="true">
-                <svg class="ui-icon" viewBox="0 0 24 24"><path v-for="path in iconParts('search')" :key="path" :d="path"></path></svg>
-              </span>
-              <input v-model.trim="knowledgeKeyword" placeholder="输入设备、故障现象或资料名称" @keyup.enter="loadKnowledge" />
-              <button type="button" @click="loadKnowledge">检索资料库</button>
+
+            <div class="kb-toolbar">
+              <div class="kb-toolbar-left">
+                <h4>全部文档 <small>{{ filteredKnowledgeDocs.length }} 篇</small></h4>
+                <div class="kb-filter">
+                  <button type="button" :class="{ active: kbFilter === 'all' }" @click="kbFilter = 'all'">全部</button>
+                  <button type="button" :class="{ active: kbFilter === 'mine' }" @click="kbFilter = 'mine'">我创建的</button>
+                  <button type="button" :class="{ active: kbFilter === 'starred' }" @click="kbFilter = 'starred'">星标</button>
+                  <button type="button" :class="{ active: kbFilter === 'recent' }" @click="kbFilter = 'recent'">最近编辑</button>
+                </div>
+              </div>
+              <div class="kb-search">
+                <svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+                <input v-model.trim="kbSearch" placeholder="搜索文档标题、标签或内容" />
+              </div>
             </div>
-            <div v-if="filteredKnowledge.length" class="result-grid library-result-grid">
-              <article v-for="(item, index) in filteredKnowledge" :key="item.id" class="result-card library-result-card" :style="{ '--library-index': index % 4 }">
-                <div class="library-card-head">
-                  <span class="library-type">{{ knowledgeTypeText(item) }}</span>
-                  <span v-if="item.match" class="library-match">匹配度 {{ item.match }}%</span>
+
+            <div v-if="filteredKnowledgeDocs.length" class="kb-grid">
+              <article
+                v-for="(doc, idx) in filteredKnowledgeDocs"
+                :key="doc.id"
+                class="kb-doc-card"
+                :class="{ starred: doc.starred }"
+                @click="openKnowledge(doc)"
+              >
+                <div class="kb-doc-head">
+                  <span class="kb-doc-type" :class="doc.category || 'general'">{{ doc.type || doc.category || '技术资料' }}</span>
+                  <svg v-if="doc.starred" class="ui-icon kb-star-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
                 </div>
-                <h4>{{ item.title }}</h4>
-                <div class="library-meta">
-                  <span v-for="meta in knowledgeMetaParts(item)" :key="meta">{{ meta }}</span>
+                <h4 class="kb-doc-title">{{ doc.title }}</h4>
+                <p class="kb-doc-summary">{{ (doc.content || '').replace(/[#*>\-\[\]]/g, '').slice(0, 80) || '暂无内容，点击开始编辑' }}</p>
+                <div v-if="(doc.tags || []).length" class="kb-doc-tags">
+                  <span v-for="tag in (doc.tags || []).slice(0, 3)" :key="tag" class="kb-tag">{{ tag }}</span>
                 </div>
-                <div class="library-summary">
-                  <p v-for="(line, lineIndex) in knowledgeSummaryLines(item)" :key="lineIndex">{{ line }}</p>
-                </div>
-                <div v-if="item.tags?.length" class="tag-line library-tags"><span v-for="tag in item.tags" :key="tag">{{ tag }}</span></div>
-                <div class="library-card-footer">
-                  <small>{{ item.updated_at ? `更新于 ${item.updated_at}` : '平台知识资料' }}<template v-if="item.citations"> · 引用 {{ item.citations }} 次</template></small>
-                  <div class="card-actions"><button type="button" @click="openKnowledge(item)">查看详情</button><button class="primary" type="button" @click="searchFromKnowledge(item)">发起检索</button></div>
+                <div class="kb-doc-foot">
+                  <div class="kb-collab">
+                    <div v-if="doc.collaborators?.length" class="kb-avatars">
+                      <span v-for="(c, ci) in doc.collaborators.slice(0, 3)" :key="ci" class="kb-avatar" :style="{ background: avatarColors[ci % avatarColors.length] }">{{ (c.name || '?')[0] }}</span>
+                      <span v-if="doc.collaborators.length > 3" class="kb-more">+{{ doc.collaborators.length - 3 }}</span>
+                    </div>
+                    <span class="kb-collab-count" v-if="doc.collaborators?.length">{{ doc.collaborators.length }} 人协作</span>
+                    <span v-else class="kb-no-collab">仅自己</span>
+                  </div>
+                  <small class="kb-time">{{ doc.updated_at || '新建' }}</small>
                 </div>
               </article>
             </div>
-            <div v-else class="library-empty"><b>未找到相关资料</b><span>请尝试更换设备型号、故障现象或资料名称</span></div>
+            <div v-else class="kb-empty-state">
+              <h4>暂无技术文档</h4>
+              <p>点击上方「新建文档」按钮，选择模板快速创建</p>
+              <button class="primary kb-empty-btn" type="button" @click="showTemplatePicker = true">+ 新建文档</button>
+            </div>
+          </div>
+
+          <!-- 模板选择弹窗 -->
+          <div v-if="showTemplatePicker" class="modal" @click.self="showTemplatePicker = false">
+            <article class="modal-card kb-template-modal">
+              <button class="close" type="button" @click="showTemplatePicker = false">×</button>
+              <header>
+                <p class="eyebrow">选择模板</p>
+                <h2>从模板创建文档</h2>
+                <span>选择一个模板快速开始，创建后可随时修改</span>
+              </header>
+              <div class="kb-template-grid">
+                <article
+                  v-for="tpl in availableTemplates"
+                  :key="tpl.id"
+                  class="kb-template-card"
+                  @click="createDocFromTemplate(tpl)"
+                >
+                  <div class="kb-template-icon">{{ tpl.icon }}</div>
+                  <div class="kb-template-info">
+                    <h4>{{ tpl.name }}</h4>
+                    <span>{{ tpl.category }}</span>
+                    <p>{{ tpl.description }}</p>
+                  </div>
+                  <button class="kb-template-use" type="button">使用模板 →</button>
+                </article>
+              </div>
+            </article>
+          </div>
+
+          <!-- 模板库弹窗 -->
+          <div v-if="showTemplateLibrary" class="modal" @click.self="showTemplateLibrary = false">
+            <article class="modal-card kb-template-lib-modal">
+              <button class="close" type="button" @click="showTemplateLibrary = false">×</button>
+              <header>
+                <p class="eyebrow">模板库</p>
+                <h2>全部模板（{{ availableTemplates.length }} 个）</h2>
+              </header>
+              <div class="kb-template-grid">
+                <article v-for="tpl in availableTemplates" :key="'lib-' + tpl.id" class="kb-template-card">
+                  <div class="kb-template-icon">{{ tpl.icon }}</div>
+                  <div class="kb-template-info">
+                    <h4>{{ tpl.name }}</h4>
+                    <span>{{ tpl.category }}</span>
+                    <p>{{ tpl.description }}</p>
+                  </div>
+                  <button class="kb-template-use" type="button" @click="createDocFromTemplate(tpl)">使用 →</button>
+                </article>
+              </div>
+            </article>
           </div>
 
           <div v-if="knowledgePanel === 'update'" class="panel span-all">
@@ -826,7 +908,7 @@
             <div class="panel-head">
               <div>
                 <p class="eyebrow">智能体使用记录</p>
-                <h3>最近协助我的器灵</h3>
+                <h3>最近协助我的 agent</h3>
               </div>
               <button type="button" @click="runAudit">查看核查建议</button>
             </div>
@@ -850,7 +932,7 @@
         <span></span>
       </button>
 
-      <aside class="operator-panel" aria-label="页面智能体对话">
+      <aside class="operator-panel" :class="'op-theme-' + (operatorProfile.id || 'tiangong')" aria-label="页面智能体对话">
         <div class="operator-head">
           <img class="operator-avatar" :src="operatorProfile.avatar" :alt="operatorProfile.name" @error="handleAvatarError" />
           <div>
@@ -1036,108 +1118,183 @@
     <div v-if="selectedKnowledge" class="modal" @click.self="closeKnowledgeDetail()">
       <article class="modal-card knowledge-detail-card" :class="{ editing: isKnowledgeEditing }">
         <button class="close" type="button" @click="closeKnowledgeDetail()">×</button>
-        <header class="kd-header">
-          <div>
-            <p class="eyebrow">{{ isKnowledgeEditing ? '✏️ 编辑知识' : '知识详情' }}</p>
-            <input v-if="isKnowledgeEditing" v-model="knowledgeDraft.title" class="kd-title-input" />
-            <h2 v-else>{{ selectedKnowledge.title }}</h2>
-            <small v-if="knowledgeSaveStatus" class="kd-save-status" :class="knowledgeSaveStatus">{{ knowledgeSaveText }}</small>
-          </div>
-          <div class="kd-header-right">
-            <span class="kd-type">{{ knowledgeTypeText(selectedKnowledge) }}</span>
-            <button v-if="!isKnowledgeEditing" type="button" class="btn-edit" @click="startKnowledgeEdit()">✏️ 编辑内容</button>
-            <button v-else type="button" class="btn-edit preview" @click="saveKnowledgeNow(true)">💾 保存</button>
-          </div>
-        </header>
+        
+        <!-- 编辑模式：三栏布局 -->
+        <template v-if="isKnowledgeEditing">
+          <aside class="kd-sidebar-left">
+            <div class="kd-sidebar-header">
+              <span class="kd-sidebar-icon">📂</span>
+              <span class="kd-sidebar-title">技术资料库</span>
+            </div>
+            <div class="kd-sidebar-breadcrumb">
+              <span>📁 {{ selectedKnowledge.category || '默认分类' }}</span>
+              <span class="kd-arrow">›</span>
+              <span class="kd-current-doc">📄 {{ knowledgeDraft.title || '未命名文档' }}</span>
+            </div>
+            <div class="kd-outline">
+              <div class="kd-outline-title">📋 文档大纲</div>
+              <div class="kd-outline-list">
+                <div v-for="(line, idx) in knowledgeOutline" :key="idx" class="kd-outline-item" :class="'level-' + line.level">
+                  <span class="kd-outline-dot">•</span>
+                  <span>{{ line.text }}</span>
+                </div>
+                <div v-if="knowledgeOutline.length === 0" class="kd-outline-empty">
+                  暂无大纲内容
+                </div>
+              </div>
+            </div>
+            <div class="kd-sidebar-footer">
+              <span>📝 {{ knowledgeDraft.content?.length || 0 }} 字</span>
+              <span>⏱ {{ knowledgeSaveStatus === 'saved' ? '已保存' : '编辑中' }}</span>
+            </div>
+          </aside>
+        </template>
 
-        <div class="knowledge-detail-meta">
-          <template v-if="!isKnowledgeEditing">
-            <span><small>适用设备</small><b>{{ selectedKnowledge.equipment || '通用检修设备' }}</b></span>
-            <span><small>型号</small><b>{{ selectedKnowledge.model || '通用型号' }}</b></span>
-            <span><small>来源</small><b>{{ selectedKnowledge.source || '一修知识库' }}</b></span>
-            <span><small>引用</small><b>{{ selectedKnowledge.citations || 0 }} 次</b></span>
-          </template>
-          <template v-else>
-            <label class="kd-meta-input"><small>适用设备</small><input v-model="knowledgeDraft.equipment" /></label>
-            <label class="kd-meta-input"><small>型号</small><input v-model="knowledgeDraft.model" /></label>
-            <label class="kd-meta-input"><small>标签(逗号分隔)</small><input v-model="knowledgeDraft.tagsText" /></label>
-            <label class="kd-meta-input"><small>来源</small><input v-model="knowledgeDraft.source" /></label>
-          </template>
+        <div class="kd-main-area">
+          <header class="kd-header">
+            <div class="kd-header-left">
+              <div v-if="isKnowledgeEditing" class="kd-top-bar">
+                <span class="kd-doc-icon">📝</span>
+                <input v-model="knowledgeDraft.title" class="kd-title-input" placeholder="无标题文档" />
+              </div>
+              <h2 v-else>{{ selectedKnowledge.title }}</h2>
+              <small v-if="knowledgeSaveStatus" class="kd-save-status" :class="knowledgeSaveStatus">{{ knowledgeSaveText }}</small>
+            </div>
+            <div class="kd-header-right">
+              <span class="kd-type">{{ knowledgeTypeText(selectedKnowledge) }}</span>
+              <button v-if="!isKnowledgeEditing" type="button" class="btn-edit" @click="startKnowledgeEdit()">✏️ 编辑内容</button>
+              <div v-else class="kd-edit-actions">
+                <button type="button" class="btn-edit-cancel" @click="cancelKnowledgeEdit()">取消</button>
+                <button type="button" class="btn-edit-save" @click="saveKnowledgeNow(true)">💾 保存</button>
+              </div>
+            </div>
+          </header>
+
+          <div v-if="isKnowledgeEditing" class="kd-editor-toolbar">
+            <button type="button" title="标题" @click="insertMarkdown('heading')">H</button>
+            <button type="button" title="加粗" @click="insertMarkdown('bold')"><b>B</b></button>
+            <button type="button" title="斜体" @click="insertMarkdown('italic')"><i>I</i></button>
+            <span class="kd-toolbar-divider"></span>
+            <button type="button" title="无序列表" @click="insertMarkdown('list')">• 列表</button>
+            <button type="button" title="有序列表" @click="insertMarkdown('olist')">1. 列表</button>
+            <button type="button" title="待办事项" @click="insertMarkdown('todo')">☑ 待办</button>
+            <span class="kd-toolbar-divider"></span>
+            <button type="button" title="表格" @click="insertMarkdown('table')">📊 表格</button>
+            <button type="button" title="代码块" @click="insertMarkdown('code')"><> 代码</button>
+            <button type="button" title="引用" @click="insertMarkdown('quote')">"</button>
+            <span class="kd-toolbar-divider"></span>
+            <span class="kd-toolbar-spacer"></span>
+            <span class="kd-toolbar-hint">Markdown 格式</span>
+          </div>
+
+          <div class="kd-meta-bar" :class="{ editing: isKnowledgeEditing }">
+            <template v-if="!isKnowledgeEditing">
+              <span><small>适用设备</small><b>{{ selectedKnowledge.equipment || '通用检修设备' }}</b></span>
+              <span><small>型号</small><b>{{ selectedKnowledge.model || '通用型号' }}</b></span>
+              <span><small>来源</small><b>{{ selectedKnowledge.source || '一修知识库' }}</b></span>
+              <span><small>引用</small><b>{{ selectedKnowledge.citations || 0 }} 次</b></span>
+            </template>
+            <template v-else>
+              <label class="kd-meta-input"><small>适用设备</small><input v-model="knowledgeDraft.equipment" /></label>
+              <label class="kd-meta-input"><small>型号</small><input v-model="knowledgeDraft.model" /></label>
+              <label class="kd-meta-input"><small>标签(逗号分隔)</small><input v-model="knowledgeDraft.tagsText" /></label>
+              <label class="kd-meta-input"><small>来源</small><input v-model="knowledgeDraft.source" /></label>
+            </template>
+          </div>
+
+          <section class="kd-content-section">
+            <div class="kd-content-head" v-if="!isKnowledgeEditing">
+              <h3>📝 内容摘要</h3>
+            </div>
+            <textarea v-if="isKnowledgeEditing" v-model="knowledgeDraft.content" @input="onKnowledgeContentInput" placeholder="开始输入文档内容...
+
+支持 Markdown 格式：
+## 二级标题
+**加粗文本**
+- 无序列表项
+1. 有序列表项
+- [ ] 待办事项
+| 表头 | 表头 |
+|------|------|
+| 内容 | 内容 |" class="kd-editor"></textarea>
+            <ul v-else class="kd-summary-list"><li v-for="(line, index) in knowledgeFullLines(selectedKnowledge)" :key="index">{{ line }}</li></ul>
+          </section>
+
+          <div v-if="!isKnowledgeEditing && selectedKnowledge.tags?.length" class="tag-line"><span v-for="tag in selectedKnowledge.tags" :key="tag">{{ tag }}</span></div>
         </div>
 
-        <section class="kd-content-section">
-          <div class="kd-content-head">
-            <h3>{{ isKnowledgeEditing ? '编辑内容（支持 Markdown）' : '📝 内容摘要' }}</h3>
-            <div v-if="isKnowledgeEditing" class="kd-editor-tools">
-              <button type="button" @click="insertMarkdown('heading')">H</button>
-              <button type="button" @click="insertMarkdown('bold')">B</button>
-              <button type="button" @click="insertMarkdown('list')">📋</button>
-              <button type="button" @click="insertMarkdown('todo')">☑</button>
-              <button type="button" @click="insertMarkdown('table')">📊</button>
-            </div>
-          </div>
-          <textarea v-if="isKnowledgeEditing" v-model="knowledgeDraft.content" @input="onKnowledgeContentInput" placeholder="输入技术资料内容：## 标题、**加粗**、- 列表、- [ ] 待办" class="kd-editor"></textarea>
-          <ul v-else class="kd-summary-list"><li v-for="(line, index) in knowledgeFullLines(selectedKnowledge)" :key="index">{{ line }}</li></ul>
-        </section>
-
-        <div v-if="!isKnowledgeEditing && selectedKnowledge.tags?.length" class="tag-line"><span v-for="tag in selectedKnowledge.tags" :key="tag">{{ tag }}</span></div>
-
-        <!-- 联动：关联任务 & 引用知识 -->
-        <section v-if="!isKnowledgeEditing" class="kd-links-section">
-          <div class="kd-links-head"><h3>🔗 板块联动</h3><small v-if="kdLinks.length">关联 {{ kdLinks.length }} 项</small></div>
-          <div v-if="kdTasks.length" class="kd-link-block">
-            <p class="kd-link-label">📋 关联检修任务</p>
-            <div class="kd-link-list">
-              <div v-for="link in kdTasks" :key="link.id" class="kd-link-item" @click="openTaskById(link.target_id)">
-                <span>{{ link.target_title }}</span>
-                <button type="button" class="kd-link-del" @click.stop="removeKdLink(link.id)">✕</button>
+        <!-- 右侧边栏：仅非编辑模式显示 -->
+        <aside v-if="!isKnowledgeEditing" class="kd-sidebar-right">
+          <!-- 联动：关联任务 & 引用知识 -->
+          <section class="kd-links-section">
+            <div class="kd-links-head"><h3>🔗 板块联动</h3><small v-if="kdLinks.length">关联 {{ kdLinks.length }} 项</small></div>
+            <div v-if="kdTasks.length" class="kd-link-block">
+              <p class="kd-link-label">📋 关联检修任务</p>
+              <div class="kd-link-list">
+                <div v-for="link in kdTasks" :key="link.id" class="kd-link-item" @click="openTaskById(link.target_id)">
+                  <span>{{ link.target_title }}</span>
+                  <button type="button" class="kd-link-del" @click.stop="removeKdLink(link.id)">✕</button>
+                </div>
               </div>
             </div>
-          </div>
-          <div v-if="kdKnowledgeLinks.length" class="kd-link-block">
-            <p class="kd-link-label">📚 引用知识</p>
-            <div class="kd-link-list">
-              <div v-for="link in kdKnowledgeLinks" :key="link.id" class="kd-link-item" @click="openKnowledge({ id: link.target_id, title: link.target_title })">
-                <span>📖 {{ link.target_title }}</span>
-                <button type="button" class="kd-link-del" @click.stop="removeKdLink(link.id)">✕</button>
+            <div v-if="kdKnowledgeLinks.length" class="kd-link-block">
+              <p class="kd-link-label">📚 引用知识</p>
+              <div class="kd-link-list">
+                <div v-for="link in kdKnowledgeLinks" :key="link.id" class="kd-link-item" @click="openKnowledge({ id: link.target_id, title: link.target_title })">
+                  <span>📖 {{ link.target_title }}</span>
+                  <button type="button" class="kd-link-del" @click.stop="removeKdLink(link.id)">✕</button>
+                </div>
               </div>
             </div>
-          </div>
-          <div class="kd-link-add">
-            <select v-model="kdNewLink.type">
-              <option value="task">关联任务</option><option value="knowledge">引用知识</option>
-            </select>
-            <input v-model="kdNewLink.targetId" placeholder="目标ID" />
-            <input v-model="kdNewLink.title" placeholder="显示标题" />
-            <button type="button" @click="addKdLink()">+ 添加</button>
-          </div>
-        </section>
-
-        <!-- 版本历史 -->
-        <section v-if="!isKnowledgeEditing" class="kd-versions-section">
-          <div class="kd-links-head"><h3>📜 版本历史</h3><small v-if="kdVersions.length">共 {{ kdVersions.length }} 个版本</small></div>
-          <div v-if="kdVersions.length === 0" class="kd-empty">暂无版本记录，首次编辑后会生成版本。</div>
-          <div v-else class="kd-version-list">
-            <div v-for="ver in kdVersions" :key="ver.id" class="kd-version-item">
-              <div class="kd-version-main">
-                <b>v{{ ver.version }}</b><small>{{ ver.editor_name || '系统' }} · {{ ver.created_at }}</small>
-              </div>
-              <p v-if="ver.change_summary" class="kd-version-summary">{{ ver.change_summary }}</p>
-              <button type="button" class="kd-version-restore" @click="restoreKdVersion(ver)">↩ 恢复</button>
+            <div class="kd-link-add">
+              <select v-model="kdNewLink.type">
+                <option value="task">关联任务</option><option value="knowledge">引用知识</option>
+              </select>
+              <input v-model="kdNewLink.targetId" placeholder="目标ID" />
+              <input v-model="kdNewLink.title" placeholder="显示标题" />
+              <button type="button" @click="addKdLink()">+ 添加</button>
             </div>
-          </div>
-        </section>
+          </section>
 
-        <div class="kd-actions actions">
-          <template v-if="!isKnowledgeEditing">
-            <button type="button" @click="selectedKnowledge = null">关闭</button>
-            <button class="primary" type="button" @click="searchFromKnowledge(selectedKnowledge); selectedKnowledge = null">作为检索依据</button>
-            <button type="button" class="btn-submit" @click="submitKnowledgeReview()">📤 提交知识审核</button>
-          </template>
-          <template v-else>
-            <button type="button" @click="cancelKnowledgeEdit()">取消</button>
-            <button class="primary" type="button" @click="saveKnowledgeNow()">💾 保存并生成版本</button>
-          </template>
+          <!-- 版本历史 -->
+          <section class="kd-versions-section">
+            <div class="kd-links-head"><h3>📜 版本历史</h3><small v-if="kdVersions.length">共 {{ kdVersions.length }} 个版本</small></div>
+            <div v-if="kdVersions.length === 0" class="kd-empty">暂无版本记录，首次编辑后会生成版本。</div>
+            <div v-else class="kd-version-list">
+              <div v-for="ver in kdVersions" :key="ver.id" class="kd-version-item">
+                <div class="kd-version-main">
+                  <b>v{{ ver.version }}</b><small>{{ ver.editor_name || '系统' }} · {{ ver.created_at }}</small>
+                </div>
+                <p v-if="ver.change_summary" class="kd-version-summary">{{ ver.change_summary }}</p>
+                <button type="button" class="kd-version-restore" @click="restoreKdVersion(ver)">↩ 恢复</button>
+              </div>
+            </div>
+          </section>
+
+          <!-- 协作成员 -->
+          <section class="kd-collab-section">
+            <div class="kd-links-head">
+              <h3>👥 协作成员 <small v-if="kdCollaborators.length">{{ kdCollaborators.length }} 人</small></h3>
+              <button type="button" class="kd-invite-btn" @click="inviteCollaborator">+ 邀请</button>
+            </div>
+            <div v-if="kdCollaborators.length === 0" class="kd-empty">暂无协作成员，点击右上角邀请同事共同编辑此文档。</div>
+            <div v-else class="kd-collab-list">
+              <div v-for="(c, ci) in kdCollaborators" :key="ci" class="kd-collab-item">
+                <span class="kd-collab-avatar" :style="{ background: avatarColors[ci % avatarColors.length] }">{{ (c.name || '?')[0] }}</span>
+                <div>
+                  <b>{{ c.name }}</b>
+                  <small>{{ c.role === 'owner' ? '所有者' : c.role === 'editor' ? '编辑者' : '查看者' }}</small>
+                </div>
+                <span class="kd-collab-status" :class="c.status || 'offline'">{{ c.status === 'online' ? '🟢 在线' : '⚪ 离线' }}</span>
+              </div>
+            </div>
+          </section>
+        </aside>
+
+        <div class="kd-actions actions" v-if="!isKnowledgeEditing">
+          <button type="button" @click="selectedKnowledge = null">关闭</button>
+          <button class="primary" type="button" @click="searchFromKnowledge(selectedKnowledge); selectedKnowledge = null">作为检索依据</button>
+          <button type="button" class="btn-submit" @click="submitKnowledgeReview()">📤 提交知识审核</button>
         </div>
       </article>
     </div>
@@ -1325,6 +1482,7 @@ const knowledgeSaveStatus = ref('')
 const kdAutoSaveTimer = ref(null)
 const kdVersions = ref([])
 const kdLinks = ref([])
+const kdCollaborators = ref([])
 const kdNewLink = reactive({ type: 'task', targetId: '', title: '' })
 const kdLinksComputed = computed(() => ({
   tasks: kdLinks.value.filter(l => l.link_type === 'task'),
@@ -1335,6 +1493,18 @@ const kdKnowledgeLinks = computed(() => kdLinksComputed.value.knowledge)
 const knowledgeSaveText = computed(() => ({
   unsaved: '未保存', editing: '编辑中...', saving: '保存中...', saved: '✅ 已自动保存', error: '❌ 保存失败', manualSaved: '✅ 已保存并生成版本'
 }[knowledgeSaveStatus.value] || ''))
+const knowledgeOutline = computed(() => {
+  const content = knowledgeDraft.content || ''
+  const lines = content.split('\n')
+  const result = []
+  for (const line of lines) {
+    const m = line.match(/^(#{1,4})\s+(.+)/)
+    if (m) {
+      result.push({ level: m[1].length, text: m[2].trim() })
+    }
+  }
+  return result
+})
 const toastText = ref('')
 const auditResult = ref('')
 const selectedAgentId = ref('')
@@ -1453,7 +1623,7 @@ const operatorProfiles = {
     icon: 'dashboard',
     status: 'online',
     statusText: '在线',
-    welcome: '我是天工，负责统筹其他器灵，帮你盯住今日任务、系统状态和高风险异常。',
+    welcome: '我是天工，负责统筹其他 agent，帮你盯住今日任务、系统状态和高风险异常。',
     sampleAsk: '帮我看一下今天优先处理什么？',
     sampleAnswer: '建议先处理高风险配电柜过热工单，再推进待复检任务，同时关注文件解析异常。',
     quickTitle: '生成今日检修简报',
@@ -2504,6 +2674,151 @@ watch(selectedTask, async (task) => {
     taskLinkedKnowledge.value = result.items || []
   } catch { taskLinkedKnowledge.value = [] }
 }, { immediate: true })
+
+// 知识库文档列表（从mock知识构建，支持协作元数据）
+const avatarColors = ['#2563EB', '#059669', '#D97706', '#DC2626', '#7C3AED', '#0891B2', '#DB2777', '#65A30D']
+const knowledgeDocs = ref([])
+const kbFilter = ref('all')
+const kbSearch = ref('')
+const showTemplatePicker = ref(false)
+const showTemplateLibrary = ref(false)
+const availableTemplates = ref([])
+
+const filteredKnowledgeDocs = computed(() => {
+  let docs = knowledgeDocs.value
+  if (kbFilter.value === 'mine') docs = docs.filter(d => d.collaborators?.some(c => c.role === 'owner'))
+  else if (kbFilter.value === 'starred') docs = docs.filter(d => d.starred)
+  else if (kbFilter.value === 'recent') docs = [...docs].sort((a, b) => (b.updated_at || '').localeCompare(a.updated_at || ''))
+  if (kbSearch.value) {
+    const kw = kbSearch.value.toLowerCase()
+    docs = docs.filter(d =>
+      (d.title || '').toLowerCase().includes(kw) ||
+      (d.content || '').toLowerCase().includes(kw) ||
+      (d.tags || []).some(t => t.toLowerCase().includes(kw))
+    )
+  }
+  return docs
+})
+
+const loadTemplates = async () => {
+  try {
+    const res = await yixiuApi.templates()
+    availableTemplates.value = res.templates || []
+  } catch {
+    availableTemplates.value = [
+      { id: 'tpl-blank', name: '空白文档', icon: '📝', category: '通用', description: '从零开始创建', skeleton: { content: '# 文档标题\n\n在此输入内容...' } },
+      { id: 'tpl-sop', name: '检修作业 SOP', icon: '📋', category: '检修流程', description: '标准作业流程模板', skeleton: { content: '# 检修作业 SOP\n\n## 安全确认\n- [ ] 停机断电\n\n## 作业步骤\n1. 检查\n2. 处置' } },
+      { id: 'tpl-fault', name: '故障排查报告', icon: '🔍', category: '故障分析', description: '故障排查过程记录', skeleton: { content: '# 故障排查报告\n\n## 故障现象\n\n## 排查过程\n\n## 处置措施' } },
+      { id: 'tpl-meeting', name: '检修会议纪要', icon: '📒', category: '协作沟通', description: '班组例会纪要', skeleton: { content: '# 会议纪要\n\n## 议题\n\n## 行动计划' } },
+      { id: 'tpl-safety', name: '安全操作规范', icon: '🛡️', category: '安全规范', description: '高风险作业规程', skeleton: { content: '# 安全操作规范\n\n## 防护用品\n- [ ] 安全帽\n\n## 安全流程' } }
+    ]
+  }
+}
+
+const loadKnowledgeDocs = () => {
+  const collaboratorPool = [
+    { name: '张三', role: 'owner', status: 'online' },
+    { name: '李四', role: 'editor', status: 'online' },
+    { name: '王五', role: 'editor', status: 'offline' },
+    { name: '赵宁', role: 'viewer', status: 'offline' },
+  ]
+  const docs = overview.value?.knowledge || []
+  const mockDocs = [
+    {
+      id: 'kb-sop-001',
+      title: 'CG-125 发动机检修作业 SOP',
+      type: 'SOP', category: '检修流程',
+      content: '# 发动机检修作业 SOP\n## 基本信息\n- 设备：CG-125 摩托车发动机\n- 型号：MTR-CG125-12\n## 安全确认\n- 停机断电\n- 验电挂牌\n- 穿戴劳保用品\n## 作业步骤\n1. 外观检查\n2. 参数测量\n3. 故障定位\n4. 维修处置',
+      tags: ['发动机', 'SOP', '异响'],
+      collaborators: [collaboratorPool[0], collaboratorPool[1], collaboratorPool[2]],
+      starred: true,
+      updated_at: '2026-08-06 16:30',
+    },
+    {
+      id: 'kb-fault-001',
+      title: '配电柜过热故障排查报告',
+      type: '故障案例', category: '故障分析',
+      content: '# 故障排查报告\n## 故障现象\n配电柜PD-ZK-320-07运行中温度异常升高，超过报警阈值。\n## 排查过程\n1. 红外测温确认发热点位于母排连接处\n2. 检查螺栓紧固力矩，发现松动\n3. 热成像分析确认接触电阻增大\n## 处置措施\n停电检修，重新紧固螺栓，涂抹导电膏，复测温度正常。',
+      tags: ['配电柜', '过热', '案例'],
+      collaborators: [collaboratorPool[0], collaboratorPool[1]],
+      starred: false,
+      updated_at: '2026-08-05 14:20',
+    },
+    {
+      id: 'kb-safety-001',
+      title: '高压电气设备安全操作规范',
+      type: '安全规范', category: '安全规范',
+      content: '# 安全操作规范\n## 适用范围\n适用于10kV及以上高压电气设备的检修与维护作业。\n## 防护用品\n- 绝缘手套\n- 绝缘鞋\n- 安全帽\n- 防电弧服\n## 安全流程\n1. 办理工作票\n2. 验电\n3. 装设接地线\n4. 悬挂标示牌',
+      tags: ['安全', '高压', '电气'],
+      collaborators: [collaboratorPool[0]],
+      starred: true,
+      updated_at: '2026-08-04 09:15',
+    },
+    {
+      id: 'kb-meeting-001',
+      title: '8月检修班组例会纪要',
+      type: '会议纪要', category: '协作沟通',
+      content: '# 检修班组例会纪要\n## 时间\n2026年8月3日 14:00\n## 参会人员\n李宗泽、李志勇、唐忆罗、陈程\n## 议题\n1. 本周检修任务进展\n2. 配电柜过热工单风险确认\n3. CG-125发动机异响排查方案\n## 行动计划\n- 李宗泽负责配电柜停机检修\n- 李志勇跟进发动机拆检',
+      tags: ['会议', '纪要'],
+      collaborators: [collaboratorPool[0], collaboratorPool[1], collaboratorPool[2], collaboratorPool[3]],
+      starred: false,
+      updated_at: '2026-08-03 16:00',
+    },
+    {
+      id: 'kb-manual-001',
+      title: '液压千斤顶使用维护手册',
+      type: '维修手册', category: '通用',
+      content: '# 液压千斤顶使用维护手册\n## 型号\nYZ-50T 液压千斤顶\n## 使用前检查\n1. 检查油位是否正常\n2. 检查活塞有无划伤\n3. 确认底座稳固\n## 维护保养\n- 每月更换液压油\n- 每季度检查密封圈\n- 每年校验压力表',
+      tags: ['液压', '千斤顶', '手册'],
+      collaborators: [],
+      starred: false,
+      updated_at: '2026-08-02 10:30',
+    },
+    {
+      id: 'kb-sop-002',
+      title: '点火线圈更换作业指导书',
+      type: 'SOP', category: '检修流程',
+      content: '# 点火线圈更换 SOP\n## 适用设备\nDLI-001 点火线圈\n## 准备工具\n- 扭力扳手\n- 绝缘手套\n- 万用表\n## 作业步骤\n1. 断开蓄电池负极\n2. 拆卸旧点火线圈\n3. 清洁安装面\n4. 安装新线圈，紧固至规定力矩\n5. 连接线束，复测电阻值',
+      tags: ['点火线圈', 'SOP'],
+      collaborators: [collaboratorPool[0], collaboratorPool[2]],
+      starred: false,
+      updated_at: '2026-08-01 11:45',
+    },
+  ]
+  knowledgeDocs.value = [...mockDocs, ...docs.map((k, idx) => ({
+    ...k,
+    collaborators: idx < 3 ? collaboratorPool.slice(0, 1 + (idx % 3)) : [],
+    starred: idx % 4 === 0,
+  }))]
+}
+
+const createDocFromTemplate = async (tpl) => {
+  showTemplatePicker.value = false
+  showTemplateLibrary.value = false
+  const content = tpl?.skeleton?.content || '# 新文档\n\n在此输入内容...'
+  const title = tpl.name === '空白文档' ? '新文档' : `${tpl.name} - 待命名`
+  let id = `kb-new-${Date.now()}`
+  try {
+    const saved = await yixiuApi.updateKnowledge({
+      title, summary: `基于「${tpl.name}」模板创建的文档`,
+      content, type: tpl.category || '技术资料', category: tpl.category || '通用',
+      equipment: '通用', model: '', tags: [], source: tpl.name,
+    })
+    id = saved.id || id
+  } catch {}
+  const newDoc = {
+    id, title,
+    type: tpl.category || '技术资料', category: tpl.category || '通用',
+    content, tags: [], source: tpl.name,
+    updated_at: new Date().toLocaleString('zh-CN'),
+    collaborators: [{ name: user.name || '我', role: 'owner', status: 'online' }],
+    starred: false,
+  }
+  knowledgeDocs.value.unshift(newDoc)
+  openKnowledge(newDoc)
+  startKnowledgeEdit()
+  toast(`已基于「${tpl.name}」创建文档`)
+}
 const isTaskOverdue = (task) => task.status !== 'completed' && new Date(task.due_at).getTime() < Date.now()
 const remainingTime = (task) => {
   const diff = new Date(task.due_at).getTime() - Date.now()
@@ -2655,14 +2970,17 @@ const openKnowledge = async (item) => {
   isKnowledgeEditing.value = false
   knowledgeSaveStatus.value = ''
   try {
-    const [versions, links] = await Promise.allSettled([
+    const [versions, links, collabs] = await Promise.allSettled([
       yixiuApi.knowledgeVersions(item.id).then(r => r.versions || []),
       yixiuApi.knowledgeLinks(item.id).then(r => r.links || []),
+      yixiuApi.knowledgeCollaborators(item.id).then(r => r.collaborators || []),
     ])
     kdVersions.value = versions.status === 'fulfilled' ? versions.value : []
     kdLinks.value = links.status === 'fulfilled' ? links.value : []
+    kdCollaborators.value = collabs.status === 'fulfilled' ? collabs.value : (item.collaborators || [])
   } catch {
     kdVersions.value = []; kdLinks.value = []
+    kdCollaborators.value = item.collaborators || []
   }
 }
 const knowledgeFullLines = (item) => {
@@ -2715,7 +3033,7 @@ const saveKnowledgeContent = async (isAuto = false) => {
     const result = await yixiuApi.saveKnowledgeContent(selectedKnowledge.value.id, {
       title: knowledgeDraft.title, content: knowledgeDraft.content,
       equipment: knowledgeDraft.equipment, model: knowledgeDraft.model, tags,
-      editor_name: profile.name || '当前用户', change_summary: isAuto ? '自动保存' : '手动保存',
+      editor_name: user.name || '当前用户', change_summary: isAuto ? '自动保存' : '手动保存',
     })
     Object.assign(selectedKnowledge.value, result)
     knowledgeSaveStatus.value = isAuto ? 'saved' : 'manualSaved'
@@ -2761,6 +3079,18 @@ const restoreKdVersion = async (ver) => {
     kdVersions.value = (await yixiuApi.knowledgeVersions(selectedKnowledge.value.id)).versions || []
     toast(`已恢复到 v${ver.version}，当前版本 v${result.new_version}`)
   } catch (e) { toast('恢复失败') }
+}
+const inviteCollaborator = async () => {
+  const name = window.prompt('邀请协作成员，输入姓名或工号：')
+  if (!name) return
+  const role = window.prompt('设置角色（owner / editor / viewer）', 'editor') || 'editor'
+  try {
+    await yixiuApi.addKnowledgeCollaborator(selectedKnowledge.value.id, { name, role, status: 'online' })
+    kdCollaborators.value = await yixiuApi.knowledgeCollaborators(selectedKnowledge.value.id).then(r => r.collaborators || [])
+  } catch {
+    kdCollaborators.value.push({ name, role, status: 'online' })
+  }
+  toast(`已邀请 ${name} 加入协作`)
 }
 const submitKnowledgeReview = async () => {
   const k = selectedKnowledge.value || {}
@@ -3105,6 +3435,7 @@ const saveRecheck = async (task) => {
 }
 const loadKnowledge = async () => {
   knowledge.value = await yixiuApi.knowledge(knowledgeKeyword.value)
+  loadKnowledgeDocs()
 }
 const saveKnowledge = async () => {
   try {
@@ -3572,6 +3903,8 @@ onMounted(async () => {
     else {
       applyAccountProfile(account)
       await startWorkspace()
+      loadTemplates()
+      loadKnowledgeDocs()
     }
   } else showSplash.value = false
   nextTick(() => { tryInitGraphChart() })
@@ -3622,9 +3955,9 @@ button { cursor: pointer; }
 .side-nav nav { display: grid; gap: 8px; }
 .side-nav nav button { display: flex; align-items: center; gap: 12px; min-height: 42px; padding: 0 12px; font-weight: 800; }
 .nav-icon { width: 26px; height: 26px; display: grid; place-items: center; flex-shrink: 0; border-radius: 9px; background: rgba(17,17,16,.05); color: #484336; }
-.side-nav nav button.active, .side-nav nav button:hover { background: #111110; color: #EEECEA; }
-.side-nav nav button.active .nav-icon, .side-nav nav button:hover .nav-icon { background: rgba(238,236,234,.12); color: #EEECEA; }
-.collapse-btn { margin-top: auto; min-height: 38px; background: #EEECEA; }
+.side-nav nav button.active, .side-nav nav button:hover { background: var(--teal-dark); color: #fff; }
+.side-nav nav button.active .nav-icon, .side-nav nav button:hover .nav-icon { background: rgba(255,255,255,.18); color: #fff; }
+.collapse-btn { margin-top: auto; min-height: 38px; background: var(--surface-soft); color: var(--ink); }
 .workspace { min-width: 0; display: flex; flex-direction: column; }
 .topbar { height: 72px; display: grid; grid-template-columns: minmax(190px, 1fr) 360px auto 38px auto auto; align-items: center; gap: 14px; padding: 0 22px; border-bottom: 1px solid #ddd8d3; background: linear-gradient(180deg, #fbfaf8, #f4f2ef); }
 .content-shell { height: calc(100vh - 72px); min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr) 360px; }
@@ -3845,20 +4178,23 @@ button:disabled { opacity: .55; cursor: not-allowed; }
 .graph .doc, .graph .sop { background: #fff; }
 .empty { padding: 28px; border-radius: 12px; background: #f4f2ef; color: #706D6D; text-align: center; }
 .profile-card { display: grid; place-items: start; gap: 12px; }
-.profile-hero { display: grid; grid-template-columns: 88px minmax(0, 1fr) auto; align-items: center; gap: 18px; padding: 20px; border: 1px solid #ddd8d3; border-radius: 16px; background: linear-gradient(180deg, #fffdfa, #f4f2ef); box-shadow: 0 14px 30px rgba(17,17,16,.04); }
-.profile-hero img { width: 88px; height: 88px; border-radius: 50%; object-fit: cover; }
-.profile-hero h2 { margin: 4px 0; font-size: 28px; }
-.profile-section { display: grid; gap: 14px; padding: 16px; border: 1px solid #ddd8d3; border-radius: 14px; background: #fbfaf8; box-shadow: 0 14px 30px rgba(17,17,16,.04); }
-.profile-metrics { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
-.profile-metrics span { display: grid; gap: 4px; padding: 10px; border-radius: 10px; background: #f4f2ef; color: #706D6D; font-size: 12px; }
-.profile-metrics b { color: #111110; font-size: 22px; }
-.profile-list { display: grid; gap: 8px; }
-.profile-list button { min-height: 48px; display: grid; gap: 4px; text-align: left; background: #fffdfa; }
-.profile-list small { color: #706D6D; }
-.agent-history { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
-.agent-history article { display: grid; grid-template-columns: 48px minmax(0, 1fr) auto; align-items: center; gap: 10px; padding: 12px; border: 1px solid #ddd8d3; border-radius: 12px; background: #fffdfa; }
-.agent-history img { width: 48px; height: 48px; border-radius: 50%; object-fit: cover; }
-.agent-history small { display: block; margin-top: 4px; color: #706D6D; }
+.profile-hero { display: grid; grid-template-columns: 64px minmax(0, 1fr) auto; align-items: center; gap: 14px; padding: 14px 16px; border: 1px solid #ddd8d3; border-radius: 14px; background: linear-gradient(180deg, #fffdfa, #f4f2ef); box-shadow: 0 14px 30px rgba(17,17,16,.04); }
+.profile-hero img { width: 64px; height: 64px; border-radius: 50%; object-fit: cover; }
+.profile-hero h2 { margin: 3px 0; font-size: 22px; }
+.profile-hero .eyebrow { font-size: 10px; }
+.profile-hero p { font-size: 12px; }
+.profile-section { display: grid; gap: 10px; padding: 13px 14px; border: 1px solid #ddd8d3; border-radius: 12px; background: #fbfaf8; box-shadow: 0 14px 30px rgba(17,17,16,.04); }
+.profile-metrics { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 7px; }
+.profile-metrics span { display: grid; gap: 3px; padding: 8px; border-radius: 9px; background: #f4f2ef; color: #706D6D; font-size: 11px; }
+.profile-metrics b { color: #111110; font-size: 18px; }
+.profile-list { display: grid; gap: 7px; }
+.profile-list button { min-height: 44px; display: grid; gap: 3px; padding: 8px 10px; text-align: left; background: #fffdfa; }
+.profile-list small { color: #706D6D; font-size: 11px; }
+.profile-list b { font-size: 13px; }
+.agent-history { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 9px; }
+.agent-history article { display: grid; grid-template-columns: 40px minmax(0, 1fr) auto; align-items: center; gap: 9px; padding: 10px; border: 1px solid #ddd8d3; border-radius: 11px; background: #fffdfa; }
+.agent-history img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; }
+.agent-history small { display: block; margin-top: 3px; color: #706D6D; font-size: 11px; }
 pre { white-space: pre-wrap; padding: 12px; border-radius: 12px; background: #111110; color: #EEECEA; }
 .modal { position: fixed; inset: 0; display: grid; place-items: center; padding: 24px; background: rgba(17,17,16,.42); z-index: 20; }
 .modal-card { position: relative; width: min(760px, 96vw); max-height: 88vh; overflow: auto; display: grid; gap: 14px; padding: 22px; border-radius: 16px; background: #fbfaf8; }
@@ -3925,7 +4261,7 @@ pre { white-space: pre-wrap; padding: 12px; border-radius: 12px; background: #11
 :global(body) { background: radial-gradient(circle at 82% 6%, rgba(75,137,181,.08), transparent 30%), var(--canvas); color: var(--ink); font-family: "Segoe UI", "Microsoft YaHei", "PingFang SC", system-ui, sans-serif; }
 .app-shell { grid-template-columns: 220px minmax(0, 1fr); background: var(--canvas); }
 .app-shell.collapsed { grid-template-columns: 76px minmax(0, 1fr); }
-.side-nav { gap: 22px; padding: 18px 12px; border-right: 1px solid var(--line); background: rgba(255,255,255,.96); box-shadow: 0 0 0 rgba(0,0,0,0); }
+.side-nav { gap: 22px; padding: 18px 12px; border-right: 1px solid #cdd5d7; background: linear-gradient(180deg, #f4f7f7 0%, #e8eeef 100%); box-shadow: 0 0 0 rgba(0,0,0,0); }
 .brand { border: 0; background: transparent; width: 160px; height: 64px; filter: none; object-fit: contain; }
 .side-nav nav { gap: 6px; }
 .side-nav nav button { min-height: 44px; border-radius: 9px; color: var(--ink); font-weight: 700; letter-spacing: .02em; }
@@ -4357,8 +4693,8 @@ button { transition: background-color .18s, border-color .18s, color .18s, trans
 
 /* 个人中心：按信息类型分色，并把设置项横向展开，消除底部大块空白。 */
 .profile-page { align-items: start; }
-.profile-section { --profile-accent: var(--teal); position: relative; align-content: start; overflow: hidden; padding: 20px; border-color: #dce5e6; background: linear-gradient(155deg, #fff 0%, #fbfcfc 100%); box-shadow: 0 9px 24px rgba(31,55,63,.06); }
-.profile-section::before { content: ""; position: absolute; inset: 0 0 auto; height: 4px; background: var(--profile-accent); }
+.profile-section { --profile-accent: var(--teal); position: relative; align-content: start; overflow: hidden; padding: 13px 14px; border-color: #dce5e6; background: linear-gradient(155deg, #fff 0%, #fbfcfc 100%); box-shadow: 0 9px 24px rgba(31,55,63,.06); }
+.profile-section::before { content: ""; position: absolute; inset: 0 0 auto; height: 3px; background: var(--profile-accent); }
 .profile-archive { --profile-accent: var(--blue); }
 .profile-files { --profile-accent: var(--violet); }
 .profile-contribution { --profile-accent: var(--amber); }
@@ -4366,21 +4702,22 @@ button { transition: background-color .18s, border-color .18s, color .18s, trans
 .profile-messages { --profile-accent: #d16a62; }
 .profile-growth { --profile-accent: #6f7eb8; }
 .profile-settings { --profile-accent: #65777c; grid-column: 1 / -1; }
-.profile-section .panel-head { align-items: flex-start; }
-.profile-section .panel-head h3 { margin-top: 5px; color: var(--ink); font-size: 18px; line-height: 1.35; }
-.profile-section .panel-head > button { border-color: color-mix(in srgb, var(--profile-accent) 32%, #dce5e6); background: color-mix(in srgb, var(--profile-accent) 8%, #fff); color: var(--profile-accent); font-size: 11px; font-weight: 800; }
-.profile-metrics { gap: 10px; }
-.profile-metrics span { min-height: 76px; align-content: center; padding: 12px; border: 1px solid color-mix(in srgb, var(--profile-accent) 16%, #e6ecec); background: color-mix(in srgb, var(--profile-accent) 7%, #fff); color: #6c7b80; }
-.profile-metrics b { color: var(--profile-accent); font-size: 25px; }
-.profile-list { gap: 9px; }
-.profile-list button { position: relative; min-height: 72px; padding: 12px 13px 12px 18px; border-color: #e0e7e8; background: rgba(255,255,255,.9); }
-.profile-list button::before { content: ""; position: absolute; left: 0; top: 12px; bottom: 12px; width: 3px; border-radius: 0 3px 3px 0; background: color-mix(in srgb, var(--profile-accent) 72%, #fff); }
-.profile-list button::after { content: "→"; position: absolute; right: 13px; top: 50%; color: #9aa7ab; font-size: 13px; transform: translateY(-50%); }
+.profile-section .panel-head { align-items: flex-start; gap: 8px; }
+.profile-section .panel-head h3 { margin-top: 3px; color: var(--ink); font-size: 15px; line-height: 1.3; }
+.profile-section .panel-head .eyebrow { font-size: 10px; }
+.profile-section .panel-head > button { border-color: color-mix(in srgb, var(--profile-accent) 32%, #dce5e6); background: color-mix(in srgb, var(--profile-accent) 8%, #fff); color: var(--profile-accent); font-size: 10px; font-weight: 800; min-height: 28px; padding: 4px 9px; }
+.profile-metrics { gap: 7px; }
+.profile-metrics span { min-height: 52px; align-content: center; padding: 8px 9px; border: 1px solid color-mix(in srgb, var(--profile-accent) 16%, #e6ecec); background: color-mix(in srgb, var(--profile-accent) 7%, #fff); color: #6c7b80; }
+.profile-metrics b { color: var(--profile-accent); font-size: 19px; }
+.profile-list { gap: 7px; }
+.profile-list button { position: relative; min-height: 50px; padding: 8px 22px 8px 14px; border-color: #e0e7e8; background: rgba(255,255,255,.9); }
+.profile-list button::before { content: ""; position: absolute; left: 0; top: 9px; bottom: 9px; width: 3px; border-radius: 0 3px 3px 0; background: color-mix(in srgb, var(--profile-accent) 72%, #fff); }
+.profile-list button::after { content: "→"; position: absolute; right: 10px; top: 50%; color: #9aa7ab; font-size: 12px; transform: translateY(-50%); }
 .profile-list button:hover { transform: translateY(-2px); border-color: color-mix(in srgb, var(--profile-accent) 35%, #dce5e6); background: color-mix(in srgb, var(--profile-accent) 4%, #fff); box-shadow: 0 8px 16px rgba(31,55,63,.06); }
-.profile-list b { padding-right: 24px; color: #273d42; font-size: 14px; }
-.profile-list small { padding-right: 24px; color: #7a898e; font-size: 11px; }
+.profile-list b { padding-right: 14px; color: #273d42; font-size: 13px; }
+.profile-list small { padding-right: 14px; color: #7a898e; font-size: 10.5px; }
 .profile-settings .profile-list { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-.profile-settings .profile-list button { min-height: 82px; }
+.profile-settings .profile-list button { min-height: 60px; }
 
 /* 智能检索：把表单、证据和研判组织成一套清晰的检修工作台。 */
 .search-workbench { grid-template-columns: minmax(580px, 1.35fr) minmax(390px, .9fr); gap: 18px; align-items: start; }
@@ -4456,7 +4793,31 @@ button { transition: background-color .18s, border-color .18s, color .18s, trans
 .panel-resizer span { position: absolute; left: 3px; top: 50%; width: 4px; height: 54px; border-radius: 999px; background: #9bb1b5; transform: translateY(-50%); transition: height .18s, background .18s; }
 .panel-resizer:hover span, :global(body.resizing-panel) .panel-resizer span { height: 90px; background: var(--teal); }
 :global(body.resizing-panel) { cursor: col-resize; user-select: none; }
-.operator-panel { min-width: 300px; max-width: 520px; overflow: hidden; background: linear-gradient(180deg, #f4f8f8 0%, #edf3f3 100%); }
+.operator-panel { min-width: 300px; max-width: 520px; overflow: hidden; background: linear-gradient(180deg, #f4f8f8 0%, #edf3f3 100%); --op-accent: var(--teal); --op-accent-dark: var(--teal-dark); --op-soft: #eef6f5; --op-tint: linear-gradient(180deg, #f4f8f8 0%, #edf3f3 100%); }
+
+/* 每个 agent aside 背景与其头像主色调匹配，形成独立视觉风格。 */
+.operator-panel.op-theme-tiangong { --op-accent: #3B82F6; --op-accent-dark: #1d4ed8; --op-soft: #fbfcfe; --op-tint: linear-gradient(178deg, #fdfeff 0%, #fafcff 50%, #f6f9fe 100%); }
+.operator-panel.op-theme-guanwei { --op-accent: #6B8E23; --op-accent-dark: #4f6b1a; --op-soft: #fcfcf7; --op-tint: linear-gradient(178deg, #fdfdf8 0%, #fbfcf4 50%, #f7f9ef 100%); }
+.operator-panel.op-theme-zhiju { --op-accent: #FF6B35; --op-accent-dark: #c84d1f; --op-soft: #fffaf8; --op-tint: linear-gradient(178deg, #fffcfa 0%, #fffbf5 50%, #fff6ef 100%); }
+.operator-panel.op-theme-bowen { --op-accent: #80B918; --op-accent-dark: #5c8a0e; --op-soft: #fbfcf6; --op-tint: linear-gradient(178deg, #fdfdf7 0%, #fbfdf2 50%, #f7f9e9 100%); }
+.operator-panel.op-theme-heming { --op-accent: #4DB8A1; --op-accent-dark: #2f8a76; --op-soft: #f8fcfa; --op-tint: linear-gradient(178deg, #fcfdfb 0%, #fafcf9 50%, #f4f8f4 100%); }
+.operator-panel.op-theme-mingjian { --op-accent: #2563EB; --op-accent-dark: #1a4cc0; --op-soft: #fafbfd; --op-tint: linear-gradient(178deg, #fcfdfe 0%, #f8fafe 50%, #f2f5fc 100%); }
+
+.operator-panel { background: var(--op-tint); border-left-color: color-mix(in srgb, var(--op-accent) 8%, var(--line)); }
+.operator-panel .operator-avatar { box-shadow: 0 8px 14px color-mix(in srgb, var(--op-accent) 14%, transparent); border: 2px solid #fff; }
+.operator-panel .operator-slogan { border-color: color-mix(in srgb, var(--op-accent) 8%, #d7e5e5); border-left-color: var(--op-accent); background: color-mix(in srgb, var(--op-accent) 3%, #fff); color: color-mix(in srgb, var(--op-accent-dark) 52%, #244146); }
+.operator-panel .operator-role { background: color-mix(in srgb, var(--op-accent) 5%, #fff); color: var(--op-accent-dark); }
+.operator-panel .operator-status { background: color-mix(in srgb, var(--op-accent) 6%, #fff); color: var(--op-accent-dark); }
+.operator-panel .bubble.user { border-color: var(--op-accent-dark); background: var(--op-accent-dark); }
+.operator-panel .quick-card { border-color: color-mix(in srgb, var(--op-accent) 8%, #d7e5e5); background: #fff; }
+.operator-panel .quick-card > span { background: var(--op-accent-dark); color: #fff; }
+.operator-panel .operator-chips button { border-color: color-mix(in srgb, var(--op-accent) 10%, #cedbdc); color: var(--op-accent-dark); }
+.operator-panel .operator-chips button:hover { background: var(--op-soft); border-color: var(--op-accent); }
+.operator-panel .ask-box { border-color: color-mix(in srgb, var(--op-accent) 18%, #97b6b5); }
+.operator-panel .ask-box button { background: var(--op-accent-dark); color: #fff; }
+.operator-panel .ask-box input:focus { outline: 0; }
+.operator-panel .assistant-input-tools button:hover, .operator-panel .assistant-input-tools button.active { border-color: var(--op-accent); background: var(--op-soft); color: var(--op-accent-dark); }
+.operator-panel .bubble.assistant { border-color: color-mix(in srgb, var(--op-accent) 6%, #dce7e8); }
 .operator-head { grid-template-columns: 64px minmax(0, 1fr) auto; align-items: start; }
 .operator-head-actions { display: grid; justify-items: end; gap: 8px; }
 .operator-duty { color: #3f555a; font-size: 14px; line-height: 1.72; }
@@ -4532,24 +4893,26 @@ button { transition: background-color .18s, border-color .18s, color .18s, trans
 .profile-editor-actions button { min-width: 104px; }
 
 /* 智能体使用记录：用角色色和信息层级替代重复的平铺框。 */
-.agent-history-panel { position: relative; overflow: hidden; padding: 24px; border-color: #d7e4e4; background: linear-gradient(150deg, #fff 0%, #f8fbfb 100%); }
-.agent-history-panel::before { content: ""; position: absolute; inset: 0 0 auto; height: 4px; background: linear-gradient(90deg, var(--teal), var(--blue), var(--violet), var(--amber)); }
-.agent-history-panel .panel-head h3 { margin-top: 5px; color: #203c41; font-size: 21px; }
-.agent-history { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin-top: 6px; }
-.agent-history article { --agent-color: #16766f; position: relative; min-height: 142px; grid-template-columns: 58px minmax(0, 1fr); grid-template-rows: 1fr auto; align-items: start; gap: 12px 14px; padding: 18px; overflow: hidden; border-color: color-mix(in srgb, var(--agent-color) 22%, #dce5e6); border-radius: 16px; background: linear-gradient(145deg, color-mix(in srgb, var(--agent-color) 7%, #fff), #fff 72%); box-shadow: 0 8px 20px rgba(31,55,63,.055); }
+.agent-history-panel { position: relative; overflow: hidden; padding: 14px 16px; border-color: #d7e4e4; background: linear-gradient(150deg, #fff 0%, #f8fbfb 100%); }
+.agent-history-panel::before { content: ""; position: absolute; inset: 0 0 auto; height: 3px; background: linear-gradient(90deg, var(--teal), var(--blue), var(--violet), var(--amber)); }
+.agent-history-panel .panel-head h3 { margin-top: 3px; color: #203c41; font-size: 16px; }
+.agent-history-panel .panel-head .eyebrow { font-size: 10px; }
+.agent-history-panel .panel-head > button { min-height: 28px; padding: 4px 9px; font-size: 10px; }
+.agent-history { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 9px; margin-top: 4px; }
+.agent-history article { --agent-color: #16766f; position: relative; min-height: 96px; grid-template-columns: 42px minmax(0, 1fr); grid-template-rows: 1fr auto; align-items: start; gap: 8px 10px; padding: 11px; overflow: hidden; border-color: color-mix(in srgb, var(--agent-color) 22%, #dce5e6); border-radius: 12px; background: linear-gradient(145deg, color-mix(in srgb, var(--agent-color) 7%, #fff), #fff 72%); box-shadow: 0 8px 20px rgba(31,55,63,.055); }
 .agent-history article:nth-child(2), .agent-history article:nth-child(5) { --agent-color: #387bb4; }
 .agent-history article:nth-child(3), .agent-history article:nth-child(6) { --agent-color: #8a66b4; }
 .agent-history article:nth-child(4) { --agent-color: #c27c2e; }
-.agent-history article::after { content: counter(agent-card, decimal-leading-zero); counter-increment: agent-card; position: absolute; right: 14px; top: 12px; color: color-mix(in srgb, var(--agent-color) 18%, transparent); font-size: 30px; font-weight: 900; }
+.agent-history article::after { content: counter(agent-card, decimal-leading-zero); counter-increment: agent-card; position: absolute; right: 10px; top: 8px; color: color-mix(in srgb, var(--agent-color) 18%, transparent); font-size: 22px; font-weight: 900; }
 .agent-history { counter-reset: agent-card; }
 .agent-history-avatar { position: relative; grid-row: 1 / span 2; }
-.agent-history-avatar img { width: 58px; height: 58px; border: 3px solid #fff; box-shadow: 0 7px 16px rgba(31,55,63,.12); }
-.agent-history-avatar i { position: absolute; right: 1px; bottom: 2px; width: 12px; height: 12px; border: 2px solid #fff; border-radius: 50%; background: #35a772; }
-.agent-history-copy { min-width: 0; display: grid; gap: 4px; padding-right: 22px; }
-.agent-history-copy > span { color: var(--agent-color); font-size: 10px; font-weight: 900; letter-spacing: .08em; }
-.agent-history-copy b { color: #20373c; font-size: 15px; line-height: 1.35; }
-.agent-history-copy small { margin: 2px 0 0; overflow: visible; color: #6e8085; font-size: 11px; line-height: 1.55; }
-.agent-history article > button { grid-column: 2; display: flex; align-items: center; justify-content: space-between; min-height: 34px; padding: 7px 10px; border-color: color-mix(in srgb, var(--agent-color) 25%, #dce5e6); background: #fff; color: var(--agent-color); font-size: 11px; font-weight: 800; }
+.agent-history-avatar img { width: 42px; height: 42px; border: 2px solid #fff; box-shadow: 0 6px 12px rgba(31,55,63,.12); }
+.agent-history-avatar i { position: absolute; right: 1px; bottom: 2px; width: 10px; height: 10px; border: 2px solid #fff; border-radius: 50%; background: #35a772; }
+.agent-history-copy { min-width: 0; display: grid; gap: 2px; padding-right: 18px; }
+.agent-history-copy > span { color: var(--agent-color); font-size: 9px; font-weight: 900; letter-spacing: .08em; }
+.agent-history-copy b { color: #20373c; font-size: 13px; line-height: 1.3; }
+.agent-history-copy small { margin: 1px 0 0; overflow: visible; color: #6e8085; font-size: 10px; line-height: 1.45; }
+.agent-history article > button { grid-column: 2; display: flex; align-items: center; justify-content: space-between; min-height: 26px; padding: 4px 8px; border-color: color-mix(in srgb, var(--agent-color) 25%, #dce5e6); background: #fff; color: var(--agent-color); font-size: 10px; font-weight: 800; }
 .agent-history article > button i { font-style: normal; }
 .agent-history article:hover { transform: translateY(-2px); box-shadow: 0 13px 25px rgba(31,55,63,.09); }
 
@@ -4594,6 +4957,97 @@ button { transition: background-color .18s, border-color .18s, color .18s, trans
 .library-empty b { color: #2d484d; font-size: 17px; }
 .library-empty span { font-size: 12px; }
 
+/* KB Hero & Cards (template-style library) */
+.kb-hero { position: relative; z-index: 1; display: flex; align-items: center; justify-content: space-between; gap: 20px; margin-bottom: 20px; padding: 20px 24px; border-radius: 14px; background: #fff; border: 1px solid #e5ebec; }
+.kb-hero h3 { color: #1d373c; font-size: 20px; margin: 0; }
+.kb-hero-left span { color: #708287; font-size: 13px; }
+.kb-hero-right { display: flex; gap: 10px; }
+.kb-cta { display: flex; align-items: center; gap: 8px; padding: 9px 16px; border-radius: 8px; border: 1px solid #d7e2e3; background: #fff; color: #36575b; cursor: pointer; transition: all .15s; font-family: inherit; font-size: 13px; font-weight: 600; }
+.kb-cta .ui-icon { width: 16px; height: 16px; }
+.kb-cta:hover { border-color: #176f69; color: #176f69; background: #f4fbfa; }
+.kb-cta-new { background: #176f69; color: #fff; border-color: #176f69; }
+.kb-cta-new:hover { background: #135a55; color: #fff; border-color: #135a55; }
+
+.kb-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 16px; flex-wrap: wrap; }
+.kb-toolbar-left { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+.kb-toolbar-left h4 { font-size: 15px; color: #21393e; }
+.kb-toolbar-left h4 small { color: #849297; font-weight: 400; margin-left: 4px; }
+.kb-filter { display: flex; gap: 4px; }
+.kb-filter button { padding: 5px 12px; border: 1px solid #dde6e7; border-radius: 6px; background: #fff; color: #566a6f; font-size: 12px; cursor: pointer; transition: all .15s; font-family: inherit; }
+.kb-filter button.active { background: #176f69; color: #fff; border-color: #176f69; }
+.kb-filter button:hover:not(.active) { border-color: #176f69; color: #176f69; }
+.kb-search { position: relative; flex: 1; max-width: 300px; }
+.kb-search .ui-icon { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); width: 15px; height: 15px; color: #849297; }
+.kb-search input { width: 100%; height: 34px; padding: 0 12px 0 34px; border: 1px solid #dde6e7; border-radius: 8px; background: #fff; font-size: 13px; outline: 0; transition: border-color .15s; box-sizing: border-box; font-family: inherit; }
+.kb-search input:focus { border-color: #176f69; }
+
+.kb-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; }
+.kb-doc-card { background: #fff; border: 1px solid #e5ebec; border-radius: 12px; padding: 16px; cursor: pointer; transition: transform .15s, box-shadow .15s, border-color .15s; display: grid; grid-template-rows: auto auto 1fr auto auto; gap: 8px; min-height: 190px; }
+.kb-doc-card:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(31,55,63,.08); border-color: #b5c9ca; }
+.kb-doc-card.starred { border-left: 3px solid #d4a017; }
+.kb-doc-head { display: flex; align-items: center; justify-content: space-between; }
+.kb-doc-type { padding: 2px 8px; border-radius: 4px; background: #f0f4f4; color: #556a6f; font-size: 11px; font-weight: 600; }
+.kb-doc-type.检修流程 { background: #e3f2f1; color: #176f69; }
+.kb-doc-type.故障分析 { background: #fef3e8; color: #96601c; }
+.kb-doc-type.协作沟通 { background: #eef2fc; color: #3b5998; }
+.kb-doc-type.安全规范 { background: #fdeaea; color: #b3443d; }
+.kb-doc-type.通用 { background: #f0f4f4; color: #556a6f; }
+.kb-star-icon { width: 15px; height: 15px; color: #d4a017; }
+.kb-doc-title { font-size: 15px; color: #1d373c; line-height: 1.4; font-weight: 700; margin: 0; }
+.kb-doc-summary { color: #566a6f; font-size: 12px; line-height: 1.55; margin: 0; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.kb-doc-tags { display: flex; flex-wrap: wrap; gap: 4px; }
+.kb-tag { padding: 2px 7px; border-radius: 4px; background: #f1f5f4; color: #5a7075; font-size: 11px; }
+.kb-doc-foot { display: flex; align-items: center; justify-content: space-between; padding-top: 8px; border-top: 1px solid #eef2f2; }
+.kb-collab { display: flex; align-items: center; gap: 6px; }
+.kb-collab-count { font-size: 11px; color: #708287; }
+.kb-avatars { display: flex; }
+.kb-avatar { width: 22px; height: 22px; border-radius: 50%; color: #fff; font-size: 10px; display: grid; place-items: center; margin-left: -5px; border: 2px solid #fff; font-weight: 700; }
+.kb-avatars .kb-avatar:first-child { margin-left: 0; }
+.kb-more { width: 22px; height: 22px; border-radius: 50%; background: #b5c9ca; color: #fff; font-size: 9px; display: grid; place-items: center; margin-left: -5px; border: 2px solid #fff; }
+.kb-no-collab { font-size: 11px; color: #849297; }
+.kb-time { font-size: 11px; color: #849297; }
+
+.kb-empty-state { grid-column: 1 / -1; padding: 50px 20px; text-align: center; color: #708287; }
+.kb-empty-state h4 { color: #2d484d; font-size: 16px; margin: 0 0 6px; }
+.kb-empty-state p { margin: 0 0 14px; font-size: 13px; }
+.kb-empty-btn { padding: 8px 20px; border-radius: 8px; border: 0; cursor: pointer; font-family: inherit; font-weight: 700; font-size: 13px; }
+
+/* Template modals */
+.kb-template-modal, .kb-template-lib-modal { max-width: 760px; }
+.kb-template-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 14px; margin-top: 16px; }
+.kb-template-card { display: grid; grid-template-columns: 44px 1fr auto; gap: 12px; align-items: center; padding: 14px; border: 1px solid #e5ebec; border-radius: 10px; cursor: pointer; transition: all .15s; background: #fff; }
+.kb-template-card:hover { border-color: #176f69; box-shadow: 0 4px 14px rgba(23,111,105,.1); }
+.kb-template-icon { width: 44px; height: 44px; border-radius: 10px; background: #f0f4f4; display: grid; place-items: center; font-size: 22px; }
+.kb-template-info { display: grid; gap: 2px; min-width: 0; }
+.kb-template-info h4 { font-size: 14px; color: #1d373c; margin: 0; }
+.kb-template-info > span { color: #176f69; font-size: 11px; font-weight: 600; }
+.kb-template-info p { color: #708287; font-size: 12px; margin: 2px 0 0; }
+.kb-template-use { padding: 6px 12px; border: 0; border-radius: 6px; background: #176f69; color: #fff; font-size: 12px; font-weight: 600; cursor: pointer; transition: background .15s; font-family: inherit; white-space: nowrap; }
+.kb-template-use:hover { background: #135a55; }
+
+/* Knowledge detail collab section */
+.kd-collab-section { margin-top: 20px; padding: 16px; border: 1px solid #e5ebec; border-radius: 12px; background: #fafcfa; }
+.kd-collab-list { display: grid; gap: 8px; margin-top: 12px; }
+.kd-collab-item { display: flex; align-items: center; gap: 12px; padding: 10px 14px; background: #fff; border-radius: 10px; border: 1px solid #eef2f2; }
+.kd-collab-avatar { width: 36px; height: 36px; border-radius: 50%; color: #fff; display: grid; place-items: center; font-weight: 700; }
+.kd-collab-item > div { flex: 1; display: grid; gap: 2px; }
+.kd-collab-item b { color: #1d373c; font-size: 14px; }
+.kd-collab-item small { color: #708287; font-size: 12px; }
+.kd-collab-status { font-size: 12px; font-weight: 600; }
+.kd-collab-status.offline { color: #849297; }
+.kd-collab-status.online { color: #059669; }
+.kd-invite-btn { padding: 6px 12px; border: 1px solid #176f69; background: transparent; color: #176f69; border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: 700; font-family: inherit; }
+.kd-invite-btn:hover { background: #176f69; color: #fff; }
+.collab-panel { margin-top: 16px; }
+.collab-panel .collab-list { display: grid; gap: 8px; }
+.collab-panel .collab-item { display: flex; align-items: center; gap: 10px; padding: 8px 12px; background: #fff; border-radius: 8px; }
+.collab-panel .collab-avatar { width: 32px; height: 32px; border-radius: 50%; color: #fff; display: grid; place-items: center; font-weight: 700; }
+.collab-panel .collab-item > div { flex: 1; }
+.collab-panel .collab-item b { color: #21393e; font-size: 13px; }
+.collab-panel .collab-item small { color: #708287; font-size: 11px; }
+.collab-invite { width: 100%; margin-top: 8px; padding: 8px; border: 1px dashed #176f69; background: transparent; color: #176f69; border-radius: 8px; cursor: pointer; font-weight: 700; font-family: inherit; font-size: 12px; }
+.collab-invite:hover { background: #e3f2f1; }
+
 /* 任务操作：用轻量双层信息按钮替代突兀的竖排文字。 */
 .task-row-actions { justify-content: flex-start; gap: 7px; }
 .task-row-action { min-width: 58px; min-height: 48px; display: grid; place-content: center; gap: 1px; padding: 6px 10px; border: 1px solid #d5e2e1; border-radius: 11px; background: #fff; color: #466065; box-shadow: 0 4px 12px rgba(31,69,75,.04); line-height: 1.05; transition: transform .18s, border-color .18s, box-shadow .18s; }
@@ -4633,62 +5087,325 @@ button { transition: background-color .18s, border-color .18s, color .18s, trans
 .task-report-card li { display: flex; justify-content: space-between; gap: 15px; padding: 9px 11px; border-radius: 8px; background: #f6f8f8; }
 .task-report-card li span { color: #6c7d80; }
 
-.knowledge-detail-card { width: min(760px, 94vw); gap: 16px; }
+.knowledge-detail-card { 
+  width: min(1100px, 94vw); 
+  max-height: 90vh;
+  display: grid;
+  grid-template-columns: 1fr 280px;
+  gap: 0;
+  overflow: hidden;
+}
 .knowledge-detail-card > header { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; padding-right: 40px; }
 .knowledge-detail-card > header > span { padding: 6px 10px; border-radius: 999px; background: #eee8f6; color: #72539a; font-size: 11px; font-weight: 900; }
 .knowledge-detail-card section { padding: 16px 18px; border-left: 4px solid var(--violet); border-radius: 11px; background: #f7f7fa; }
 .knowledge-detail-card section h3 { margin-bottom: 9px; }
 .knowledge-detail-card section ul { display: grid; gap: 7px; padding-left: 18px; color: #40565a; line-height: 1.7; }
 
-/* 知识详情编辑扩展样式 */
-.knowledge-detail-card.editing { width: min(960px, 96vw); }
-.knowledge-detail-card .kd-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; padding-right: 40px; }
-.knowledge-detail-card .kd-header > div:first-child { flex: 1; min-width: 0; }
+/* 知识详情编辑扩展样式 - Notion风格大编辑器 */
+.knowledge-detail-card.editing { 
+  width: min(1200px, 95vw); 
+  max-height: 92vh;
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  gap: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+.knowledge-detail-card.editing .close { top: 12px; right: 16px; z-index: 10; }
+
+/* 左侧目录树 */
+.kd-sidebar-left {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px 12px;
+  background: #f7f8fa;
+  border-right: 1px solid #e5ebec;
+  overflow-y: auto;
+  min-height: 600px;
+}
+.kd-sidebar-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #e5ebec;
+}
+.kd-sidebar-icon { font-size: 18px; }
+.kd-sidebar-title { font-size: 14px; font-weight: 700; color: #1d373c; }
+.kd-sidebar-breadcrumb {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px 10px;
+  background: #fff;
+  border-radius: 8px;
+  border: 1px solid #e5ebec;
+  font-size: 12px;
+  color: #566a6f;
+}
+.kd-sidebar-breadcrumb .kd-arrow { color: #849297; font-weight: 700; }
+.kd-current-doc { color: #176f69; font-weight: 600; }
+.kd-outline { display: flex; flex-direction: column; gap: 6px; }
+.kd-outline-title { font-size: 12px; font-weight: 700; color: #708287; text-transform: uppercase; letter-spacing: 0.5px; }
+.kd-outline-list { display: flex; flex-direction: column; gap: 2px; }
+.kd-outline-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 8px;
+  border-radius: 6px;
+  font-size: 12px;
+  color: #43585d;
+  cursor: pointer;
+  transition: background 0.15s;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.kd-outline-item:hover { background: #e8f4f2; }
+.kd-outline-item.level-1 { padding-left: 8px; font-weight: 600; }
+.kd-outline-item.level-2 { padding-left: 20px; }
+.kd-outline-item.level-3 { padding-left: 32px; font-size: 11px; color: #708287; }
+.kd-outline-item.level-4 { padding-left: 44px; font-size: 11px; color: #849297; }
+.kd-outline-dot { color: #176f69; font-size: 8px; }
+.kd-outline-empty { padding: 10px; font-size: 11px; color: #849297; text-align: center; }
+.kd-sidebar-footer {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-top: 10px;
+  border-top: 1px solid #e5ebec;
+  font-size: 11px;
+  color: #708287;
+}
+
+/* 主编辑区 */
+.kd-main-area {
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  overflow-y: auto;
+  background: #fff;
+  min-height: 0;
+}
+.knowledge-detail-card:not(.editing) .kd-main-area {
+  max-height: 90vh;
+}
+
+.knowledge-detail-card .kd-header { 
+  display: flex; 
+  align-items: flex-start; 
+  justify-content: space-between; 
+  gap: 18px; 
+  padding: 24px 40px 16px;
+  border-bottom: 1px solid #eef2f2;
+}
+.knowledge-detail-card .kd-header > .kd-header-left { flex: 1; min-width: 0; }
 .kd-header-right { display: flex; align-items: center; gap: 10px; }
+
+/* 编辑模式顶栏 */
+.kd-top-bar { display: flex; align-items: center; gap: 10px; }
+.kd-doc-icon { font-size: 20px; }
+.kd-title-input { 
+  width: 100%; 
+  font-size: 28px; 
+  font-weight: 800; 
+  color: #0f172a; 
+  border: none; 
+  border-bottom: 2px solid transparent;
+  border-radius: 0; 
+  padding: 8px 0; 
+  margin: 0; 
+  box-sizing: border-box;
+  background: transparent;
+  transition: border-color 0.2s;
+}
+.kd-title-input:focus { border-bottom-color: #176f69; outline: none; }
+
+/* 编辑按钮组 */
+.kd-edit-actions { display: flex; align-items: center; gap: 8px; }
+.btn-edit-cancel {
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: 1px solid #d5dde0;
+  background: #fff;
+  color: #566a6f;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 13px;
+  font-family: inherit;
+  transition: all 0.15s;
+}
+.btn-edit-cancel:hover { background: #f0f3f4; color: #36575b; }
+.btn-edit-save {
+  padding: 8px 20px;
+  border-radius: 8px;
+  border: none;
+  background: #176f69;
+  color: #fff;
+  font-weight: 700;
+  cursor: pointer;
+  font-size: 13px;
+  font-family: inherit;
+  transition: all 0.15s;
+}
+.btn-edit-save:hover { background: #135a55; }
+
 .kd-type { padding: 6px 10px; border-radius: 999px; background: #eee8f6; color: #72539a; font-size: 11px; font-weight: 900; }
 .btn-edit { padding: 8px 14px; border-radius: 9px; border: none; background: linear-gradient(135deg, #2563EB, #1E3A5F); color: #fff; font-weight: 700; cursor: pointer; font-size: 13px; }
-.btn-edit.preview { background: linear-gradient(135deg, #10B981, #059669); }
 .btn-edit:hover { filter: brightness(1.05); }
-.kd-title-input { width: 100%; font-size: 22px; font-weight: 800; color: #0f172a; border: 1.5px solid #d6dee5; border-radius: 10px; padding: 8px 12px; margin: 6px 0; box-sizing: border-box; }
-.kd-save-status { display: block; margin-top: 4px; font-size: 11px; font-weight: 700; }
+.kd-save-status { display: block; margin-top: 8px; font-size: 12px; font-weight: 600; }
 .kd-save-status.unsaved { color: #94a3b8; }
 .kd-save-status.editing { color: #f59e0b; }
 .kd-save-status.saving { color: #2563eb; }
 .kd-save-status.saved { color: #16a34a; }
 .kd-save-status.error { color: #ef4444; }
-.knowledge-detail-meta label.kd-meta-input { display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 0; }
-.knowledge-detail-meta label.kd-meta-input input { width: 100%; border: 1.5px solid #d6dee5; border-radius: 8px; padding: 6px 10px; font-size: 13px; box-sizing: border-box; }
-.kd-content-section { padding: 16px 18px; border-left: 4px solid var(--violet); border-radius: 11px; background: #f7f7fa; }
-.kd-content-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
-.kd-content-head h3 { margin-bottom: 0; }
-.kd-editor-tools { display: flex; gap: 5px; }
-.kd-editor-tools button { padding: 5px 10px; border-radius: 7px; border: 1.5px solid #d6dee5; background: #fff; cursor: pointer; font-weight: 700; font-size: 12px; color: #334155; }
-.kd-editor-tools button:hover { background: #eef2f7; }
-.kd-editor { width: 100%; min-height: 280px; resize: vertical; border: 1.5px solid #d6dee5; border-radius: 10px; padding: 12px; font-size: 14px; line-height: 1.7; box-sizing: border-box; font-family: inherit; }
-.kd-summary-list { display: grid; gap: 7px; padding-left: 18px; color: #40565a; line-height: 1.7; margin: 0; }
-.kd-links-section, .kd-versions-section { padding: 14px 16px; background: #fff9f0; border: 1.5px dashed #fbbf24; border-radius: 11px; }
+
+/* 编辑器工具栏 */
+.kd-editor-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 10px 40px;
+  background: #fafbfc;
+  border-bottom: 1px solid #eef2f2;
+  position: sticky;
+  top: 0;
+  z-index: 5;
+}
+.kd-editor-toolbar button {
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  background: transparent;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 13px;
+  color: #43585d;
+  font-family: inherit;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.kd-editor-toolbar button:hover { background: #e8f4f2; color: #176f69; border-color: #d5e2e1; }
+.kd-toolbar-divider { width: 1px; height: 20px; background: #e5ebec; margin: 0 4px; }
+.kd-toolbar-spacer { flex: 1; }
+.kd-toolbar-hint { font-size: 11px; color: #849297; }
+
+/* 元信息栏 */
+.kd-meta-bar {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  padding: 16px 40px;
+  background: #fafbfc;
+  border-bottom: 1px solid #eef2f2;
+}
+.kd-meta-bar.editing { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.kd-meta-bar > span { display: grid; gap: 4px; padding: 10px 12px; border-radius: 8px; background: #fff; border: 1px solid #eef2f2; }
+.kd-meta-bar small { color: #708287; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px; }
+.kd-meta-bar b { color: #1d373c; font-size: 13px; font-weight: 600; }
+.kd-meta-input { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.kd-meta-input small { color: #708287; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px; }
+.kd-meta-input input { 
+  width: 100%; 
+  border: 1px solid #dde5e7; 
+  border-radius: 6px; 
+  padding: 8px 10px; 
+  font-size: 13px; 
+  box-sizing: border-box;
+  font-family: inherit;
+  transition: border-color 0.15s;
+}
+.kd-meta-input input:focus { border-color: #176f69; outline: none; }
+
+/* 内容编辑区 */
+.kd-content-section { 
+  padding: 32px 40px; 
+  background: #fff;
+  flex: 1;
+}
+.kd-content-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+.kd-content-head h3 { margin-bottom: 0; font-size: 16px; color: #1d373c; }
+.kd-editor { 
+  width: 100%; 
+  min-height: 500px; 
+  resize: vertical; 
+  border: 1px solid #dde5e7; 
+  border-radius: 8px; 
+  padding: 20px 24px; 
+  font-size: 15px; 
+  line-height: 1.8; 
+  box-sizing: border-box; 
+  font-family: 'SF Mono', 'Consolas', 'Monaco', 'Courier New', monospace;
+  color: #2d484d;
+  background: #fff;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.kd-editor:focus { 
+  border-color: #176f69; 
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(23, 111, 105, 0.1);
+}
+.kd-summary-list { display: grid; gap: 7px; padding-left: 18px; color: #40565a; line-height: 1.8; margin: 0; }
+
+/* 右侧边栏（非编辑模式） */
+.kd-sidebar-right {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 20px;
+  background: #fafbfc;
+  border-left: 1px solid #e5ebec;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.kd-links-section, .kd-versions-section, .kd-collab-section { 
+  padding: 14px 16px; 
+  background: #fff; 
+  border: 1px solid #e5ebec; 
+  border-radius: 10px; 
+}
 .kd-links-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 10px; }
-.kd-links-head h3 { margin-bottom: 0; font-size: 14px; color: #92400e; }
-.kd-links-head small { font-size: 11px; color: #b45309; }
+.kd-links-head h3 { margin-bottom: 0; font-size: 14px; color: #1d373c; }
+.kd-links-head small { font-size: 11px; color: #708287; }
 .kd-link-block { margin-bottom: 12px; }
-.kd-link-label { margin: 0 0 6px 0; font-size: 12px; font-weight: 700; color: #78350f; }
+.kd-link-label { margin: 0 0 6px 0; font-size: 12px; font-weight: 700; color: #43585d; }
 .kd-link-list { display: grid; gap: 6px; }
-.kd-link-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: #fff; border: 1px solid #fde68a; border-radius: 8px; cursor: pointer; }
-.kd-link-item:hover { background: #fffbeb; }
+.kd-link-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: #f7f8fa; border: 1px solid #eef2f2; border-radius: 8px; cursor: pointer; }
+.kd-link-item:hover { background: #e8f4f2; }
 .kd-link-del { border: none; background: #fee2e2; color: #dc2626; padding: 3px 9px; border-radius: 6px; cursor: pointer; font-size: 11px; font-weight: 700; }
-.kd-link-add { margin-top: 12px; display: grid; grid-template-columns: 100px 1fr 1.2fr auto; gap: 6px; }
-.kd-link-add select, .kd-link-add input, .kd-link-add button { padding: 6px 10px; border: 1.5px solid #fcd34d; border-radius: 7px; font-size: 12px; background: #fff; }
-.kd-link-add button { background: #f59e0b; color: #fff; font-weight: 700; border-color: #f59e0b; cursor: pointer; }
+.kd-link-add { margin-top: 12px; display: grid; grid-template-columns: 90px 1fr 1fr auto; gap: 6px; }
+.kd-link-add select, .kd-link-add input, .kd-link-add button { padding: 6px 10px; border: 1px solid #dde5e7; border-radius: 6px; font-size: 12px; background: #fff; font-family: inherit; }
+.kd-link-add button { background: #176f69; color: #fff; font-weight: 700; border-color: #176f69; cursor: pointer; }
+.kd-link-add button:hover { background: #135a55; }
 .kd-version-list { display: grid; gap: 8px; max-height: 240px; overflow-y: auto; }
-.kd-version-item { background: #fff; border: 1px solid #fde68a; border-radius: 9px; padding: 10px 12px; }
+.kd-version-item { background: #f7f8fa; border: 1px solid #eef2f2; border-radius: 8px; padding: 10px 12px; }
 .kd-version-main { display: flex; align-items: center; gap: 10px; margin-bottom: 5px; }
-.kd-version-main b { color: #92400e; font-weight: 800; font-size: 13px; }
-.kd-version-main small { color: #94a3b8; font-size: 11px; }
-.kd-version-summary { margin: 0; font-size: 12px; color: #475569; padding-left: 4px; border-left: 3px solid #fbbf24; }
-.kd-version-restore { margin-top: 7px; border: 1.5px solid #d97706; background: #fff7ed; color: #92400e; font-weight: 700; font-size: 11px; padding: 5px 10px; border-radius: 7px; cursor: pointer; }
-.kd-empty { padding: 14px; text-align: center; font-size: 12px; color: #94a3b8; background: #fff; border-radius: 9px; }
+.kd-version-main b { color: #176f69; font-weight: 800; font-size: 13px; }
+.kd-version-main small { color: #708287; font-size: 11px; }
+.kd-version-summary { margin: 0; font-size: 12px; color: #475569; padding-left: 4px; border-left: 3px solid #176f69; }
+.kd-version-restore { margin-top: 7px; border: 1px solid #176f69; background: #fff; color: #176f69; font-weight: 700; font-size: 11px; padding: 5px 10px; border-radius: 6px; cursor: pointer; font-family: inherit; }
+.kd-version-restore:hover { background: #e8f4f2; }
+.kd-empty { padding: 14px; text-align: center; font-size: 12px; color: #849297; background: #f7f8fa; border-radius: 8px; }
 .kd-actions { margin-top: 4px; }
 .kd-actions .btn-submit { background: #fef3c7; color: #92400e; border: 1.5px solid #fcd34d; font-weight: 700; }
+
+/* 协作成员 */
+.kd-collab-list { display: grid; gap: 8px; margin-top: 8px; }
+.kd-collab-item { display: flex; align-items: center; gap: 10px; padding: 8px 12px; background: #f7f8fa; border-radius: 8px; border: 1px solid #eef2f2; }
+.kd-collab-avatar { width: 32px; height: 32px; border-radius: 50%; color: #fff; display: grid; place-items: center; font-weight: 700; font-size: 13px; }
+.kd-collab-item > div { flex: 1; display: grid; gap: 2px; }
+.kd-collab-item b { color: #1d373c; font-size: 13px; }
+.kd-collab-item small { color: #708287; font-size: 11px; }
+.kd-collab-status { font-size: 11px; font-weight: 600; }
+.kd-collab-status.offline { color: #849297; }
+.kd-collab-status.online { color: #059669; }
+.kd-invite-btn { padding: 5px 10px; border: 1px solid #176f69; background: transparent; color: #176f69; border-radius: 6px; cursor: pointer; font-size: 11px; font-weight: 700; font-family: inherit; }
+.kd-invite-btn:hover { background: #176f69; color: #fff; }
 
 /* 任务详情中关联知识资料卡片 */
 .task-linked-knowledge { margin-top: 16px; padding: 14px 16px; border-radius: 11px; background: #f0f9ff; border-left: 4px solid #0ea5e9; }

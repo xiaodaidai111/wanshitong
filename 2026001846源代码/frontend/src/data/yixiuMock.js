@@ -1,4 +1,4 @@
-﻿export const mockUser = {
+export const mockUser = {
   name: '聪明的一修',
   avatar: '/static/avatar-1.png',
   department: '动力设备检修一组',
@@ -7,11 +7,11 @@
 
 export const mockAgents = [
   { id: 'tiangong', name: '天工｜综合智能中枢', avatar: '/static/agents/tiangong.png', role: '统筹调度', slogan: '百工相合，一修有序。', duty: '统筹检索、作业、知识、协作和核查智能体，汇总系统状态与风险。', status: 'online', lastResult: '完成今日任务优先级编排' },
-  { id: 'guanwei', name: '观微｜智能检索器灵', avatar: '/static/agents/guanwei.png', role: '故障检索', slogan: '见微知因，循迹而寻。', duty: '发现设备故障线索，解析故障现象、型号、图片和维修文档。', status: 'online', lastResult: '完成 CG-125 异响检索，命中 6 条资料' },
-  { id: 'zhiju', name: '执矩｜检修作业器灵', avatar: '/static/agents/zhiju.png', role: '作业执行', slogan: '依规而作，步步有据。', duty: '编排标准作业步骤，推进工单流转并提醒高风险安全确认。', status: 'online', lastResult: '为 ZK-320 过热工单生成 7 步作业流程' },
-  { id: 'bowen', name: '博闻｜知识管理器灵', avatar: '/static/agents/bowen.png', role: '知识管理', slogan: '汇百工之识，成一修之典。', duty: '整理技术资料、维护知识网络、沉淀历史检修案例。', status: 'busy', lastResult: '3 条新资料等待沉淀审核' },
-  { id: 'heming', name: '和鸣｜协作调度器灵', avatar: '/static/agents/heming.png', role: '协作调度', slogan: '同声相应，协力而行。', duty: '管理联系人、协调现场人员、发起专家支援与任务沟通。', status: 'online', lastResult: '已为高风险任务推荐安全负责人' },
-  { id: 'mingjian', name: '明鉴｜复检核查器灵', avatar: '/static/agents/mingjian.png', role: '复检核查', slogan: '据实而验，明察无误。', duty: '执行复检评估、安全检查、质量核验和任务验收。', status: 'online', lastResult: '最近一次核查得分 96' }
+  { id: 'guanwei', name: '观微｜智能检索 agent', avatar: '/static/agents/guanwei.png', role: '故障检索', slogan: '见微知因，循迹而寻。', duty: '发现设备故障线索，解析故障现象、型号、图片和维修文档。', status: 'online', lastResult: '完成 CG-125 异响检索，命中 6 条资料' },
+  { id: 'zhiju', name: '执矩｜检修作业 agent', avatar: '/static/agents/zhiju.png', role: '作业执行', slogan: '依规而作，步步有据。', duty: '编排标准作业步骤，推进工单流转并提醒高风险安全确认。', status: 'online', lastResult: '为 ZK-320 过热工单生成 7 步作业流程' },
+  { id: 'bowen', name: '博闻｜知识管理 agent', avatar: '/static/agents/bowen.png', role: '知识管理', slogan: '汇百工之识，成一修之典。', duty: '整理技术资料、维护知识网络、沉淀历史检修案例。', status: 'busy', lastResult: '3 条新资料等待沉淀审核' },
+  { id: 'heming', name: '和鸣｜协作调度 agent', avatar: '/static/agents/heming.png', role: '协作调度', slogan: '同声相应，协力而行。', duty: '管理联系人、协调现场人员、发起专家支援与任务沟通。', status: 'online', lastResult: '已为高风险任务推荐安全负责人' },
+  { id: 'mingjian', name: '明鉴｜复检核查 agent', avatar: '/static/agents/mingjian.png', role: '复检核查', slogan: '据实而验，明察无误。', duty: '执行复检评估、安全检查、质量核验和任务验收。', status: 'online', lastResult: '最近一次核查得分 96' }
 ]
 
 export const mockTasks = [

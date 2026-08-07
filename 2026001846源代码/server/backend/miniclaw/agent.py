@@ -70,21 +70,34 @@ class MiniClawAgent:
         self._llm_client = None
 
     def _get_llm_client(self):
+        """复用统一 AI 网关 (services.ai_gateway.ai_agent)。
+
+        优先使用项目已配置的 qwen/deepseek 网关，避免 miniclaw 单独维护一套 LLM 配置。
+        """
         if self._llm_client is not None:
             return self._llm_client
         try:
-            from openai import OpenAI
-            if not self.config.llm_api_key:
-                logger.warning("LLM API Key 未配置")
+            from services.ai_gateway import ai_agent
+            if not ai_agent.settings.configured:
+                logger.warning("AI 网关未配置 API Key，请在 server/backend/.env 设置 DASHSCOPE_API_KEY 等")
                 return None
-            self._llm_client = OpenAI(
-                api_key=self.config.llm_api_key,
-                base_url=self.config.llm_base_url,
-            )
+            self._llm_client = ai_agent.client()
             return self._llm_client
-        except ImportError:
-            logger.error("openai 库未安装，请运行: pip install openai")
+        except Exception as exc:  # noqa: BLE001
+            logger.error("获取 AI 网关客户端失败: %s", exc)
             return None
+
+    def _resolve_model(self) -> str:
+        """解析实际使用的模型：若 config 仍是默认 deepseek-chat，则回退到网关配置的模型。"""
+        if self.config.agent_model and self.config.agent_model != "deepseek-chat":
+            return self.config.agent_model
+        try:
+            from services.ai_gateway import ai_agent
+            if ai_agent.settings.chat_model:
+                return ai_agent.settings.chat_model
+        except Exception:  # noqa: BLE001
+            pass
+        return self.config.agent_model
 
     def _build_system_prompt(self) -> str:
         base = self.config.agent_system_prompt
@@ -121,7 +134,7 @@ class MiniClawAgent:
         try:
             self.hooks.emit_sync("before_llm_call", {"messages": messages})
             response = client.chat.completions.create(
-                model=self.config.agent_model,
+                model=self._resolve_model(),
                 messages=messages,
                 temperature=self.config.agent_temperature,
                 max_tokens=self.config.agent_max_tokens,

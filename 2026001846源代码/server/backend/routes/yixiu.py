@@ -55,6 +55,63 @@ def _now() -> str:
     return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
 
+_BUILTIN_TEMPLATES = [
+    {
+        "id": "tpl-blank",
+        "name": "空白文档",
+        "icon": "📝",
+        "category": "通用",
+        "description": "从零开始创建一份空白技术文档",
+        "skeleton": {"content": "# 文档标题\n\n在此输入内容..."}
+    },
+    {
+        "id": "tpl-sop",
+        "name": "检修作业 SOP",
+        "icon": "📋",
+        "category": "检修流程",
+        "description": "标准作业流程模板，适用于设备检修、维护作业",
+        "skeleton": {"content": "# 检修作业 SOP\n\n## 一、基本信息\n- 设备名称：\n- 设备型号：\n- 作业类型：\n- 作业地点：\n- 负责人：\n\n## 二、安全确认\n- [ ] 停机断电\n- [ ] 验电挂牌\n- [ ] 穿戴劳保用品\n- [ ] 工具检查合格\n\n## 三、作业步骤\n1. 外观检查\n2. 参数测量\n3. 故障定位\n4. 维修处置\n5. 更换部件\n\n## 四、复测验收\n- [ ] 空载试运行\n- [ ] 负载试运行\n- [ ] 参数记录\n- [ ] 清理现场\n\n## 五、备注\n"}
+    },
+    {
+        "id": "tpl-fault",
+        "name": "故障排查报告",
+        "icon": "🔍",
+        "category": "故障分析",
+        "description": "故障现象、排查过程、处置结论完整记录",
+        "skeleton": {"content": "# 故障排查报告\n\n## 一、故障现象\n- 设备：\n- 故障描述：\n- 发生时间：\n- 影响范围：\n\n## 二、排查过程\n### 初步检查\n- 外观检查：\n- 参数检测：\n\n### 深入分析\n- 可能原因1：\n- 可能原因2：\n- 排查方法：\n\n## 三、处置措施\n- 最终原因：\n- 处置方案：\n- 更换部件：\n\n## 四、预防建议\n"}
+    },
+    {
+        "id": "tpl-meeting",
+        "name": "检修会议纪要",
+        "icon": "📒",
+        "category": "协作沟通",
+        "description": "班组例会、技术交流、故障复盘纪要",
+        "skeleton": {"content": "# 检修会议纪要\n\n## 会议信息\n- 会议主题：\n- 会议时间：\n- 参会人员：\n- 主持人：\n\n## 议题与讨论\n### 议题一：\n- 讨论内容：\n- 结论：\n\n### 议题二：\n- 讨论内容：\n- 结论：\n\n## 行动计划\n| 事项 | 责任人 | 截止时间 | 状态 |\n|------|--------|----------|------|\n|  |  |  |  |\n\n## 备注\n"}
+    },
+    {
+        "id": "tpl-safety",
+        "name": "安全操作规范",
+        "icon": "🛡️",
+        "category": "安全规范",
+        "description": "高风险作业安全规程与防护要求",
+        "skeleton": {"content": "# 安全操作规范\n\n## 一、适用范围\n本规范适用于 作业。\n\n## 二、人员要求\n- 作业人员必须持有 资格证\n- 熟悉设备结构与操作规程\n- 掌握应急处置方法\n\n## 三、防护用品\n- [ ] 安全帽\n- [ ] 绝缘手套\n- [ ] 护目镜\n- [ ] 防滑鞋\n- [ ] 安全带（高空作业）\n\n## 四、安全流程\n1. 开具工作票\n2. 现场交底\n3. 落实防护措施\n4. 实施作业\n5. 验收确认\n\n## 五、应急处置\n- 触电急救：\n- 火灾扑救：\n- 设备故障：\n\n## 六、注意事项\n"}
+    }
+]
+
+
+def _seed_templates(conn):
+    count = conn.execute("SELECT COUNT(*) as c FROM yixiu_doc_templates").fetchone()["c"]
+    if count > 0:
+        return
+    now = _now()
+    for t in _BUILTIN_TEMPLATES:
+        conn.execute(
+            "INSERT INTO yixiu_doc_templates VALUES (?, ?, ?, ?, ?, ?, 1, ?)",
+            (t["id"], t["name"], t["icon"], t["category"], t["description"],
+             json.dumps(t["skeleton"], ensure_ascii=False), now),
+        )
+
+
 def _db() -> sqlite3.Connection:
     DATA_DIR.mkdir(parents=True, exist_ok=True)
     conn = sqlite3.connect(DB_PATH)
@@ -94,8 +151,54 @@ def _db() -> sqlite3.Connection:
         );
         CREATE INDEX IF NOT EXISTS idx_yixiu_messages_conversation
           ON yixiu_messages(conversation_id, created_at);
+        CREATE TABLE IF NOT EXISTS yixiu_knowledge_versions (
+          id TEXT PRIMARY KEY,
+          knowledge_id TEXT NOT NULL,
+          version INTEGER NOT NULL,
+          content_snapshot TEXT NOT NULL,
+          title_snapshot TEXT,
+          change_summary TEXT DEFAULT '',
+          editor_id TEXT,
+          editor_name TEXT,
+          created_at TEXT
+        );
+        CREATE TABLE IF NOT EXISTS yixiu_knowledge_collaborators (
+          id TEXT PRIMARY KEY,
+          knowledge_id TEXT NOT NULL,
+          user_id TEXT NOT NULL,
+          user_name TEXT NOT NULL,
+          role TEXT DEFAULT 'editor',
+          last_active_at TEXT,
+          is_online INTEGER DEFAULT 0
+        );
+        CREATE TABLE IF NOT EXISTS yixiu_knowledge_links (
+          id TEXT PRIMARY KEY,
+          knowledge_id TEXT NOT NULL,
+          link_type TEXT NOT NULL,
+          target_id TEXT NOT NULL,
+          target_title TEXT,
+          created_at TEXT
+        );
+        CREATE INDEX IF NOT EXISTS idx_knowledge_versions
+          ON yixiu_knowledge_versions(knowledge_id, version);
+        CREATE INDEX IF NOT EXISTS idx_knowledge_collaborators
+          ON yixiu_knowledge_collaborators(knowledge_id);
+        CREATE INDEX IF NOT EXISTS idx_knowledge_links
+          ON yixiu_knowledge_links(knowledge_id);
+        CREATE TABLE IF NOT EXISTS yixiu_doc_templates (
+          id TEXT PRIMARY KEY,
+          name TEXT NOT NULL,
+          icon TEXT DEFAULT '📝',
+          category TEXT DEFAULT '通用',
+          description TEXT DEFAULT '',
+          skeleton_json TEXT DEFAULT '{}',
+          is_builtin INTEGER DEFAULT 0,
+          created_at TEXT
+        );
         """
     )
+    # 预置模板数据
+    _seed_templates(conn)
     return conn
 
 
@@ -601,3 +704,298 @@ def create_conversation_message(conversation_id: str):
              json.dumps(data.get("card") or {}, ensure_ascii=False), created_at),
         )
     return success_response({**data, "id": message_id, "conversation_id": conversation_id, "created_at": created_at}, "message created")
+
+
+def _ensure_knowledge_in_db(conn: sqlite3.Connection, item_id: str):
+    """确保知识条目存在于数据库中。如果来自基础JSON，则复制到数据库。"""
+    row = conn.execute("SELECT * FROM yixiu_knowledge WHERE id=?", (item_id,)).fetchone()
+    if row:
+        return row
+    for item in _base_knowledge():
+        if str(item.get("id")) == str(item_id):
+            raw_content = item.get("content", "")
+            content_str = "\n".join(raw_content) if isinstance(raw_content, list) else str(raw_content)
+            summary = item.get("summary") or content_str[:200]
+            conn.execute(
+                "INSERT INTO yixiu_knowledge VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                (str(item_id), item.get("title", "未命名"), item.get("type", "手册"),
+                 item.get("category", "知识条目"), item.get("equipment_category") or item.get("equipment", ""),
+                 item.get("equipment_model") or item.get("model", ""), summary,
+                 content_str, json.dumps(item.get("tags", item.get("keywords", [])), ensure_ascii=False),
+                 item.get("source", "基础知识库"), "approved", "", "", _now(), _now()),
+            )
+            return conn.execute("SELECT * FROM yixiu_knowledge WHERE id=?", (item_id,)).fetchone()
+    return None
+
+
+@yixiu_bp.put("/knowledge/<item_id>/content")
+def edit_knowledge_content(item_id: str):
+    """编辑保存知识条目内容，自动生成版本快照。"""
+    data = request.get_json(silent=True) or {}
+    content = str(data.get("content", "")).strip()
+    if not content:
+        return error_response(400, "内容不能为空")
+    with _db() as conn:
+        row = _ensure_knowledge_in_db(conn, item_id)
+        if not row:
+            return error_response(404, "知识条目不存在")
+        current_version = conn.execute(
+            "SELECT MAX(version) as v FROM yixiu_knowledge_versions WHERE knowledge_id=?", (item_id,)
+        ).fetchone()["v"] or 1
+        new_version = current_version + 1
+        title = data.get("title") or row["title"]
+        tags = data.get("tags")
+        tag_value = json.dumps(tags, ensure_ascii=False) if isinstance(tags, list) else row["tags"]
+        equipment = data.get("equipment") or row["equipment"]
+        model = data.get("model") or row["model"]
+        summary = data.get("summary") or (content[:200] if content else row["summary"])
+        conn.execute(
+            "UPDATE yixiu_knowledge SET title=?, content=?, tags=?, equipment=?, model=?, summary=?, status=?, updated_at=? WHERE id=?",
+            (title, content, tag_value, equipment, model, summary, "pending", _now(), item_id),
+        )
+        version_id = f"ver-{uuid.uuid4().hex[:12]}"
+        conn.execute(
+            "INSERT INTO yixiu_knowledge_versions VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            (version_id, item_id, new_version, content, title,
+             data.get("change_summary", ""), data.get("editor_id", ""),
+             data.get("editor_name", "当前用户"), _now()),
+        )
+        updated = conn.execute("SELECT * FROM yixiu_knowledge WHERE id=?", (item_id,)).fetchone()
+    item = dict(updated)
+    item["tags"] = _json(item["tags"], [])
+    item["version"] = new_version
+    item["reviewable"] = True
+    return success_response(item, "知识内容已保存，版本 v%d" % new_version)
+
+
+@yixiu_bp.get("/knowledge/<item_id>/versions")
+def knowledge_versions(item_id: str):
+    """获取知识条目的版本历史。"""
+    with _db() as conn:
+        rows = conn.execute(
+            "SELECT * FROM yixiu_knowledge_versions WHERE knowledge_id=? ORDER BY version DESC",
+            (item_id,),
+        ).fetchall()
+    items = [dict(row) for row in rows]
+    return success_response({"versions": items, "total": len(items)}, "版本历史获取成功")
+
+
+@yixiu_bp.get("/knowledge/<item_id>/versions/<version_id>")
+def knowledge_version_detail(item_id: str, version_id: str):
+    """获取某个版本的详细内容。"""
+    with _db() as conn:
+        row = conn.execute(
+            "SELECT * FROM yixiu_knowledge_versions WHERE id=? AND knowledge_id=?",
+            (version_id, item_id),
+        ).fetchone()
+    if not row:
+        return error_response(404, "版本不存在")
+    return success_response(dict(row), "版本内容获取成功")
+
+
+@yixiu_bp.post("/knowledge/<item_id>/versions/<version_id>/restore")
+def restore_knowledge_version(item_id: str, version_id: str):
+    """恢复到指定版本。"""
+    with _db() as conn:
+        row = _ensure_knowledge_in_db(conn, item_id)
+        if not row:
+            return error_response(404, "知识条目不存在")
+        ver = conn.execute(
+            "SELECT * FROM yixiu_knowledge_versions WHERE id=? AND knowledge_id=?",
+            (version_id, item_id),
+        ).fetchone()
+        if not ver:
+            return error_response(404, "版本不存在")
+        current_version = conn.execute(
+            "SELECT MAX(version) as v FROM yixiu_knowledge_versions WHERE knowledge_id=?", (item_id,)
+        ).fetchone()["v"] or 1
+        new_version = current_version + 1
+        conn.execute(
+            "UPDATE yixiu_knowledge SET content=?, title=?, status=?, updated_at=? WHERE id=?",
+            (ver["content_snapshot"], ver["title_snapshot"], "pending", _now(), item_id),
+        )
+        restore_id = f"ver-{uuid.uuid4().hex[:12]}"
+        conn.execute(
+            "INSERT INTO yixiu_knowledge_versions VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            (restore_id, item_id, new_version, ver["content_snapshot"], ver["title_snapshot"],
+             "恢复到 v%d" % ver["version"], "", "当前用户", _now()),
+        )
+    return success_response({"id": item_id, "restored_version": ver["version"], "new_version": new_version}, "已恢复到 v%d" % ver["version"])
+
+
+@yixiu_bp.get("/knowledge/<item_id>/collaborators")
+def knowledge_collaborators(item_id: str):
+    """获取知识条目的协作成员列表。"""
+    with _db() as conn:
+        rows = conn.execute(
+            "SELECT * FROM yixiu_knowledge_collaborators WHERE knowledge_id=? ORDER BY last_active_at DESC",
+            (item_id,),
+        ).fetchall()
+    items = [dict(row) for row in rows]
+    return success_response({"collaborators": items, "total": len(items)}, "协作成员获取成功")
+
+
+@yixiu_bp.post("/knowledge/<item_id>/collaborators")
+def add_knowledge_collaborator(item_id: str):
+    """添加协作成员。"""
+    data = request.get_json(silent=True) or {}
+    user_id = str(data.get("user_id") or data.get("userId") or data.get("name") or "guest")
+    user_name = str(data.get("user_name") or data.get("userName") or data.get("name") or "新成员")
+    role = str(data.get("role", "editor"))
+    now = _now()
+    collab_id = f"col-{uuid.uuid4().hex[:10]}"
+    with _db() as conn:
+        conn.execute(
+            "INSERT INTO yixiu_knowledge_collaborators VALUES (?, ?, ?, ?, ?, ?, ?)",
+            (collab_id, item_id, user_id, user_name, role, now, 1),
+        )
+    return success_response({
+        "id": collab_id, "knowledge_id": item_id,
+        "user_id": user_id, "user_name": user_name, "role": role,
+    }, "协作成员添加成功")
+
+
+@yixiu_bp.post("/knowledge/<item_id>/presence")
+def knowledge_presence(item_id: str):
+    """上报在线状态（心跳）。"""
+    data = request.get_json(silent=True) or {}
+    user_id = str(data.get("user_id") or data.get("userId") or "guest")
+    user_name = str(data.get("user_name") or data.get("userName") or "当前用户")
+    now = _now()
+    with _db() as conn:
+        existing = conn.execute(
+            "SELECT * FROM yixiu_knowledge_collaborators WHERE knowledge_id=? AND user_id=?",
+            (item_id, user_id),
+        ).fetchone()
+        if existing:
+            conn.execute(
+                "UPDATE yixiu_knowledge_collaborators SET is_online=1, last_active_at=? WHERE id=?",
+                (now, existing["id"]),
+            )
+        else:
+            collab_id = f"col-{uuid.uuid4().hex[:10]}"
+            conn.execute(
+                "INSERT INTO yixiu_knowledge_collaborators VALUES (?, ?, ?, ?, ?, ?, ?)",
+                (collab_id, item_id, user_id, user_name, "editor", now, 1),
+            )
+        rows = conn.execute(
+            "SELECT * FROM yixiu_knowledge_collaborators WHERE knowledge_id=? AND is_online=1",
+            (item_id,),
+        ).fetchall()
+    online = [dict(row) for row in rows]
+    return success_response({"online_members": online, "count": len(online)}, "在线状态已更新")
+
+
+@yixiu_bp.route("/knowledge/<item_id>/links", methods=["GET", "POST"])
+def knowledge_links(item_id: str):
+    """获取或添加知识条目的板块联动关联。"""
+    if request.method == "GET":
+        with _db() as conn:
+            rows = conn.execute(
+                "SELECT * FROM yixiu_knowledge_links WHERE knowledge_id=? ORDER BY created_at DESC",
+                (item_id,),
+            ).fetchall()
+        items = [dict(row) for row in rows]
+        return success_response({"links": items, "total": len(items)}, "联动关联获取成功")
+
+    data = request.get_json(silent=True) or {}
+    link_type = str(data.get("link_type", "")).strip()
+    target_id = str(data.get("target_id", "")).strip()
+    target_title = str(data.get("target_title", "")).strip()
+    if link_type not in {"task", "knowledge", "file"} or not target_id:
+        return error_response(400, "关联类型和目标ID不能为空")
+    link_id = f"link-{uuid.uuid4().hex[:10]}"
+    with _db() as conn:
+        conn.execute(
+            "INSERT INTO yixiu_knowledge_links VALUES (?, ?, ?, ?, ?, ?)",
+            (link_id, item_id, link_type, target_id, target_title, _now()),
+        )
+    return success_response({"id": link_id, "knowledge_id": item_id, "link_type": link_type,
+                             "target_id": target_id, "target_title": target_title, "created_at": _now()}, "关联添加成功")
+
+
+@yixiu_bp.route("/knowledge/<item_id>/links/<link_id>", methods=["DELETE"])
+def remove_knowledge_link(item_id: str, link_id: str):
+    """移除板块联动关联。"""
+    with _db() as conn:
+        row = conn.execute("SELECT * FROM yixiu_knowledge_links WHERE id=? AND knowledge_id=?", (link_id, item_id)).fetchone()
+        if not row:
+            return error_response(404, "关联不存在")
+        conn.execute("DELETE FROM yixiu_knowledge_links WHERE id=?", (link_id,))
+    return success_response({"id": link_id}, "关联已移除")
+
+
+@yixiu_bp.get("/knowledge/linked/<link_type>/<target_id>")
+def linked_knowledge(link_type: str, target_id: str):
+    """反向查询：根据关联类型和目标ID查找关联的知识条目。"""
+    with _db() as conn:
+        rows = conn.execute(
+            """SELECT k.*, l.target_id, l.target_title, l.id as link_id
+               FROM yixiu_knowledge k
+               JOIN yixiu_knowledge_links l ON k.id = l.knowledge_id
+               WHERE l.link_type=? AND l.target_id=?""",
+            (link_type, target_id),
+        ).fetchall()
+    items = []
+    for row in rows:
+        item = dict(row)
+        item["tags"] = _json(item.get("tags"), [])
+        items.append(item)
+    return success_response({"items": items, "total": len(items)}, "关联知识获取成功")
+
+
+@yixiu_bp.route("/templates")
+def list_templates():
+    keyword = request.args.get("keyword", "").strip()
+    with _db() as conn:
+        rows = conn.execute(
+            "SELECT * FROM yixiu_doc_templates WHERE name LIKE ? OR category LIKE ? ORDER BY is_builtin DESC, created_at DESC",
+            (f"%{keyword}%", f"%{keyword}%"),
+        ).fetchall()
+    items = []
+    for row in rows:
+        item = dict(row)
+        item["skeleton"] = _json(item.get("skeleton_json"), {})
+        items.append(item)
+    return success_response({"templates": items, "total": len(items)})
+
+
+@yixiu_bp.route("/templates/<template_id>")
+def get_template(template_id):
+    with _db() as conn:
+        row = conn.execute("SELECT * FROM yixiu_doc_templates WHERE id=?", (template_id,)).fetchone()
+    if not row:
+        return error_response(404, "模板不存在")
+    item = dict(row)
+    item["skeleton"] = _json(item.get("skeleton_json"), {})
+    return success_response(item)
+
+
+@yixiu_bp.route("/templates", methods=["POST"])
+def create_template():
+    data = request.get_json(silent=True) or {}
+    name = str(data.get("name", "")).strip()
+    if not name:
+        return error_response(400, "模板名称不能为空")
+    template_id = f"tpl-{uuid.uuid4().hex[:10]}"
+    skeleton = data.get("skeleton", {})
+    with _db() as conn:
+        conn.execute(
+            "INSERT INTO yixiu_doc_templates VALUES (?, ?, ?, ?, ?, ?, 0, ?)",
+            (template_id, name, str(data.get("icon", "📝")),
+             str(data.get("category", "通用")), str(data.get("description", "")),
+             json.dumps(skeleton, ensure_ascii=False), _now()),
+        )
+    return success_response({"id": template_id, "name": name}, "模板创建成功")
+
+
+@yixiu_bp.route("/templates/<template_id>", methods=["DELETE"])
+def delete_template(template_id):
+    with _db() as conn:
+        row = conn.execute("SELECT * FROM yixiu_doc_templates WHERE id=?", (template_id,)).fetchone()
+        if not row:
+            return error_response(404, "模板不存在")
+        if row["is_builtin"]:
+            return error_response(403, "内置模板不可删除")
+        conn.execute("DELETE FROM yixiu_doc_templates WHERE id=?", (template_id,))
+    return success_response({"id": template_id}, "模板已删除")

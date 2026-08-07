@@ -116,6 +116,28 @@
         </view>
       </view>
 
+      <!-- 关联技术资料（反向联动） -->
+      <view class="section-card">
+        <view class="section-header">
+          <text class="section-icon">📚</text>
+          <text class="section-title">关联技术资料</text>
+          <text class="sop-progress">{{ linkedKnowledge.length }}篇</text>
+        </view>
+        <view v-if="linkedKnowledge.length === 0" class="empty-linked">
+          <text class="empty-linked-text">暂无关联技术资料</text>
+          <text class="empty-linked-action" @click="goKnowledgeBase">去知识库关联 →</text>
+        </view>
+        <view v-else class="linked-list">
+          <view v-for="(k, i) in linkedKnowledge" :key="i" class="linked-item" @click="goKnowledge(k.id)">
+            <view class="linked-info">
+              <text class="linked-title">{{ k.title }}</text>
+              <text class="linked-meta">{{ k.category || '知识条目' }} · {{ k.updated_at || '未知时间' }}</text>
+            </view>
+            <text class="linked-arrow">→</text>
+          </view>
+        </view>
+      </view>
+
       <view style="height: 180rpx;"></view>
     </scroll-view>
 
@@ -144,7 +166,8 @@ export default {
     return {
       statusBarHeight: 0,
       taskId: 0,
-      task: {}
+      task: {},
+      linkedKnowledge: []
     }
   },
   computed: {
@@ -165,12 +188,29 @@ export default {
         const res = await request.get(`/api/maintenance-tasks/${this.taskId}`)
         if (res.code === 200) {
           this.task = res.data
+          this.loadLinkedKnowledge()
           return
         }
       } catch (e) {
         // 接口不可用时展示本地兜底任务，保证页面闭环可演示。
       }
       this.task = this.getFallbackDetail()
+      this.loadLinkedKnowledge()
+    },
+
+    async loadLinkedKnowledge() {
+      try {
+        const res = await request.get(`/knowledge/linked/task/${this.taskId}`, { service: 'yixiu' })
+        if (res && res.data) this.linkedKnowledge = res.data.items || []
+      } catch (e) { this.linkedKnowledge = [] }
+    },
+
+    goKnowledge(id) {
+      uni.navigateTo({ url: `/pages/knowledge-detail/knowledge-detail?id=${id}` })
+    },
+
+    goKnowledgeBase() {
+      uni.switchTab({ url: '/pages/knowledge-base/knowledge-base' })
     },
 
     toggleStep(i) {
@@ -412,4 +452,20 @@ export default {
 .btn-text { font-size: 28rpx; font-weight: 700; }
 .action-btn.primary .btn-text, .action-btn.accent .btn-text { color: #FFFFFF; }
 .action-btn.secondary .btn-text { color: #475569; }
+
+/* 关联技术资料 */
+.empty-linked { padding: 24rpx 0; text-align: center; }
+.empty-linked-text { font-size: 24rpx; color: #94A3B8; display: block; margin-bottom: 8rpx; }
+.empty-linked-action { font-size: 24rpx; color: #2563EB; font-weight: 600; }
+.linked-list { display: flex; flex-direction: column; gap: 12rpx; }
+.linked-item {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 20rpx; background: #F8FAFC; border-radius: 12rpx;
+  border: 1rpx solid #E2E8F0;
+}
+.linked-item:active { background: #F1F5F9; }
+.linked-info { flex: 1; min-width: 0; }
+.linked-title { font-size: 26rpx; font-weight: 600; color: #1E293B; display: block; }
+.linked-meta { font-size: 22rpx; color: #94A3B8; margin-top: 6rpx; display: block; }
+.linked-arrow { font-size: 28rpx; color: #CBD5E1; flex-shrink: 0; }
 </style>
