@@ -162,20 +162,6 @@
             </div>
           </div>
 
-          <section class="kpi-ribbon span-all" aria-label="核心运行指标">
-            <button
-              v-for="card in statCards.slice(0, 6)"
-              :key="card.key"
-              class="stat-card"
-              type="button"
-              @click="goStat(card)"
-            >
-              <span>{{ card.label }}</span>
-              <b>{{ card.value }}</b>
-              <small>{{ card.hint }}</small>
-            </button>
-          </section>
-
           <div class="panel home-task-panel span-all">
             <div class="section-title-row home-task-title">
               <div>
@@ -230,16 +216,35 @@
             <div class="panel-head">
               <div>
                 <p class="eyebrow">数据分析</p>
-                <h3>最近七天任务趋势与故障分布</h3>
+                <h3>系统今日概览数据看板</h3>
               </div>
-              <div class="chart-legend"><i></i>任务处理量 <span>近 7 天</span></div>
+              <div class="chart-legend"><i></i>实时汇总 <span>多维指标</span></div>
             </div>
-            <div class="chart-wrap">
-              <EChart :option="homeTrendOption" class="chart-canvas" height="270px" />
-              <div class="distribution">
-                <div class="distribution-head"><b>故障构成</b><small>按案例占比</small></div>
-                <EChart :option="homeFaultOption" class="chart-canvas chart-canvas-mini" height="220px" />
-              </div>
+            <div class="dashboard-charts">
+              <section class="chart-tile chart-tile-wide">
+                <div class="chart-tile-head"><b>近七天处理趋势</b><small>{{ taskTrendTotal }} 项流转</small></div>
+                <EChart :option="homeTrendOption" class="chart-canvas" height="250px" />
+              </section>
+              <section class="chart-tile">
+                <div class="chart-tile-head"><b>任务状态分布</b><small>按工单状态</small></div>
+                <EChart :option="homeStatusOption" class="chart-canvas" height="250px" />
+              </section>
+              <section class="chart-tile">
+                <div class="chart-tile-head"><b>风险等级占比</b><small>{{ overview.stats.highRisk }} 项高风险</small></div>
+                <EChart :option="homeRiskOption" class="chart-canvas" height="230px" />
+              </section>
+              <section class="chart-tile">
+                <div class="chart-tile-head"><b>故障构成</b><small>按案例占比</small></div>
+                <EChart :option="homeFaultOption" class="chart-canvas" height="230px" />
+              </section>
+              <section class="chart-tile">
+                <div class="chart-tile-head"><b>复检质量雷达</b><small>流程闭环能力</small></div>
+                <EChart :option="homeQualityOption" class="chart-canvas" height="230px" />
+              </section>
+              <section class="chart-tile chart-tile-wide">
+                <div class="chart-tile-head"><b>知识沉淀与引用</b><small>本周新增 {{ overview.stats.weekKnowledge }} 条</small></div>
+                <EChart :option="homeKnowledgeOption" class="chart-canvas" height="230px" />
+              </section>
             </div>
           </div>
 
@@ -287,7 +292,7 @@
               </span>
             </div>
             <div class="actions search-actions">
-              <button class="primary" type="button" :disabled="loading.search" @click="runSearch">{{ loading.search ? '检索中...' : '开始智能检索' }}</button>
+              <button class="primary" type="button" :disabled="loading.search" @click="runSearch">{{ loading.search ? '检索中...' : '开始检索' }}</button>
               <button type="button" @click="simulateVoice">{{ voiceListening ? '停止语音输入' : '语音输入故障描述' }}</button>
             </div>
           </div>
@@ -295,7 +300,7 @@
           <div class="panel search-analysis-panel" :class="{ ready: searchResult }">
             <div class="search-panel-heading compact-heading">
               <span class="search-step">02</span>
-              <div><p class="eyebrow">智能分析结果</p><h3>{{ searchResult ? '故障研判摘要' : '等待检索分析' }}</h3><small>{{ searchResult ? '综合文本、设备参数与视觉线索生成' : '完成左侧信息后生成结构化判断' }}</small></div>
+              <div><p class="eyebrow">检索研判结果</p><h3>{{ searchResult ? '故障研判摘要' : '等待检索分析' }}</h3><small>{{ searchResult ? '综合文本、设备参数与现场线索形成判断' : '完成左侧信息后生成结构化判断' }}</small></div>
             </div>
             <template v-if="searchResult">
               <div class="analysis-summary"><span>研判结论</span><h3>{{ searchResult.phenomenonSummary }}</h3></div>
@@ -315,10 +320,10 @@
               <p>{{ searchResult.positions.join('、') }}；工具：{{ searchResult.tools.join('、') }}</p>
             </template>
             <div v-else class="empty search-empty-state">
-              <span class="analysis-orbit"><i></i><i></i><i></i><b>AI</b></span>
+              <span class="analysis-orbit"><i></i><i></i><i></i><b>检</b></span>
               <h4>检索结果将在这里生成</h4>
               <p>系统会结合设备型号、故障现象和上传材料，给出风险、原因与检查建议。</p>
-              <ol><li><b>1</b>完善故障描述</li><li><b>2</b>按需添加图片或资料</li><li><b>3</b>启动智能检索</li></ol>
+              <ol><li><b>1</b>完善故障描述</li><li><b>2</b>按需添加图片或资料</li><li><b>3</b>启动检索</li></ol>
             </div>
           </div>
 
@@ -353,7 +358,7 @@
           </div>
 
           <div class="panel span-all maintenance-advice-panel" v-if="searchResult">
-            <div class="advice-heading"><div><p class="eyebrow">智能检修建议</p><h3>推荐作业路径</h3></div><span>{{ searchResult.suggestion.steps.length }} 个步骤</span></div>
+            <div class="advice-heading"><div><p class="eyebrow">检修建议</p><h3>推荐作业路径</h3></div><span>{{ searchResult.suggestion.steps.length }} 个步骤</span></div>
             <div class="sop-list">
               <span v-for="(step, index) in searchResult.suggestion.steps" :key="step"><b>{{ index + 1 }}</b>{{ step }}</span>
             </div>
@@ -376,9 +381,25 @@
           </div>
 
           <template v-if="taskPanel === 'overview'">
-            <button v-for="card in taskOverviewCards" :key="card.label" class="stat-card task-stat" type="button" @click="applyTaskMetric(card)">
-              <span>{{ card.label }}</span><b>{{ card.value }}</b><small>{{ card.hint }}</small>
-            </button>
+            <div class="panel span-all task-metric-table-panel">
+              <div class="section-title-row">
+                <div><p class="eyebrow">任务概览</p><h3>今日检修任务统计表</h3></div>
+                <span class="section-count">重点 {{ taskOverviewRows.length }} 项</span>
+              </div>
+              <div class="task-overview-compact">
+                <button
+                  v-for="row in taskOverviewRows"
+                  :key="row.label"
+                  type="button"
+                  class="task-metric-chip"
+                  @click="applyTaskMetric(row)"
+                >
+                  <span class="metric-chip-top"><b>{{ row.value }}</b><em>{{ row.percent }}%</em></span>
+                  <span class="metric-name">{{ row.label }}</span>
+                  <i class="metric-bar"><u :style="{ width: row.percent + '%' }"></u></i>
+                </button>
+              </div>
+            </div>
             <div class="panel span-all task-analytics">
               <div class="panel-head">
                 <div><p class="eyebrow">数据分析</p><h3>任务趋势、状态、风险、设备和人员负载</h3></div>
@@ -1340,6 +1361,29 @@
 
     <div v-if="toastText" class="toast">{{ toastText }}</div>
     </template>
+    <section v-if="tgRunUi.visible" class="tg-run-overlay" aria-label="天工执行过程">
+      <div class="tg-run-card">
+        <header>
+          <span class="tg-run-mark">天工</span>
+          <div>
+            <small>长任务执行中</small>
+            <b>{{ tgRunUi.title }}</b>
+          </div>
+          <em>{{ tgRunUi.current }}/{{ tgRunUi.total }}</em>
+        </header>
+        <div class="tg-run-progress"><span :style="{ width: tgRunUi.progress + '%' }"></span></div>
+        <p>{{ tgRunUi.detail }}</p>
+        <div class="tg-run-steps">
+          <span
+            v-for="step in tgRunUi.steps"
+            :key="step.index"
+            :class="{ done: step.index < tgRunUi.current, active: step.index === tgRunUi.current }"
+          >
+            {{ step.label }}
+          </span>
+        </div>
+      </div>
+    </section>
     <div class="tg-cursor" :style="{ position: 'fixed', left: tgCursor.x + 'px', top: tgCursor.y + 'px', opacity: tgCursor.visible ? 1 : 0, zIndex: 99999 }">
       <span class="tg-cursor-dot"></span>
       <span v-if="tgCursor.label" class="tg-cursor-label">{{ tgCursor.label }}</span>
@@ -1798,7 +1842,7 @@ const recommendationResult = computed(() => searchResult.value ? {
   model: searchForm.deviceModel,
   match: searchResult.value.confidence || 88,
   summary: `${searchResult.value.stopAdvice || '结合现场安全要求逐项检查'}；共 ${searchResult.value.suggestion?.steps?.length || 0} 个建议步骤。`,
-  tags: ['智能研判', searchForm.faultType, searchForm.maintenanceLevel]
+  tags: ['研判依据', searchForm.faultType, searchForm.maintenanceLevel]
 } : null)
 const filterResultsByTab = (tab) => {
   const list = searchResult.value?.references || []
@@ -1831,18 +1875,20 @@ const filteredTasks = computed(() => tasks.value.filter((task) => {
   const keywordOk = !keyword || JSON.stringify(task).includes(keyword)
   return statusOk && severityOk && categoryOk && faultTypeOk && assigneeOk && overdueOk && keywordOk
 }))
-const taskOverviewCards = computed(() => [
-  { label: '今日任务总数', value: tasks.value.length, hint: '全部任务', filter: {} },
-  { label: '待接收任务', value: tasks.value.filter((task) => task.status === 'pending').length, hint: '等待接收', filter: { status: 'pending' } },
-  { label: '待处理任务', value: tasks.value.filter((task) => ['pending', 'in_progress'].includes(task.status)).length, hint: '需推进', filter: { status: 'pending' } },
-  { label: '检修中任务', value: tasks.value.filter((task) => task.status === 'in_progress').length, hint: '现场处理中', filter: { status: 'in_progress' } },
-  { label: '待复检任务', value: tasks.value.filter((task) => task.status === 'review').length, hint: '等待验收', filter: { status: 'review' } },
-  { label: '已完成任务', value: tasks.value.filter((task) => task.status === 'completed').length, hint: '今日归档', filter: { status: 'completed' } },
-  { label: '高风险任务', value: tasks.value.filter((task) => task.severity === 'high').length, hint: '优先确认', filter: { severity: 'high' } },
-  { label: '已逾期任务', value: tasks.value.filter(isTaskOverdue).length, hint: '需要协调', filter: { overdue: 'yes' } },
-  { label: '今日完成率', value: `${Math.round(tasks.value.filter((task) => task.status === 'completed').length / Math.max(tasks.value.length, 1) * 100)}%`, hint: '按任务数计算' },
-  { label: '复检通过率', value: '92%', hint: '近 7 天' }
-])
+const taskOverviewRows = computed(() => {
+  const total = Math.max(tasks.value.length, 1)
+  const completed = tasks.value.filter((task) => task.status === 'completed').length
+  return [
+    { label: '待接收', value: tasks.value.filter((task) => task.status === 'pending').length, hint: '等待派工确认', filter: { status: 'pending' } },
+    { label: '检修中', value: tasks.value.filter((task) => task.status === 'in_progress').length, hint: '现场处理中', filter: { status: 'in_progress' } },
+    { label: '待复检', value: tasks.value.filter((task) => task.status === 'review').length, hint: '等待验收复核', filter: { status: 'review' } },
+    { label: '高风险', value: tasks.value.filter((task) => task.severity === 'high').length, hint: '优先安全确认', filter: { severity: 'high' } },
+    { label: '已逾期', value: tasks.value.filter(isTaskOverdue).length, hint: '需要协调排期', filter: { overdue: 'yes' } }
+  ].map((row) => ({
+    ...row,
+    percent: row.percent ?? Math.round(Number(row.value || 0) / total * 100)
+  }))
+})
 const countBy = (list, getter) => {
   const map = new Map()
   list.forEach((item) => {
@@ -1907,6 +1953,117 @@ const homeFaultOption = computed(() => ({
     data: overview.faultDistribution.map((item, index) => ({ name: item.label, value: item.value, itemStyle: { color: faultColors[index] } }))
   }]
 }))
+
+const homeStatusOption = computed(() => ({
+  tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' }, ...chartTooltip },
+  grid: { left: 58, right: 26, top: 16, bottom: 22 },
+  xAxis: { type: 'value', splitLine: { lineStyle: { color: chartTheme.line, type: 'dashed' } }, axisLabel: { color: chartTheme.muted, fontSize: 10 } },
+  yAxis: {
+    type: 'category',
+    data: taskStatusAnalysis.value.map((item) => item.label),
+    axisLine: { show: false },
+    axisTick: { show: false },
+    axisLabel: { color: chartTheme.ink, fontSize: 11, fontWeight: 700 }
+  },
+  series: [{
+    type: 'bar',
+    barWidth: 15,
+    data: taskStatusAnalysis.value.map((item) => ({
+      value: item.count,
+      itemStyle: { color: statusColorMap[item.key] || chartTheme.teal, borderRadius: [0, 8, 8, 0] }
+    })),
+    label: { show: true, position: 'right', color: chartTheme.ink, fontSize: 11, fontWeight: 800 }
+  }]
+}))
+
+const homeRiskOption = computed(() => ({
+  tooltip: { trigger: 'item', formatter: '{b}: {c} 项 ({d}%)', ...chartTooltip },
+  legend: { bottom: 0, left: 'center', icon: 'circle', itemWidth: 8, itemHeight: 8, textStyle: { color: chartTheme.muted, fontSize: 10 } },
+  series: [{
+    type: 'pie',
+    radius: ['48%', '72%'],
+    center: ['50%', '44%'],
+    itemStyle: { borderColor: '#fff', borderWidth: 2, borderRadius: 7 },
+    label: { show: true, formatter: '{c}', color: chartTheme.ink, fontSize: 11, fontWeight: 800 },
+    data: taskRiskAnalysis.value.map((item) => ({
+      name: item.label,
+      value: item.count,
+      itemStyle: { color: riskColorMap[item.key] || chartTheme.coral }
+    }))
+  }]
+}))
+
+const homeQualityOption = computed(() => ({
+  tooltip: { trigger: 'item', ...chartTooltip },
+  radar: {
+    radius: '64%',
+    center: ['50%', '54%'],
+    splitNumber: 4,
+    axisName: { color: chartTheme.muted, fontSize: 11 },
+    splitLine: { lineStyle: { color: ['#eef3f4', '#e7edef', '#dfe8ea', '#d7e2e4'] } },
+    splitArea: { areaStyle: { color: ['rgba(22,118,111,.03)', 'rgba(57,121,184,.04)'] } },
+    axisLine: { lineStyle: { color: '#dce7e9' } },
+    indicator: [
+      { name: '闭环', max: 100 },
+      { name: '复检', max: 100 },
+      { name: '安全', max: 100 },
+      { name: '协作', max: 100 },
+      { name: '沉淀', max: 100 }
+    ]
+  },
+  series: [{
+    type: 'radar',
+    symbol: 'circle',
+    symbolSize: 5,
+    data: [{
+      value: [
+        todayCompletion.value,
+        92,
+        Math.max(60, 100 - overview.stats.highRisk * 8),
+        Math.min(96, 70 + contacts.value.filter((item) => item.status === 'online').length * 5),
+        Math.min(98, 58 + overview.stats.weekKnowledge * 6)
+      ],
+      areaStyle: { color: 'rgba(22,118,111,.22)' },
+      lineStyle: { color: chartTheme.teal, width: 2.5 },
+      itemStyle: { color: '#fff', borderColor: chartTheme.teal, borderWidth: 2 }
+    }]
+  }]
+}))
+
+const homeKnowledgeOption = computed(() => {
+  const labels = ['周一', '周二', '周三', '周四', '周五', '周六', '今天']
+  const additions = [2, 3, 2, 4, 3, Math.max(2, overview.stats.weekKnowledge - 2), overview.stats.weekKnowledge]
+  const citations = additions.map((value, index) => value * 4 + index * 2 + 6)
+  return {
+    tooltip: { trigger: 'axis', ...chartTooltip },
+    legend: { data: ['新增知识', '引用次数'], top: 0, right: 8, icon: 'roundRect', itemWidth: 14, itemHeight: 8, textStyle: { color: chartTheme.muted, fontSize: 11 } },
+    grid: { left: 36, right: 38, top: 36, bottom: 26 },
+    xAxis: { type: 'category', data: labels, axisLine: { lineStyle: { color: chartTheme.line } }, axisTick: { show: false }, axisLabel: { color: chartTheme.muted, fontSize: 10 } },
+    yAxis: [
+      { type: 'value', splitLine: { lineStyle: { color: chartTheme.line, type: 'dashed' } }, axisLabel: { color: chartTheme.muted, fontSize: 10 } },
+      { type: 'value', splitLine: { show: false }, axisLabel: { color: chartTheme.muted, fontSize: 10 } }
+    ],
+    series: [
+      {
+        name: '新增知识',
+        type: 'bar',
+        data: additions,
+        barWidth: 18,
+        itemStyle: { borderRadius: [7, 7, 0, 0], color: { type: 'linear', x: 0, y: 0, x2: 0, y2: 1, colorStops: [{ offset: 0, color: chartTheme.violet }, { offset: 1, color: '#d7caea' }] } }
+      },
+      {
+        name: '引用次数',
+        type: 'line',
+        yAxisIndex: 1,
+        data: citations,
+        smooth: true,
+        symbolSize: 6,
+        lineStyle: { color: chartTheme.amber, width: 2.5 },
+        itemStyle: { color: '#fff', borderColor: chartTheme.amber, borderWidth: 2 }
+      }
+    ]
+  }
+})
 
 // 任务页：近 7 天任务趋势折线图
 const taskTrendOption = computed(() => ({
@@ -2660,11 +2817,23 @@ const updateGraphChart = () => {
 const handleGraphResize = () => {
   graphChartInstance?.resize()
 }
+const settleGraphChart = () => {
+  nextTick(() => {
+    tryInitGraphChart()
+    requestAnimationFrame(() => {
+      graphChartInstance?.resize()
+      window.setTimeout(() => graphChartInstance?.resize(), 180)
+    })
+  })
+}
 watch([graphNodes, graphKindFilter, graphDepth, graphRelationFilter, graphLayoutMode, graphShowLabels, knowledgeKeyword], () => {
   updateGraphChart()
 }, { deep: true })
 watch(selectedGraphNode, () => {
   updateGraphChart()
+})
+watch([activePage, knowledgePanel], () => {
+  if (activePage.value === 'knowledge' && knowledgePanel.value === 'network') settleGraphChart()
 })
 const taskLinkedKnowledge = ref([])
 watch(selectedTask, async (task) => {
@@ -2758,7 +2927,7 @@ const loadKnowledgeDocs = () => {
       id: 'kb-meeting-001',
       title: '8月检修班组例会纪要',
       type: '会议纪要', category: '协作沟通',
-      content: '# 检修班组例会纪要\n## 时间\n2026年8月3日 14:00\n## 参会人员\n李宗泽、李志勇、唐忆罗、陈程\n## 议题\n1. 本周检修任务进展\n2. 配电柜过热工单风险确认\n3. CG-125发动机异响排查方案\n## 行动计划\n- 李宗泽负责配电柜停机检修\n- 李志勇跟进发动机拆检',
+      content: '# 检修班组例会纪要\n## 时间\n2026年8月3日 14:00\n## 参会人员\n聪明的一修、李志勇、唐忆罗、陈程\n## 议题\n1. 本周检修任务进展\n2. 配电柜过热工单风险确认\n3. CG-125发动机异响排查方案\n## 行动计划\n- 聪明的一修负责配电柜停机检修\n- 李志勇跟进发动机拆检',
       tags: ['会议', '纪要'],
       collaborators: [collaboratorPool[0], collaboratorPool[1], collaboratorPool[2], collaboratorPool[3]],
       starred: false,
@@ -3358,7 +3527,7 @@ const runSearch = async () => {
       }
     }
     searchResult.value = await yixiuApi.search({ ...searchForm, fileIds: searchFiles.value.map((file) => file.id).filter(Boolean), query: searchForm.query })
-    toast('智能检索完成')
+    toast('检索完成')
   } catch (error) {
     toast(error.message || '智能检索失败')
   } finally {
@@ -3572,6 +3741,43 @@ const sendOperatorPrompt = async (prompt) => {
       const loadingMsg = { id: `loading-${Date.now()}`, page: sourcePage, role: 'assistant', text: '天工正在感知系统状态…', loading: true }
       operatorMessages.value.push(loadingMsg)
       const host = `http://${window.location.hostname || '127.0.0.1'}:5000`
+
+      if (isTiangongLongTaskPrompt(value)) {
+        const taskPayload = await fetch(`${host}/api/yixiu/aios/long-task`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ goal: value })
+        }).then(r => r.json().catch(() => ({})))
+
+        const data = taskPayload.data || taskPayload || {}
+        const uiPlan = Array.isArray(data.ui_plan) ? data.ui_plan : []
+        const uiSteps = uiPlan.filter((s) => s.action !== 'done').map((s) => ({
+          type: 'tool_call',
+          tool: s.action,
+          args: s,
+          content: s.action === 'navigate'
+            ? `→ ${TG_AGENT_NAMES[s.agent] || s.agent}`
+            : (s.keyword || s.text || s.reason || '')
+        }))
+        const loadIdx = operatorMessages.value.findIndex((m) => m.id === loadingMsg.id)
+        const finalMsg = {
+          id: loadIdx >= 0 ? loadingMsg.id : `assistant-${Date.now()}`,
+          page: sourcePage,
+          role: 'assistant',
+          text: longTaskReplyText(data),
+          steps: uiSteps,
+          toolCalls: uiSteps.length
+        }
+        if (loadIdx >= 0) operatorMessages.value.splice(loadIdx, 1, finalMsg)
+        else operatorMessages.value.push(finalMsg)
+
+        if (uiPlan.length && !tgRunning.value) {
+          toast(`天工已规划 ${uiSteps.length} 步长任务，开始执行`)
+          await executeUIPlan(uiPlan)
+          toast('长任务执行完成')
+        }
+        return
+      }
       
       // 只调用 /miniclaw/chat，让天工在 ReAct 循环中自主决定：
       // 1. 先调什么工具了解系统（system_overview / maintenance_task / knowledge_search 等）
@@ -3649,6 +3855,20 @@ const traceResult = (step) => {
   return r.success ? `结果：${r.output}` : `失败：${r.error}`
 }
 
+const isTiangongLongTaskPrompt = (value) => {
+  if (operatorProfile.value.id !== 'tiangong') return false
+  const text = String(value || '')
+  const hasLongIntent = /长任务|执行|打开|查找|询问|问|总结|协作|知识库|摩托/.test(text)
+  const hasCrossAgentTarget = text.includes('知识库') || text.includes('和鸣') || text.includes('摩托') || text.includes('今天的信息总结')
+  return hasLongIntent && hasCrossAgentTarget
+}
+
+const longTaskReplyText = (data) => {
+  const steps = Array.isArray(data.steps) ? data.steps : []
+  const body = steps.map((step, index) => `${index + 1}. ${step.agent}：${step.content}`).join('\n')
+  return `${data.summary || '天工已完成长任务规划。'}${body ? `\n\n执行路径：\n${body}` : ''}`
+}
+
 // ===== 天工 UI 遥控 =====
 const TG_PAGE_MAP = {
   tiangong: { page: 'home' },
@@ -3661,7 +3881,40 @@ const TG_PAGE_MAP = {
 const TG_AGENT_NAMES = { tiangong: '天工', guanwei: '观微', zhiju: '执矩', heming: '和鸣', mingjian: '明鉴', bowen: '博闻' }
 const tgCursor = ref({ x: 0, y: 0, visible: false, label: '' })
 const tgRunning = ref(false)
+const tgRunUi = reactive({ visible: false, title: '准备执行', detail: '天工正在规划操作路径', current: 0, total: 0, progress: 0, steps: [] })
 const tgSleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
+
+const tgActionLabel = (step) => {
+  const action = step?.action
+  if (action === 'navigate') return `进入${TG_AGENT_NAMES[step.agent] || '模块'}`
+  if (action === 'knowledge_search') return '检索知识'
+  if (action === 'type') return '填写指令'
+  if (action === 'click_send') return '发送请求'
+  if (action === 'wait') return '等待响应'
+  return '执行操作'
+}
+
+const tgActionDetail = (step) => {
+  const action = step?.action
+  if (action === 'navigate') return `切换到「${TG_AGENT_NAMES[step.agent] || step.agent}」，打开对应业务页面。`
+  if (action === 'knowledge_search') return `在知识库中带入关键词「${step.keyword || step.text || ''}」。`
+  if (action === 'type') return step.text || '填写智能体指令。'
+  if (action === 'click_send') return '把当前指令发送给页面智能体。'
+  if (action === 'wait') return `等待智能体处理，约 ${step.seconds || 2} 秒。`
+  return step?.reason || '执行当前操作。'
+}
+
+const updateTgRunUi = (step, index, total, steps) => {
+  tgRunUi.visible = true
+  tgRunUi.current = index
+  tgRunUi.total = total
+  tgRunUi.progress = Math.max(6, Math.min(100, Math.round((index - 1) / Math.max(total, 1) * 100)))
+  tgRunUi.title = tgActionLabel(step)
+  tgRunUi.detail = tgActionDetail(step)
+  tgRunUi.steps = steps
+    .filter((item) => item.action !== 'done')
+    .map((item, stepIndex) => ({ index: stepIndex + 1, label: tgActionLabel(item) }))
+}
 
 function tgAnimate(fromX, fromY, toX, toY, duration = 400) {
   return new Promise((resolve) => {
@@ -3805,18 +4058,43 @@ async function executeUIPlan(steps) {
   tgRunning.value = true
   const totalSteps = steps.filter((s) => s.action !== 'done').length
   let stepIndex = 0
+  tgRunUi.visible = true
+  tgRunUi.current = 0
+  tgRunUi.total = totalSteps
+  tgRunUi.progress = 3
+  tgRunUi.title = '准备执行'
+  tgRunUi.detail = '天工正在整理跨页面操作路径。'
+  tgRunUi.steps = steps.filter((item) => item.action !== 'done').map((item, index) => ({ index: index + 1, label: tgActionLabel(item) }))
   try {
     for (const step of steps) {
       if (!tgRunning.value) { console.log('[天工遥控] tgRunning 为 false, 循环终止'); break }
       const a = step.action
+      if (a === 'done') {
+        tgRunUi.progress = 100
+        tgRunUi.title = '执行完成'
+        tgRunUi.detail = step.reason || '天工已完成本次长任务。'
+        toast('操作完成')
+        break
+      }
       stepIndex++
       const progressText = `步骤 ${stepIndex}/${totalSteps}`
+      updateTgRunUi(step, stepIndex, totalSteps, steps)
       console.log(`[天工遥控] 执行 ${progressText}: ${a}`, step)
       try {
         if (a === 'navigate') {
           toast(`${progressText}：切换到「${TG_AGENT_NAMES[step.agent] || step.agent}」`)
           await tgNavigate(step.agent)
           await tgSleep(800)
+        } else if (a === 'knowledge_search') {
+          const keyword = step.keyword || step.text || ''
+          toast(`${progressText}：检索知识库「${keyword}」`)
+          selectedAgentId.value = 'bowen'
+          activePage.value = 'knowledge'
+          knowledgePanel.value = step.panel || 'library'
+          knowledgeKeyword.value = keyword
+          await nextTick()
+          await loadKnowledge().catch(() => {})
+          await tgSleep(700)
         } else if (a === 'type') {
           toast(`${progressText}：输入指令`)
           await tgType(step.text || '')
@@ -3827,9 +4105,6 @@ async function executeUIPlan(steps) {
         } else if (a === 'wait') {
           toast(`${progressText}：等待响应 ${step.seconds || 2}s`)
           await tgSleep((step.seconds || 2) * 1000)
-        } else if (a === 'done') {
-          toast('操作完成')
-          break
         }
       } catch (err) {
         console.warn('[天工遥控] 步骤失败:', a, err)
@@ -3837,8 +4112,10 @@ async function executeUIPlan(steps) {
       }
     }
   } finally {
+    tgRunUi.progress = 100
     await tgSleep(1500)
     tgCursor.value = { ...tgCursor.value, visible: false }
+    tgRunUi.visible = false
     tgRunning.value = false
   }
 }
@@ -4261,15 +4538,15 @@ pre { white-space: pre-wrap; padding: 12px; border-radius: 12px; background: #11
 :global(body) { background: radial-gradient(circle at 82% 6%, rgba(75,137,181,.08), transparent 30%), var(--canvas); color: var(--ink); font-family: "Segoe UI", "Microsoft YaHei", "PingFang SC", system-ui, sans-serif; }
 .app-shell { grid-template-columns: 220px minmax(0, 1fr); background: var(--canvas); }
 .app-shell.collapsed { grid-template-columns: 76px minmax(0, 1fr); }
-.side-nav { gap: 22px; padding: 18px 12px; border-right: 1px solid #cdd5d7; background: linear-gradient(180deg, #f4f7f7 0%, #e8eeef 100%); box-shadow: 0 0 0 rgba(0,0,0,0); }
+.side-nav { gap: 22px; padding: 18px 12px; border-right: 1px solid #d9cfba; background: linear-gradient(180deg, #f7f3ec 0%, #e8e1d0 100%); box-shadow: 0 0 0 rgba(0,0,0,0); }
 .brand { border: 0; background: transparent; width: 160px; height: 64px; filter: none; object-fit: contain; }
 .side-nav nav { gap: 6px; }
-.side-nav nav button { min-height: 44px; border-radius: 9px; color: var(--ink); font-weight: 700; letter-spacing: .02em; }
-.nav-icon { background: var(--surface-soft); color: var(--teal); }
-.side-nav nav button.active { background: var(--teal); color: #fff; box-shadow: 0 8px 18px rgba(0,0,0,.12); }
-.side-nav nav button:hover:not(.active) { background: var(--surface-soft); color: var(--ink); }
+.side-nav nav button { min-height: 44px; border-radius: 9px; color: #3a2e1f; font-weight: 700; letter-spacing: .02em; }
+.nav-icon { background: rgba(198, 135, 46, 0.14); color: #8a4e0e; }
+.side-nav nav button.active { background: #8a4e0e; color: #fff; box-shadow: 0 8px 18px rgba(138, 78, 14, .18); }
+.side-nav nav button:hover:not(.active) { background: rgba(198, 135, 46, 0.14); color: #3a2e1f; }
 .side-nav nav button.active .nav-icon { background: rgba(255,255,255,.2); color: #fff; }
-.collapse-btn { background: var(--surface-soft); color: var(--ink); }
+.collapse-btn { background: rgba(58, 46, 31, 0.08); color: #3a2e1f; }
 .topbar { height: 76px; grid-template-columns: minmax(180px, 1fr) minmax(280px, 410px) auto 38px auto auto; border-bottom-color: var(--line); background: rgba(255,255,255,.96); }
 .page-title-block { --title-accent: var(--teal); position: relative; align-self: center; min-width: 230px; max-width: 420px; padding: 8px 15px 8px 18px; overflow: hidden; border: 1px solid color-mix(in srgb, var(--title-accent) 22%, #dfe8e8); border-radius: 11px; background: linear-gradient(105deg, color-mix(in srgb, var(--title-accent) 10%, #fff), rgba(255,255,255,.94) 72%); box-shadow: 0 5px 14px rgba(31,55,63,.045); }
 .page-title-block::before { content: ""; position: absolute; inset: 0 auto 0 0; width: 5px; background: var(--title-accent); }
@@ -4455,6 +4732,7 @@ button { transition: background-color .18s, border-color .18s, color .18s, trans
 .chart-legend { display: flex; align-items: center; gap: 7px; color: #4f6268; font-size: 11px; }
 .chart-legend i { width: 9px; height: 9px; border-radius: 50%; background: var(--teal); }
 .chart-legend span { margin-left: 5px; padding: 4px 8px; border-radius: 999px; background: #eef4f5; color: #75858a; }
+.analytics-panel { grid-column: span 8; }
 .analytics-panel .chart-wrap { grid-template-columns: minmax(0, 1fr) 210px; gap: 22px; margin-top: 8px; }
 .analytics-panel .chart-wrap svg { height: 270px; border: 1px solid #e4ebec; background: linear-gradient(180deg, #fbfdfe, #f7fafb); }
 .chart-grid-line { stroke: #dfe8ea; stroke-width: 1; stroke-dasharray: 4 6; }
@@ -4465,6 +4743,18 @@ button { transition: background-color .18s, border-color .18s, color .18s, trans
 .chart-canvas.echart-root { display: block; }
 .analytics-panel .chart-wrap .chart-canvas:first-child { border: 1px solid #e4ebec; border-radius: 12px; background: linear-gradient(180deg, #fbfdfe, #f7fafb); padding: 4px 6px 0; box-sizing: border-box; }
 .analytics-panel .distribution { display: grid; align-content: center; gap: 10px; }
+.dashboard-charts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-top: 14px; }
+.chart-tile { min-width: 0; padding: 13px 14px 10px; border: 1px solid #e0e9ea; border-radius: 12px; background: linear-gradient(180deg, #fff, #f8fbfb); box-shadow: inset 0 1px 0 rgba(255,255,255,.75); }
+.chart-tile-wide { grid-column: span 2; }
+.chart-tile-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin-bottom: 6px; }
+.chart-tile-head b { overflow: hidden; color: var(--ink); font-size: 14px; text-overflow: ellipsis; white-space: nowrap; }
+.chart-tile-head small { flex-shrink: 0; color: var(--muted); font-size: 10px; font-weight: 800; }
+.chart-tile .chart-canvas { border-radius: 10px; background: linear-gradient(180deg, #fbfdfe, #f6fafb); }
+.chart-tile-wide:first-child { background: linear-gradient(145deg, #fff 0%, #f3faf9 64%, #f7f5fb 100%); }
+.chart-tile:nth-child(2) { background: linear-gradient(145deg, #fff 0%, #f4f8fc 100%); }
+.chart-tile:nth-child(3) { background: linear-gradient(145deg, #fff 0%, #fff8f3 100%); }
+.chart-tile:nth-child(4) { background: linear-gradient(145deg, #fff 0%, #f7f4fc 100%); }
+.chart-tile:nth-child(5) { background: linear-gradient(145deg, #fff 0%, #f5fbf8 100%); }
 .chart-section { display: grid; align-content: start; gap: 6px; }
 .chart-hint { margin: 0; color: var(--muted); font-size: 10px; text-align: center; letter-spacing: .02em; }
 .task-analytics .task-trend-echart { height: 166px; }
@@ -4510,9 +4800,19 @@ button { transition: background-color .18s, border-color .18s, color .18s, trans
 .task-nav-panel .tabs { position: relative; z-index: 1; padding: 5px; border: 1px solid #d8e3e8; border-radius: 11px; background: rgba(255,255,255,.84); }
 .task-nav-panel .tabs button { min-height: 34px; border: 0; background: transparent; color: #52666c; font-size: 11px; font-weight: 800; }
 .task-nav-panel .tabs button.active { background: var(--teal-dark); color: #fff; box-shadow: 0 6px 14px rgba(20,82,80,.16); }
-.tasks-page > .task-stat { grid-column: span 2; min-height: 112px; padding: 15px; }
-.tasks-page > .task-stat span { min-height: 34px; line-height: 1.45; }
-.tasks-page > .task-stat small { line-height: 1.45; }
+.task-metric-table-panel { padding: 20px; border-top: 3px solid #48584f !important; background: #fffdfa !important; }
+.task-metric-table { display: grid; gap: 6px; }
+.task-metric-row { display: grid; grid-template-columns: minmax(100px,.9fr) 88px minmax(190px,1.25fr) minmax(180px,1fr) 62px; align-items: center; gap: 12px; min-height: 48px; padding: 8px 12px; border: 1px solid transparent; border-radius: 9px; background: #f8f7f2; color: #24312b; text-align: left; }
+.task-metric-row:nth-child(even) { background: #fbfaf6; }
+.task-metric-row:hover { transform: translateY(-1px); border-color: #cfd8cf; background: #f2f4ee; box-shadow: 0 8px 18px rgba(45,55,48,.055); }
+.metric-name { color: #344039; font-size: 13px; font-weight: 900; }
+.metric-value { color: #18221d; font-size: 19px; font-weight: 900; font-variant-numeric: tabular-nums; }
+.metric-progress { display: grid; grid-template-columns: minmax(0,1fr) 38px; align-items: center; gap: 8px; min-width: 0; }
+.metric-progress i { height: 7px; overflow: hidden; border-radius: 999px; background: #e5e4dc; }
+.metric-progress u { display: block; height: 100%; border-radius: inherit; background: #53685d; text-decoration: none; }
+.metric-progress em { color: #667067; font-size: 11px; font-style: normal; font-weight: 800; text-align: right; font-variant-numeric: tabular-nums; }
+.metric-hint { overflow: hidden; color: #72766f; font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
+.metric-arrow { justify-self: end; padding: 4px 8px; border: 1px solid #d8d6ca; border-radius: 7px; background: #fffefa; color: #566257; font-size: 11px; font-weight: 900; }
 .task-analytics { overflow: hidden; padding: 22px; border-top: 3px solid var(--teal) !important; background: linear-gradient(160deg, #fff, #f5faf9) !important; }
 .task-analytics .panel-head > button { border-color: #cbdcda; background: #fff; color: var(--teal-dark); font-size: 11px; font-weight: 800; }
 .task-analytics .analysis-cards { grid-template-columns: 1.15fr .9fr .9fr 1.2fr; align-items: stretch; gap: 13px; }
@@ -4796,12 +5096,12 @@ button { transition: background-color .18s, border-color .18s, color .18s, trans
 .operator-panel { min-width: 300px; max-width: 520px; overflow: hidden; background: linear-gradient(180deg, #f4f8f8 0%, #edf3f3 100%); --op-accent: var(--teal); --op-accent-dark: var(--teal-dark); --op-soft: #eef6f5; --op-tint: linear-gradient(180deg, #f4f8f8 0%, #edf3f3 100%); }
 
 /* 每个 agent aside 背景与其头像主色调匹配，形成独立视觉风格。 */
-.operator-panel.op-theme-tiangong { --op-accent: #3B82F6; --op-accent-dark: #1d4ed8; --op-soft: #fbfcfe; --op-tint: linear-gradient(178deg, #fdfeff 0%, #fafcff 50%, #f6f9fe 100%); }
+.operator-panel.op-theme-tiangong { --op-accent: #2563EB; --op-accent-dark: #1a4cc0; --op-soft: #fafbfd; --op-tint: linear-gradient(178deg, #fcfdfe 0%, #f8fafe 50%, #f2f5fc 100%); }
 .operator-panel.op-theme-guanwei { --op-accent: #6B8E23; --op-accent-dark: #4f6b1a; --op-soft: #fcfcf7; --op-tint: linear-gradient(178deg, #fdfdf8 0%, #fbfcf4 50%, #f7f9ef 100%); }
 .operator-panel.op-theme-zhiju { --op-accent: #FF6B35; --op-accent-dark: #c84d1f; --op-soft: #fffaf8; --op-tint: linear-gradient(178deg, #fffcfa 0%, #fffbf5 50%, #fff6ef 100%); }
 .operator-panel.op-theme-bowen { --op-accent: #80B918; --op-accent-dark: #5c8a0e; --op-soft: #fbfcf6; --op-tint: linear-gradient(178deg, #fdfdf7 0%, #fbfdf2 50%, #f7f9e9 100%); }
 .operator-panel.op-theme-heming { --op-accent: #4DB8A1; --op-accent-dark: #2f8a76; --op-soft: #f8fcfa; --op-tint: linear-gradient(178deg, #fcfdfb 0%, #fafcf9 50%, #f4f8f4 100%); }
-.operator-panel.op-theme-mingjian { --op-accent: #2563EB; --op-accent-dark: #1a4cc0; --op-soft: #fafbfd; --op-tint: linear-gradient(178deg, #fcfdfe 0%, #f8fafe 50%, #f2f5fc 100%); }
+.operator-panel.op-theme-mingjian { --op-accent: #A9C7E8; --op-accent-dark: #6F9BC6; --op-soft: #f3f8fe; --op-tint: linear-gradient(178deg, #fdfeff 0%, #f6fbff 52%, #e9f3ff 100%); }
 
 .operator-panel { background: var(--op-tint); border-left-color: color-mix(in srgb, var(--op-accent) 8%, var(--line)); }
 .operator-panel .operator-avatar { box-shadow: 0 8px 14px color-mix(in srgb, var(--op-accent) 14%, transparent); border: 2px solid #fff; }
@@ -5423,6 +5723,116 @@ button { transition: background-color .18s, border-color .18s, color .18s, trans
 .map-canvas { background-color: #f8fbfb; background-image: linear-gradient(rgba(91,132,142,.075) 1px, transparent 1px), linear-gradient(90deg, rgba(91,132,142,.075) 1px, transparent 1px), radial-gradient(circle at 50% 50%, rgba(31,120,115,.07), transparent 48%); }
 .map-inspector { border-top: 4px solid var(--teal); background: linear-gradient(180deg, #fffdfa, #f8fbfa); }
 
+/* Current polish pass: quieter dashboard, steadier graph, full-screen document editor. */
+.home-task-panel { grid-column: span 7 !important; }
+.alert-panel { grid-column: span 5 !important; }
+.analytics-panel, .activity-panel { grid-column: 1 / -1 !important; }
+.welcome-card { margin-bottom: 2px; }
+.home-task-panel .home-task-list { max-height: 430px; overflow: auto; padding-right: 4px; }
+.analytics-panel { background: linear-gradient(180deg, rgba(255,255,255,.96), rgba(248,252,252,.94)) !important; }
+.dashboard-charts { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+.dashboard-charts .chart-tile { min-height: 214px; padding: 12px 12px 8px; border-radius: 10px; }
+.dashboard-charts .chart-tile-wide { grid-column: span 2; }
+.dashboard-charts .chart-tile .chart-canvas { height: 210px; }
+
+.task-metric-table-panel {
+  padding: 14px 16px !important;
+  border-top: 0 !important;
+  background: rgba(255, 255, 255, .9) !important;
+}
+.task-overview-compact {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 10px;
+}
+.task-metric-chip {
+  min-width: 0;
+  min-height: 84px;
+  display: grid;
+  align-content: center;
+  gap: 7px;
+  padding: 12px;
+  border: 1px solid #dfe9ea;
+  border-radius: 10px;
+  background: linear-gradient(180deg, #fff 0%, #f7fbfb 100%);
+  color: #26383d;
+  text-align: left;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.85), 0 8px 18px rgba(31,55,63,.045);
+}
+.task-metric-chip:hover { transform: translateY(-1px); border-color: #accac8; box-shadow: 0 12px 22px rgba(31,55,63,.07); }
+.metric-chip-top { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+.metric-chip-top b { color: #172328; font-size: 24px; line-height: 1; font-variant-numeric: tabular-nums; }
+.metric-chip-top em { color: #6f8589; font-size: 11px; font-style: normal; font-weight: 800; }
+.task-metric-chip .metric-name { color: #51666b; font-size: 12px; font-weight: 800; }
+.metric-bar { height: 6px; overflow: hidden; border-radius: 999px; background: #e7eff0; }
+.metric-bar u { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, #6db2bf, #2f8b83); }
+.task-metric-table, .task-metric-row { display: none !important; }
+
+.search-workbench { grid-template-columns: minmax(520px, 1.05fr) minmax(430px, .95fr) !important; gap: 16px !important; }
+.search-input-panel, .search-analysis-panel { min-height: 560px !important; padding: 20px !important; border-top: 0 !important; }
+.search-input-panel::before, .search-analysis-panel::before, .search-results-panel::before { height: 0 !important; }
+.search-panel-heading { margin-bottom: 16px !important; }
+.search-step {
+  border-radius: 10px !important;
+  background: #eaf5f4 !important;
+  color: #176f69 !important;
+  box-shadow: inset 0 0 0 1px #cfe2e0 !important;
+}
+.compact-heading .search-step { background: #edf4f6 !important; color: #39708a !important; box-shadow: inset 0 0 0 1px #d5e3e8 !important; }
+.search-analysis-panel { background: linear-gradient(180deg, #ffffff 0%, #f6fbfb 100%) !important; }
+.search-empty-state {
+  min-height: 390px !important;
+  border-radius: 12px !important;
+  background: #fbfdfd !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.9);
+}
+.analysis-orbit {
+  width: 74px !important;
+  height: 74px !important;
+  border-radius: 18px !important;
+  background: #f0f7f7 !important;
+  box-shadow: inset 0 0 0 1px #d7e6e7, 0 10px 20px rgba(31,55,63,.06) !important;
+}
+.analysis-orbit::before { display: none !important; }
+.analysis-orbit b {
+  width: 40px !important;
+  height: 40px !important;
+  border-radius: 12px !important;
+  background: #176f69 !important;
+  color: #fff !important;
+}
+.analysis-orbit i { width: 6px !important; height: 6px !important; background: #7baeb3 !important; box-shadow: none !important; }
+.search-results-panel { padding: 18px 20px !important; }
+.search-results-panel .panel-head { align-items: flex-start !important; gap: 14px; }
+.search-results-panel .tabs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); min-width: 520px; }
+
+.graph-panel { min-height: 720px; }
+.knowledge-map { grid-template-columns: minmax(0, 1fr) 300px !important; align-items: stretch; }
+.map-canvas-wrap { min-height: 620px; }
+.echarts-canvas { height: clamp(560px, 66vh, 720px) !important; min-height: 560px; }
+.map-canvas {
+  background-color: #f7fbfb !important;
+  background-image: linear-gradient(rgba(91,132,142,.065) 1px, transparent 1px), linear-gradient(90deg, rgba(91,132,142,.065) 1px, transparent 1px) !important;
+}
+
+.modal .knowledge-detail-card.editing {
+  position: fixed;
+  inset: 10px;
+  width: calc(100vw - 20px) !important;
+  height: calc(100vh - 20px) !important;
+  max-height: none !important;
+  grid-template-columns: 260px minmax(0, 1fr) !important;
+  border-radius: 12px;
+  background: #fff;
+}
+.knowledge-detail-card.editing .kd-sidebar-left { min-height: 0; height: 100%; background: #f3f8f8; }
+.knowledge-detail-card.editing .kd-main-area { height: 100%; max-height: none; overflow: hidden; }
+.knowledge-detail-card.editing .kd-content-section { min-height: 0; display: flex; flex-direction: column; padding: 22px 40px 28px; }
+.knowledge-detail-card.editing .kd-editor { flex: 1; min-height: 0; resize: none; border-radius: 10px; background: #fcfefe; }
+.knowledge-detail-card.editing .kd-meta-bar { padding: 12px 40px; }
+.knowledge-detail-card.editing .kd-header { padding: 18px 40px 12px; }
+.knowledge-detail-card.editing .kd-editor-toolbar { padding: 9px 40px; }
+
 @media print {
   body * { visibility: hidden !important; }
   .task-report-card, .task-report-card * { visibility: visible !important; }
@@ -5450,6 +5860,8 @@ button { transition: background-color .18s, border-color .18s, color .18s, trans
   .health-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .execution-summary { grid-template-columns: 64px minmax(0, 1fr) 94px; }
   .execution-summary .summary-metric:last-child { display: none; }
+  .dashboard-charts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .chart-tile-wide { grid-column: span 2; }
   .home-task-panel, .quick-panel { grid-column: 1 / -1; }
   .home-quick-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 }
@@ -5475,14 +5887,100 @@ button { transition: background-color .18s, border-color .18s, color .18s, trans
 .trace-tool { color: #1e6f6a; font-weight: 600; word-break: break-all; }
 .trace-text { flex-basis: 100%; color: #41575b; word-break: break-word; white-space: pre-wrap; }
 .tg-cursor { position: fixed; width: 1px; height: 1px; z-index: 99999; pointer-events: none; transition: none !important; }
-.tg-cursor-dot { position: absolute; left: -10px; top: -10px; width: 20px; height: 20px; border-radius: 50%; background: rgba(30,111,106,.35); border: 2px solid #1e6f6a; box-shadow: 0 0 0 5px rgba(30,111,106,.15), 0 0 20px rgba(30,111,106,.3); animation: tg-pulse 1.5s ease-in-out infinite; }
-@keyframes tg-pulse { 0%,100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.15); opacity: 0.85; } }
-.tg-cursor-dot::after { content: ''; position: absolute; left: 50%; top: 50%; width: 4px; height: 4px; margin: -2px 0 0 -2px; border-radius: 50%; background: #1e6f6a; }
-.tg-cursor-label { position: absolute; left: 18px; top: 14px; white-space: nowrap; background: #1e6f6a; color: #fff; font-size: 12px; padding: 3px 8px; border-radius: 6px; box-shadow: 0 2px 8px rgba(0,0,0,.2); font-weight: 500; }
+.tg-cursor-dot { position: absolute; left: -12px; top: -12px; width: 24px; height: 24px; border-radius: 50%; background: radial-gradient(circle, #fff 0 22%, rgba(37,99,235,.94) 24% 45%, rgba(96,165,250,.28) 47% 100%); border: 1px solid rgba(255,255,255,.95); box-shadow: 0 0 0 7px rgba(37,99,235,.13), 0 13px 24px rgba(37,72,140,.2); animation: tg-pulse 1.35s ease-in-out infinite; }
+@keyframes tg-pulse { 0%,100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.18); opacity: .88; } }
+.tg-cursor-dot::after { content: ''; position: absolute; left: 50%; top: 50%; width: 5px; height: 5px; margin: -2.5px 0 0 -2.5px; border-radius: 50%; background: #fff; box-shadow: 0 0 8px rgba(255,255,255,.9); }
+.tg-cursor-label { position: absolute; left: 20px; top: 13px; white-space: nowrap; background: rgba(26,76,192,.92); color: #fff; font-size: 12px; padding: 5px 10px; border: 1px solid rgba(255,255,255,.18); border-radius: 999px; box-shadow: 0 10px 22px rgba(37,72,140,.18); font-weight: 700; backdrop-filter: blur(10px); }
 .bubble.loading { position: relative; }
 .loading-dots { display: inline-flex; gap: 4px; margin-right: 6px; }
 .loading-dots i { width: 6px; height: 6px; border-radius: 50%; background: #1e6f6a; display: inline-block; animation: tg-bounce 1.2s infinite ease-in-out both; }
 .loading-dots i:nth-child(1) { animation-delay: -.32s; }
 .loading-dots i:nth-child(2) { animation-delay: -.16s; }
 @keyframes tg-bounce { 0%,80%,100% { transform: scale(0); } 40% { transform: scale(1); } }
+.tg-run-overlay { position: fixed; left: 50%; top: 18px; z-index: 99990; width: min(520px, calc(100vw - 36px)); transform: translateX(-50%); pointer-events: none; }
+.tg-run-card { overflow: hidden; border: 1px solid rgba(176,199,207,.72); border-radius: 18px; background: rgba(255,255,255,.9); box-shadow: 0 20px 46px rgba(31,61,76,.16); backdrop-filter: blur(18px); animation: tg-run-in .26s ease-out; }
+@keyframes tg-run-in { from { opacity: 0; transform: translate3d(0,-12px,0) scale(.98); } to { opacity: 1; transform: translate3d(0,0,0) scale(1); } }
+.tg-run-card header { display: grid; grid-template-columns: 46px minmax(0,1fr) auto; align-items: center; gap: 12px; padding: 14px 16px 11px; }
+.tg-run-mark { width: 46px; height: 46px; display: grid; place-items: center; border-radius: 15px; background: linear-gradient(145deg, #2563EB, #60A5FA); color: #fff; font-size: 13px; font-weight: 900; box-shadow: 0 10px 20px rgba(37,99,235,.2); }
+.tg-run-card small { display: block; margin-bottom: 3px; color: #6c8188; font-size: 11px; font-weight: 800; }
+.tg-run-card b { display: block; overflow: hidden; color: #17323a; font-size: 15px; text-overflow: ellipsis; white-space: nowrap; }
+.tg-run-card em { min-width: 48px; padding: 6px 10px; border-radius: 999px; background: #eef4ff; color: #1a4cc0; font-size: 12px; font-style: normal; font-weight: 900; text-align: center; }
+.tg-run-progress { height: 4px; margin: 0 16px; overflow: hidden; border-radius: 999px; background: #e5edf0; }
+.tg-run-progress span { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, #2563EB, #60A5FA); transition: width .28s ease; }
+.tg-run-card p { margin: 11px 16px 12px; color: #486067; font-size: 12px; line-height: 1.6; }
+.tg-run-steps { display: flex; gap: 7px; overflow: hidden; padding: 0 16px 15px; }
+.tg-run-steps span { flex: 1 1 0; min-width: 0; padding: 6px 8px; border: 1px solid #dde9eb; border-radius: 999px; background: #f8fbfb; color: #789096; font-size: 11px; font-weight: 800; text-align: center; text-overflow: ellipsis; white-space: nowrap; overflow: hidden; }
+.tg-run-steps span.done { border-color: #dce8ff; background: #f3f7ff; color: #1a4cc0; }
+.tg-run-steps span.active { border-color: #b9d3ff; background: #edf4ff; color: #1d4ed8; box-shadow: 0 0 0 3px rgba(37,99,235,.1); }
+
+.side-nav { position: relative; gap: 20px !important; padding: 18px 12px !important; overflow: hidden; border-right: 1px solid rgba(158, 204, 232, .5) !important; background-color: #e9f8ff !important; background-image: linear-gradient(180deg, #d7f1ff 0%, #edf9ff 52%, #ffffff 100%) !important; box-shadow: 10px 0 24px rgba(92, 157, 195, .1) !important; }
+.side-nav::before { content: ""; position: absolute; left: 18px; right: 18px; top: 13px; height: 1px; border-radius: 999px; background: rgba(255,255,255,.72); box-shadow: none; }
+.side-nav::after { display: none; }
+.side-nav .brand { position: relative; z-index: 1; width: 164px !important; height: 68px !important; margin: 2px auto 4px !important; padding: 6px 8px !important; border: 0 !important; border-radius: 0 !important; background: transparent !important; object-fit: contain !important; filter: none !important; box-shadow: none !important; backdrop-filter: none; }
+.app-shell.collapsed .side-nav { padding-inline: 10px !important; }
+.app-shell.collapsed .side-nav .brand { width: 48px !important; height: 48px !important; padding: 6px !important; border-radius: 10px !important; }
+.side-nav nav { position: relative; z-index: 1; gap: 7px !important; }
+.side-nav nav button { min-height: 46px !important; padding: 0 11px !important; border: 1px solid rgba(255,255,255,.2) !important; border-radius: 14px !important; color: #24556f !important; font-weight: 800 !important; letter-spacing: 0 !important; background: rgba(255,255,255,.24) !important; transition: background .18s ease, border-color .18s ease, transform .18s ease, box-shadow .18s ease !important; backdrop-filter: blur(8px); }
+.side-nav nav button:hover:not(.active) { transform: translateX(2px); border-color: rgba(255,255,255,.72) !important; background: rgba(255,255,255,.52) !important; color: #163d56 !important; box-shadow: 0 10px 20px rgba(91, 151, 187, .12), 0 1px 0 rgba(255,255,255,.82) inset !important; }
+.side-nav .nav-icon { width: 29px !important; height: 29px !important; border-radius: 11px !important; background: rgba(255,255,255,.65) !important; color: #2d7aa9 !important; box-shadow: inset 0 0 0 1px rgba(102,162,198,.12); }
+.side-nav nav button.active { transform: translateX(2px); border-color: rgba(255,255,255,.86) !important; background: #ffffff !important; color: #14628f !important; box-shadow: 0 14px 26px rgba(66, 140, 184, .2), 0 1px 0 rgba(255,255,255,.92) inset !important; }
+.side-nav nav button.active .nav-icon { background: #dff4ff !important; color: #14628f !important; box-shadow: none; }
+.side-nav .collapse-btn { position: relative; z-index: 1; min-height: 42px !important; margin-top: auto !important; border: 1px solid rgba(255,255,255,.62) !important; border-radius: 14px !important; background: rgba(255,255,255,.42) !important; color: #24556f !important; font-weight: 900 !important; box-shadow: 0 1px 0 rgba(255,255,255,.8) inset !important; backdrop-filter: blur(8px); }
+.side-nav .collapse-btn:hover { border-color: rgba(255,255,255,.9) !important; background: rgba(255,255,255,.72) !important; color: #143c55 !important; }
+.topbar { border-bottom: 1px solid rgba(158, 204, 232, .5) !important; background-color: #eef9ff !important; background-image: linear-gradient(90deg, #d7f1ff 0%, #edf9ff 48%, #ffffff 100%) !important; box-shadow: 0 10px 24px rgba(92, 157, 195, .08) !important; }
+.topbar .page-title-block { border-color: rgba(158, 204, 232, .55) !important; background: rgba(255,255,255,.58) !important; box-shadow: 0 1px 0 rgba(255,255,255,.9) inset, 0 8px 18px rgba(92,157,195,.08) !important; backdrop-filter: blur(8px); }
+.topbar .page-title-block::before { background: var(--title-accent) !important; }
+.topbar .page-title-block::after { background: color-mix(in srgb, var(--title-accent) 9%, transparent) !important; }
+.topbar .breadcrumb { color: #2b78a6 !important; }
+.topbar h1 { color: #153e56 !important; }
+.topbar .global-search,
+.topbar .icon-button,
+.topbar .user-chip {
+  border-color: rgba(255,255,255,.68) !important;
+  background: rgba(255,255,255,.56) !important;
+  color: #24556f !important;
+  box-shadow: 0 1px 0 rgba(255,255,255,.85) inset, 0 8px 18px rgba(92,157,195,.08) !important;
+  backdrop-filter: blur(8px);
+}
+.topbar .global-search:focus-within { border-color: rgba(111,185,228,.75) !important; box-shadow: 0 0 0 3px rgba(111,185,228,.16), 0 8px 18px rgba(92,157,195,.08) !important; }
+.topbar .global-search button { border-color: #6fb9e4 !important; background: #6fb9e4 !important; color: #fff !important; }
+.topbar .work-strip span { background: rgba(255,255,255,.5) !important; color: #24556f !important; }
+.topbar .work-strip .bad { background: rgba(255,238,232,.72) !important; color: #9a5143 !important; }
+.topbar .topbar-logout {
+  border-color: #ead8d3 !important;
+  background: #fff8f6 !important;
+  color: #974936 !important;
+  box-shadow: none !important;
+}
+.topbar .topbar-logout:hover { border-color: #dbaea2 !important; background: #fff1ed !important; color: #974936 !important; box-shadow: 0 7px 16px rgba(151,73,54,.1) !important; }
+.topbar {
+  grid-template-columns: minmax(180px, 1fr) minmax(280px, 410px) auto 38px auto auto !important;
+  gap: 14px !important;
+  padding: 0 22px !important;
+}
+.topbar .topbar-logout {
+  min-width: 96px;
+  height: 42px;
+  flex-shrink: 0;
+}
+.workspace,
+.content-shell {
+  background: #eef8fc !important;
+}
+.page-scroll {
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.58) 0%, rgba(255,255,255,.18) 42%, rgba(255,255,255,0) 100%),
+    linear-gradient(90deg, rgba(140,190,218,.06) 1px, transparent 1px),
+    linear-gradient(rgba(140,190,218,.05) 1px, transparent 1px),
+    #eef8fc !important;
+  background-size: auto, 34px 34px, 34px 34px, auto !important;
+}
+.operator-panel {
+  border-left-color: color-mix(in srgb, var(--op-accent) 8%, var(--line)) !important;
+  background: var(--op-tint) !important;
+}
+.panel-resizer {
+  background: #e6edef !important;
+}
+
 </style>
