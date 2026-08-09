@@ -363,7 +363,7 @@
               <p>{{ searchResult.positions.join('、') }}；工具：{{ searchResult.tools.join('、') }}</p>
             </template>
             <div v-else class="empty search-empty-state">
-              <span class="analysis-orbit"><i></i><i></i><i></i><b>AI</b></span>
+              <span class="analysis-orbit"><i></i><i></i><i></i><b>研判</b></span>
               <h4>检索结果将在这里生成</h4>
               <p>系统会结合设备型号、故障现象和上传材料，给出风险、原因与检查建议。</p>
               <ol><li><b>1</b>完善故障描述</li><li><b>2</b>按需添加图片或资料</li><li><b>3</b>启动智能检索</li></ol>
