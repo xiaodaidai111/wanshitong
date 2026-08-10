@@ -7,7 +7,7 @@ import logging
 from typing import Any, Dict, Optional
 from datetime import datetime
 
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException
+from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
@@ -65,6 +65,29 @@ class MiniClawGateway:
     def _register_routes(self):
         app = self.app
 
+        def _require_fastapi_auth(request: Request, roles: set[str] | None = None):
+            from utils import decode_token
+
+            roles = roles or {"admin", "operator"}
+            token = request.headers.get("Authorization", "")
+            if token.startswith("Bearer "):
+                token = token[7:]
+            payload = decode_token(token) if token else None
+            if not payload:
+                raise HTTPException(status_code=401, detail="missing or invalid token")
+            role = str(payload.get("role") or payload.get("scope") or "operator")
+            if role not in roles:
+                raise HTTPException(status_code=403, detail="permission denied")
+            return payload
+
+        def _require_confirmed_fastapi_write(request: Request, payload: Dict[str, Any]):
+            confirmed = payload.get("confirmed") is True or payload.get("confirm") is True
+            idempotency_key = request.headers.get("Idempotency-Key") or str(payload.get("idempotency_key") or "").strip()
+            if not confirmed:
+                raise HTTPException(status_code=409, detail="write operation requires confirmed=true")
+            if not idempotency_key:
+                raise HTTPException(status_code=400, detail="write operation requires Idempotency-Key")
+
         @app.get("/miniclaw/health")
         async def health():
             return {
@@ -78,7 +101,8 @@ class MiniClawGateway:
             }
 
         @app.post("/miniclaw/chat")
-        async def chat(req: ChatRequest):
+        async def chat(req: ChatRequest, request: Request):
+            _require_fastapi_auth(request)
             if not req.message.strip():
                 raise HTTPException(status_code=400, detail="消息不能为空")
             result = self.agent.process(req.message, req.conversation_id)
@@ -135,7 +159,9 @@ class MiniClawGateway:
             return {"code": 200, "data": self.config.to_dict()}
 
         @app.put("/miniclaw/config")
-        async def update_config(req: ConfigUpdateRequest):
+        async def update_config(req: ConfigUpdateRequest, request: Request):
+            _require_fastapi_auth(request, {"admin"})
+            _require_confirmed_fastapi_write(request, req.model_dump(exclude_none=True))
             if req.agent_model:
                 self.config.agent_model = req.agent_model
             if req.agent_temperature is not None:
@@ -148,8 +174,10 @@ class MiniClawGateway:
             return {"code": 200, "message": "配置已更新", "data": self.config.to_dict()}
 
         @app.post("/miniclaw/tools/{tool_name}/call")
-        async def call_tool(tool_name: str, args: Dict[str, Any] = None):
+        async def call_tool(tool_name: str, request: Request, args: Dict[str, Any] = None):
             args = args or {}
+            _require_fastapi_auth(request)
+            _require_confirmed_fastapi_write(request, args)
             result = global_tool_registry.call(tool_name, **args)
             return {
                 "code": 200,
@@ -202,6 +230,7 @@ class MiniClawGateway:
     def create_flask_blueprint(self):
         from flask import Blueprint, request, jsonify, Response
         import json as flask_json
+        from security import WRITE_ROLES, require_confirmed_write, require_jwt_roles
 
         bp = Blueprint("miniclaw", __name__)
 
@@ -216,6 +245,7 @@ class MiniClawGateway:
             })
 
         @bp.route("/miniclaw/chat", methods=["POST"])
+        @require_jwt_roles(WRITE_ROLES)
         def chat():
             data = request.get_json(silent=True) or {}
             message = data.get("message", "").strip()
@@ -226,6 +256,7 @@ class MiniClawGateway:
             return jsonify({"code": 200, "data": result.to_dict()})
 
         @bp.route("/miniclaw/stream", methods=["POST"])
+        @require_jwt_roles(WRITE_ROLES)
         def stream_chat():
             data = request.get_json(silent=True) or {}
             message = data.get("message", "").strip()
@@ -266,6 +297,8 @@ class MiniClawGateway:
             return jsonify({"code": 200, "data": self.config.to_dict()})
 
         @bp.route("/miniclaw/tools/<tool_name>/call", methods=["POST"])
+        @require_jwt_roles(WRITE_ROLES)
+        @require_confirmed_write("miniclaw.tool_call", "/miniclaw/tools/<tool_name>/call")
         def call_tool(tool_name):
             args = request.get_json(silent=True) or {}
             result = global_tool_registry.call(tool_name, **args)

@@ -11,6 +11,7 @@ from openclaw_monitor import (
     ErrorReport,
     ExecutionResult
 )
+from security import AUDIT_ROLES, ROLE_ADMIN, audit_event, require_jwt_roles
 
 logger = logging.getLogger(__name__)
 
@@ -162,7 +163,15 @@ def create_error_report():
 
 
 @monitor_bp.route('/monitor/execute', methods=['POST'])
+@require_jwt_roles({ROLE_ADMIN})
 def execute_code():
+    data = request.get_json(silent=True) or {}
+    audit_event("monitor.execute", "/monitor/execute", "blocked", {"reason": "disabled"}, payload=data)
+    return jsonify({
+        'code': 410,
+        'message': 'monitor code execution is disabled'
+    }), 410
+
     monitor = get_monitor()
     
     try:
@@ -206,6 +215,7 @@ def execute_code():
 
 
 @monitor_bp.route('/monitor/validate', methods=['POST'])
+@require_jwt_roles(AUDIT_ROLES)
 def validate_code():
     monitor = get_monitor()
     
