@@ -395,13 +395,17 @@
           </div>
 
           <template v-if="searchPanel === 'multimodal'">
-            <div class="panel span-all search-input-panel search-fusion-panel">
+            <div class="panel span-all search-input-panel search-fusion-panel" :class="{ 'is-collapsed': !searchMultimodalExpanded, 'is-expanded': searchMultimodalExpanded }">
               <div class="search-fusion-head">
                 <div class="search-panel-heading">
                   <span class="search-step">01</span>
                   <div><p class="eyebrow">多模态检索</p><h3>输入线索，观微同步分析</h3><small>设备参数、故障现象、现场图片、文档和语音会合并成一次检索上下文。</small></div>
                 </div>
                 <div class="inline-actions">
+                  <button type="button" class="ghost-toggle" @click="searchMultimodalExpanded = !searchMultimodalExpanded">
+                    {{ searchMultimodalExpanded ? '收起' : '展开' }}
+                    <svg class="ui-icon" :class="{ up: searchMultimodalExpanded }" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"></path></svg>
+                  </button>
                   <button type="button" @click="searchPanel = 'history'">历史</button>
                   <button type="button" @click="searchPanel = 'update'">沉淀</button>
                   <button type="button" @click="clearOperatorMessages">清空</button>
@@ -409,7 +413,15 @@
                 </div>
               </div>
 
-              <div class="search-fusion-body">
+              <div v-show="!searchMultimodalExpanded" class="search-collapse-summary">
+                <span><b>设备</b>{{ searchForm.deviceName || '未填写' }}</span>
+                <span><b>型号</b>{{ searchForm.deviceModel || '未填写' }}</span>
+                <span><b>故障</b>{{ searchForm.faultType }} / {{ searchForm.faultCode || '无故障码' }}</span>
+                <span><b>证据</b>{{ searchFiles.length ? `${searchFiles.length} 个附件` : '未上传' }}</span>
+                <button type="button" @click="runSearch">{{ loading.search ? '研判中' : '生成研判' }}</button>
+              </div>
+
+              <div v-show="searchMultimodalExpanded" class="search-fusion-body">
                 <div class="search-fusion-input">
                   <div class="form-grid">
                     <label>设备名称<input v-model="searchForm.deviceName" placeholder="如：摩托车发动机总成" /></label>
@@ -490,7 +502,7 @@
                 </div>
               </div>
 
-              <form class="search-dialog-input search-fusion-bar" @submit.prevent="sendOperatorPrompt(operatorInput)">
+              <form v-show="searchMultimodalExpanded" class="search-dialog-input search-fusion-bar" @submit.prevent="sendOperatorPrompt(operatorInput)">
                 <input ref="searchAssistantFileInput" class="visually-hidden" type="file" multiple accept="image/*,.pdf,.doc,.docx,.txt,.md" @change="addFiles($event, 'assistant')" />
                 <button type="button" title="上传附件" aria-label="上传附件" @click="searchAssistantFileInput?.click()">
                   <svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h4l2-2h4l2 2h4v12H4Z"></path><circle cx="12" cy="13" r="3"></circle></svg>
@@ -2537,6 +2549,7 @@ const searchAssistantFileInput = ref(null)
 const assistantFiles = ref([])
 const searchResult = ref(null)
 const searchPanel = ref('multimodal')
+const searchMultimodalExpanded = ref(true)
 const searchTabs = [{ key: 'multimodal', label: '多模态检索' }, { key: 'history', label: '历史检索' }, { key: 'update', label: '沉淀更新' }]
 const searchCapabilityCards = [
   { title: '图文证据融合', desc: '图片、文档、故障码统一建模', icon: 'search', tone: 'teal', metric: '多模态' },
@@ -12414,6 +12427,280 @@ button { transition: background-color .18s, border-color .18s, color .18s, trans
   .task-ops-grid,
   .recheck-dashboard { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .search-prompt-templates { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+/* 多模态检索折叠抽屉：表单等高、文字不溢出，收起后保留关键上下文。 */
+.search-focus-shell .search-fusion-panel.is-collapsed,
+.search-focus-shell .search-fusion-panel.is-expanded {
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  overflow: visible !important;
+}
+.search-focus-shell .search-fusion-head {
+  min-width: 0;
+}
+.search-focus-shell .search-fusion-head .search-panel-heading {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+.search-focus-shell .search-fusion-head h3,
+.search-focus-shell .search-fusion-head small {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+.search-focus-shell .search-fusion-head .inline-actions {
+  flex: 0 0 auto;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+.search-focus-shell .search-fusion-head .ghost-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 78px;
+}
+.search-focus-shell .search-fusion-head .ghost-toggle .ui-icon {
+  width: 14px;
+  height: 14px;
+  transition: transform .18s ease;
+}
+.search-focus-shell .search-fusion-head .ghost-toggle .ui-icon.up {
+  transform: rotate(180deg);
+}
+.search-focus-shell .search-collapse-summary {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr)) auto;
+  gap: 10px;
+  align-items: stretch;
+  padding: 12px;
+  border: 1px solid #dbe8e5;
+  border-radius: 15px;
+  background: #fbfdfc;
+}
+.search-focus-shell .search-collapse-summary span {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: #fff;
+  color: #51686c;
+  box-shadow: inset 0 0 0 1px #edf2f1;
+  font-size: 12px;
+  line-height: 1.35;
+  overflow: hidden;
+}
+.search-focus-shell .search-collapse-summary b {
+  color: #1f3438;
+  font-size: 12px;
+  font-weight: 750;
+}
+.search-focus-shell .search-collapse-summary button {
+  min-height: 54px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 13px;
+  background: #2f6f73;
+  color: #fff;
+  font-weight: 780;
+}
+.search-focus-shell .search-fusion-body {
+  grid-template-columns: minmax(0, 1.05fr) minmax(360px, .95fr) !important;
+  align-items: stretch;
+}
+.search-focus-shell .search-fusion-panel .form-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  align-items: start;
+}
+.search-focus-shell .search-fusion-panel .form-grid label {
+  min-width: 0;
+  display: grid;
+  gap: 6px;
+  line-height: 1.25;
+  overflow: hidden;
+}
+.search-focus-shell .search-fusion-panel .form-grid label.wide {
+  grid-column: 1 / -1;
+}
+.search-focus-shell .search-fusion-panel .form-grid input,
+.search-focus-shell .search-fusion-panel .form-grid select,
+.search-focus-shell .search-fusion-panel .form-grid textarea {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  color: #263d42;
+  line-height: 1.35;
+}
+.search-focus-shell .search-fusion-panel .form-grid textarea {
+  min-height: 84px !important;
+  resize: vertical;
+}
+.search-focus-shell .search-evidence-box,
+.search-focus-shell .search-upload-zone,
+.search-focus-shell .search-context-board,
+.search-focus-shell .search-dialog-summary,
+.search-focus-shell .search-prompt-templates {
+  min-width: 0;
+}
+.search-focus-shell .search-upload-zone {
+  grid-template-columns: 42px minmax(0, 1fr) auto;
+}
+.search-focus-shell .upload-copy,
+.search-focus-shell .upload-copy b,
+.search-focus-shell .upload-copy small,
+.search-focus-shell .search-context-board :is(b, span, small),
+.search-focus-shell .search-dialog-summary :is(b, p),
+.search-focus-shell .search-prompt-templates b,
+.search-focus-shell .file-pills span {
+  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+.search-focus-shell .search-context-board {
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+}
+.search-focus-shell .search-context-board article {
+  min-width: 0;
+  height: auto;
+}
+.search-focus-shell .search-prompt-templates {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.search-focus-shell .search-prompt-templates button {
+  min-width: 0;
+}
+.search-focus-shell .search-dialog-thread {
+  min-height: 220px !important;
+  max-height: 360px !important;
+}
+.search-focus-shell .search-fusion-bar {
+  grid-template-columns: 42px 42px minmax(0, 1fr) 58px !important;
+}
+.search-focus-shell .search-fusion-bar input {
+  min-width: 0;
+}
+
+/* 多模态证据区修正：上传框与上下文卡片更紧凑，避免大块空白和边缘遮挡。 */
+.search-focus-shell .search-evidence-box {
+  gap: 10px !important;
+  padding: 0;
+}
+.search-focus-shell .search-upload-zone {
+  min-height: 88px !important;
+  padding: 12px 16px !important;
+  border-radius: 16px !important;
+  background: #f8fbfa !important;
+  border-color: #b9d5d2 !important;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.72);
+}
+.search-focus-shell .search-upload-zone .upload-mark {
+  width: 50px;
+  height: 50px;
+  border-radius: 14px;
+}
+.search-focus-shell .search-upload-zone .upload-copy {
+  align-content: center;
+}
+.search-focus-shell .search-upload-zone .upload-copy b {
+  font-size: 14px;
+  line-height: 1.25;
+}
+.search-focus-shell .search-upload-zone .upload-copy small {
+  font-size: 11px;
+  line-height: 1.45;
+}
+.search-focus-shell .search-upload-zone > button {
+  min-width: 72px;
+  height: 42px;
+  padding: 0 14px;
+  border-radius: 12px;
+  white-space: nowrap;
+}
+.search-focus-shell .file-pills {
+  margin-top: 0;
+  gap: 6px;
+}
+.search-focus-shell .file-pills:empty {
+  display: none;
+}
+.search-focus-shell .file-pills span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  max-width: 100%;
+  padding: 6px 9px;
+  border: 1px solid #d8e6e4;
+  background: #f6fbfa;
+  color: #3d5d61;
+  line-height: 1.35;
+}
+.search-focus-shell .search-context-board {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  gap: 10px !important;
+  margin-top: 0 !important;
+}
+.search-focus-shell .search-context-board article {
+  min-height: 104px !important;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  gap: 8px;
+  padding: 14px 16px !important;
+  border-radius: 16px !important;
+  border: 1px solid #d9e7e5 !important;
+  background: #fff !important;
+  box-shadow: 0 8px 18px rgba(31,69,75,.035);
+}
+.search-focus-shell .search-context-board article b {
+  font-size: 13px;
+  line-height: 1.25;
+}
+.search-focus-shell .search-context-board article span {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  color: #1f3438;
+  font-size: 15px;
+  line-height: 1.35;
+}
+.search-focus-shell .search-context-board article small {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #687d80;
+  font-size: 12px;
+  line-height: 1.35;
+}
+@media (max-width: 1180px) {
+  .search-focus-shell .search-fusion-body {
+    grid-template-columns: 1fr !important;
+  }
+  .search-focus-shell .search-collapse-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .search-focus-shell .search-collapse-summary button {
+    grid-column: 1 / -1;
+  }
+}
+@media (max-width: 760px) {
+  .search-focus-shell .search-fusion-head {
+    align-items: stretch !important;
+    flex-direction: column;
+  }
+  .search-focus-shell .search-fusion-head .inline-actions {
+    justify-content: flex-start;
+  }
+  .search-focus-shell .search-fusion-panel .form-grid,
+  .search-focus-shell .search-context-board,
+  .search-focus-shell .search-prompt-templates,
+  .search-focus-shell .search-collapse-summary {
+    grid-template-columns: 1fr !important;
+  }
 }
 
 </style>
