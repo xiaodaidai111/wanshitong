@@ -12073,6 +12073,162 @@ button { transition: background-color .18s, border-color .18s, color .18s, trans
   min-height: 48px;
   resize: none;
 }
+
+/* 沉淀更新页防裁字：状态卡和右侧流程卡保留足够内边距，文字始终在框内。 */
+.search-focus-shell .search-update-panel {
+  height: auto;
+  min-height: calc(100vh - 245px) !important;
+  max-height: none;
+  overflow: visible;
+  grid-template-rows: auto 92px minmax(385px, auto) auto auto;
+}
+.search-focus-shell .update-progress-strip {
+  align-items: stretch;
+}
+.search-focus-shell .update-progress-strip article {
+  height: 92px;
+  min-height: 92px;
+  align-items: center;
+  padding: 12px 14px;
+  overflow: hidden;
+}
+.search-focus-shell .update-progress-strip article > div {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+.search-focus-shell .update-progress-strip small,
+.search-focus-shell .update-progress-strip b,
+.search-focus-shell .update-progress-strip em {
+  min-width: 0;
+  max-width: 100%;
+}
+.search-focus-shell .update-progress-strip em {
+  display: -webkit-box;
+  overflow: hidden;
+  line-height: 1.35;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+.search-focus-shell .search-update-layout {
+  grid-template-columns: minmax(0, 1.9fr) minmax(280px, .5fr);
+  height: auto;
+  min-height: 385px;
+  overflow: visible;
+}
+.search-focus-shell .knowledge-update-aside {
+  height: auto;
+  max-height: none;
+  overflow: visible;
+  grid-template-rows: auto auto auto;
+  gap: 10px;
+}
+.search-focus-shell .update-quality-card {
+  height: 98px;
+  padding: 10px;
+}
+.search-focus-shell .update-quality-card span {
+  min-height: 42px;
+}
+.search-focus-shell .update-step-list {
+  height: auto;
+  grid-auto-rows: auto;
+  overflow: visible;
+}
+.search-focus-shell .update-step-list article {
+  height: auto;
+  min-height: 62px;
+  padding: 8px 9px;
+}
+.search-focus-shell .update-step-list b {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.search-focus-shell .update-step-list small {
+  line-height: 1.3;
+  -webkit-line-clamp: 3;
+}
+.search-focus-shell .update-rule-list {
+  height: auto;
+  overflow: visible;
+  padding: 10px;
+}
+.search-focus-shell .update-rule-list span {
+  min-height: 54px;
+}
+.search-focus-shell .update-rule-list em {
+  -webkit-line-clamp: 3;
+}
+.search-focus-shell .search-update-layout .form-grid {
+  overflow: visible;
+}
+.search-focus-shell .search-update-layout .form-grid textarea {
+  min-height: 132px;
+}
+.search-focus-shell .search-update-panel .knowledge-review-list {
+  max-height: none;
+  overflow: visible;
+}
+.search-focus-shell .search-update-panel .knowledge-review-list textarea {
+  min-height: 64px;
+}
+
+/* 沉淀更新完整展示：右侧检查、流程、规则不再被固定高度裁切。 */
+.search-focus-shell .search-update-panel {
+  height: auto !important;
+  max-height: none !important;
+  overflow: visible !important;
+  grid-template-rows: auto auto auto auto auto !important;
+}
+.search-focus-shell .search-update-layout {
+  height: auto !important;
+  min-height: 0 !important;
+  overflow: visible !important;
+  align-items: start;
+}
+.search-focus-shell .search-update-layout > *,
+.search-focus-shell .knowledge-update-aside,
+.search-focus-shell .update-quality-card,
+.search-focus-shell .update-step-list,
+.search-focus-shell .update-rule-list {
+  height: auto !important;
+  max-height: none !important;
+  overflow: visible !important;
+}
+.search-focus-shell .knowledge-update-aside {
+  grid-template-rows: auto auto auto !important;
+  align-content: start;
+}
+.search-focus-shell .update-step-list {
+  grid-auto-rows: auto !important;
+}
+.search-focus-shell .update-step-list article {
+  min-height: 66px !important;
+  height: auto !important;
+}
+.search-focus-shell .update-step-list small,
+.search-focus-shell .update-rule-list em {
+  display: block !important;
+  overflow: visible !important;
+  -webkit-line-clamp: unset !important;
+  -webkit-box-orient: unset !important;
+}
+.search-focus-shell .update-rule-list span {
+  min-height: 58px;
+  align-content: center;
+}
+.search-focus-shell .search-update-layout .form-grid {
+  height: auto !important;
+  overflow: visible !important;
+}
+.search-focus-shell .search-update-layout .form-grid textarea {
+  min-height: 150px;
+}
+.search-focus-shell .search-update-panel > .primary {
+  margin-top: 8px;
+}
 .search-focus-shell :is(.panel, article, button, span, b, small, em, p, h3, input, textarea, select) {
   min-width: 0;
 }
