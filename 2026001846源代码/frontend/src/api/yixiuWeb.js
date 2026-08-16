@@ -16,6 +16,21 @@ const getHost = () => {
 const API_BASE = `${getHost()}/api/yixiu`
 const SYSTEM_BASE = getHost()
 
+const getStoredToken = () => {
+  if (typeof window !== 'undefined') {
+    const token = window.localStorage?.getItem('token') || window.localStorage?.getItem('yixiu-token')
+    if (token) return token
+  }
+  try {
+    if (typeof uni !== 'undefined' && uni.getStorageSync) return uni.getStorageSync('token') || ''
+  } catch (_error) {
+    return ''
+  }
+  return ''
+}
+
+const operationId = (prefix = 'op') => `${prefix}-${Date.now()}-${Math.random().toString(16).slice(2, 10)}`
+
 const normalizeResponse = async (response) => {
   const payload = await response.json().catch(() => ({}))
   if (!response.ok || (payload.code && payload.code >= 400)) {
@@ -25,12 +40,26 @@ const normalizeResponse = async (response) => {
 }
 
 export const requestJson = async (path, options = {}) => {
+  const token = getStoredToken()
+  const headers = {
+    'Content-Type': 'application/json',
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    ...options.headers
+  }
   const response = await fetch(`${API_BASE}${path}`, {
     method: options.method || 'GET',
-    headers: { 'Content-Type': 'application/json', ...options.headers },
+    headers,
     body: options.body ? JSON.stringify(options.body) : undefined
   })
   return normalizeResponse(response)
+}
+
+const confirmedBody = (payload = {}, prefix = 'aios') => {
+  const idempotencyKey = payload.idempotency_key || operationId(prefix)
+  return {
+    body: { ...payload, confirmed: payload.confirmed ?? true, idempotency_key: idempotencyKey },
+    headers: { 'Idempotency-Key': idempotencyKey }
+  }
 }
 
 const resolveAssetUrl = (url) => {
@@ -108,6 +137,62 @@ export const yixiuApi = {
     } catch (_error) {
       return { system: '异常', backend: '离线', ai: '待确认', rag: '待确认', knowledge: `${mockKnowledge.length} 条本地资料` }
     }
+  },
+
+  async agents(agentId = '') {
+    try {
+      const params = agentId ? `?agent_id=${encodeURIComponent(agentId)}` : ''
+      const data = await requestJson(`/agents${params}`)
+      return data.agents?.length ? data.agents : mockAgents
+    } catch (_error) {
+      return agentId ? mockAgents.filter((agent) => agent.id === agentId || agent.name === agentId) : mockAgents
+    }
+  },
+
+  invokeAgent(agentId, payload = {}) {
+    return requestJson(`/agents/${encodeURIComponent(agentId)}/invoke`, { method: 'POST', body: payload })
+  },
+
+  dispatchAgents(payload = {}) {
+    return requestJson('/agents/dispatch', { method: 'POST', body: payload })
+  },
+
+  aiosPlan(payload = {}) {
+    return requestJson('/aios/plan', { method: 'POST', body: payload })
+  },
+
+  aiosExecute(payload = {}) {
+    const options = confirmedBody(payload, 'aios-execute')
+    return requestJson('/aios/execute', { method: 'POST', ...options })
+  },
+
+  aiosStatus(limit = 10) {
+    return requestJson(`/aios/status?limit=${encodeURIComponent(limit)}`)
+  },
+
+  aiosRunDetail(runId) {
+    return requestJson(`/aios/runs/${encodeURIComponent(runId)}`)
+  },
+
+  aiosEvents(params = {}) {
+    const query = new URLSearchParams()
+    if (params.runId) query.set('run_id', params.runId)
+    if (params.agentId) query.set('agent_id', params.agentId)
+    if (params.limit) query.set('limit', params.limit)
+    return requestJson(`/aios/events${query.size ? `?${query}` : ''}`)
+  },
+
+  aiosResume(payload = {}) {
+    const options = confirmedBody(payload, 'aios-resume')
+    return requestJson('/aios/resume', { method: 'POST', ...options })
+  },
+
+  databaseStatus() {
+    return requestJson('/database/status')
+  },
+
+  databaseBootstrap() {
+    return requestJson('/database/bootstrap', { method: 'POST', body: {} })
   },
 
   async tasks(filters = {}) {
